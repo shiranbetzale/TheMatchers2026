@@ -11,8 +11,8 @@ export const styles = StyleSheet.create({
     },
     collapseBtn: {
         alignItems: "flex-end",
-        marginBottom: GeneralStyle.space,
-        opacity: 0.85,
+        marginBottom: GeneralStyle.space * 2,
+        opacity: 0.98,
         borderColor: Colors.black,
         borderWidth: 2,
     }

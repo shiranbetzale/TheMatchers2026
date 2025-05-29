@@ -3,4 +3,5 @@ export type CustomRangeType = {
   maxRange: number;
   step: number;
   text: string;
+  isSmallSize?: boolean;
 };

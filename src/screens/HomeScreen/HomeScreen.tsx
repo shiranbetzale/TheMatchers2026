@@ -3,7 +3,6 @@ import {SafeAreaView, ScrollView, View} from 'react-native';
 import CustomImageBg from '../../components/CustomImageBg/CustomImageBg';
 import {styles} from './HomeScreen.style';
 import {HomeScreenType} from './HomeScreen.type';
-import CustomText from '../../components/CustomText/CustomText';
 
 const HomeScreen = (props: HomeScreenType) => {
   const {children, pinChildren} = props;

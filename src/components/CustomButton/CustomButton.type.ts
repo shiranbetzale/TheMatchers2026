@@ -1,10 +1,12 @@
 import { ReactNode } from "react";
-import { ViewStyle } from "react-native";
+import { TextStyle, ViewStyle } from "react-native";
 
 export type CustomButtonType = {
   onPress: () => void;
   text?: string;
-  customStyle?: ViewStyle;
+  customStyle?: ViewStyle | ViewStyle[] | any;
+  customTextStyle?: TextStyle | TextStyle[] | any;
   isDisabled?: boolean;
   children?: ReactNode;
+  icon?: ReactNode;
 };

@@ -1,5 +1,6 @@
 import { StyleSheet } from 'react-native';
 import Colors from '../../utils/Colors';
+import { FontsStyle } from '../../utils/FontsStyle';
 import GeneralStyle from '../../utils/GeneralStyle';
 
 export const styles = StyleSheet.create({
@@ -20,6 +21,8 @@ export const styles = StyleSheet.create({
         width: "80%",
         alignItems: "center",
         marginVertical: GeneralStyle.space,
+        flexDirection: "row-reverse",
+        justifyContent: "space-between"
     },
     img: {
         width: "100%",
@@ -34,4 +37,8 @@ export const styles = StyleSheet.create({
     girl: {
         backgroundColor: Colors.pink
     },
+    txt: {
+        color: Colors.black,
+        ...FontsStyle.menuTitle,
+    }
 });

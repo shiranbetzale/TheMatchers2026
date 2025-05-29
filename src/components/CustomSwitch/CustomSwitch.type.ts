@@ -1,4 +1,5 @@
 export type CustomSwitchType = {
   text: string;
-  isMaxWidth?: boolean;
+  handleToggle?: (isOn: boolean) => void;
+  isSmallSize?: boolean;
 };

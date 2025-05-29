@@ -8,6 +8,10 @@ export const styles = StyleSheet.create({
     alignItems: "flex-end",
     justifyContent: "center",
   },
+  smallRange: {
+    marginRight: GeneralStyle.space,
+    marginBottom: GeneralStyle.space / 2
+  },
   rangeContainer: {
     flexDirection: "row",
     alignItems: 'center',
@@ -22,11 +26,21 @@ export const styles = StyleSheet.create({
   rangeText: {
     width: "15%",
   },
+  smallRangeText: {
+    position: "absolute",
+    bottom: -8,
+  },
+  left: {
+    left: - GeneralStyle.space,
+  },
+  right: {
+    right: 0
+  },
   markerStyle: {
-    backgroundColor: Colors.border,
+    backgroundColor: Colors.color1,
   },
   pressedMarkerStyle: {
-    backgroundColor: Colors.btn
+    backgroundColor: Colors.color1
   },
   selectedStyle: {
     backgroundColor: Colors.black

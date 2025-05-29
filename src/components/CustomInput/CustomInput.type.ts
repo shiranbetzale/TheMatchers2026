@@ -6,5 +6,6 @@ export type CustomInputType = {
   isMultiline?: boolean;
   isEditable?: boolean;
   defaultValue?: string | number;
-  isMaxWidth?: boolean;
+  isSmallSize?: boolean;
+  maxLength?: number;
 };

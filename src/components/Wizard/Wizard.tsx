@@ -36,7 +36,7 @@ const Wizard = () => {
   }
 
   const txtProps: WizardTxtType = {
-    customStyle: FontsStyle.title,
+    customStyle: FontsStyle.wizardTitle,
     text: wizardSteps.find((step) => step.id === wizardStep)?.title
   }
 

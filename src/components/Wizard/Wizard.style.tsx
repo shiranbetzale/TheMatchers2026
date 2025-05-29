@@ -19,4 +19,7 @@ export const styles = StyleSheet.create({
     margin: GeneralStyle.space,
     height: Dimensions.get("window").height - 200,
   },
+  btn: {
+    backgroundColor: Colors.color1,
+  }
 });

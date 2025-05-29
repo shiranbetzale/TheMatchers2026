@@ -3,6 +3,6 @@ import Colors from '../../utils/Colors';
 export const styles = StyleSheet.create({
     headerStyle: {
         height: 110,
-        backgroundColor: Colors.lightBrown,
+        backgroundColor: Colors.color1,
     }
 });

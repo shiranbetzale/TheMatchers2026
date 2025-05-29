@@ -1,13 +1,13 @@
-import React, {useState} from 'react';
-import {View} from 'react-native';
+import React, { useState } from 'react';
+import { View } from 'react-native';
 import CustomText from '../CustomText/CustomText';
-import {styles} from './CustomRange.style';
-import {CustomRangeType} from './CustomRange.type';
+import { styles } from './CustomRange.style';
+import { CustomRangeType } from './CustomRange.type';
 import MultiSlider from '@ptomasroos/react-native-multi-slider';
-import {FontsStyle} from '../../utils/FontsStyle';
+import { FontsStyle } from '../../utils/FontsStyle';
 
 const CustomRange = (props: CustomRangeType) => {
-  const {text, minRange = 0, maxRange = 10, step = 1} = props;
+  const { isSmallSize = false, text, minRange = 0, maxRange = 10, step = 1 } = props;
   const [rangeValues, setRangeValues] = useState([minRange, maxRange]);
 
   const handleRangeChange = (values: any) => {
@@ -15,20 +15,16 @@ const CustomRange = (props: CustomRangeType) => {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={!isSmallSize && styles.container}>
       <CustomText text={text} />
-
-      <View style={styles.rangeContainer}>
-        <View style={styles.rangeText}>
-          <CustomText
-            text={rangeValues[0]}
-            customStyle={FontsStyle.textRight}
-          />
+      <View style={!isSmallSize && styles.rangeContainer}>
+        <View style={[isSmallSize ? styles.smallRangeText : styles.rangeText, isSmallSize && styles.left]}>
+          <CustomText text={rangeValues[0]} customStyle={FontsStyle.textRight} />
         </View>
-        <View style={styles.range}>
+        <View style={isSmallSize ? styles.smallRange : styles.range}>
           <MultiSlider
             values={rangeValues}
-            sliderLength={160}
+            sliderLength={isSmallSize ? 130 : 160}
             onValuesChange={handleRangeChange}
             min={minRange}
             max={maxRange}
@@ -40,7 +36,7 @@ const CustomRange = (props: CustomRangeType) => {
             selectedStyle={styles.selectedStyle}
           />
         </View>
-        <View style={styles.rangeText}>
+        <View style={[isSmallSize ? styles.smallRangeText : styles.rangeText, isSmallSize && styles.right]}>
           <CustomText text={rangeValues[1]} customStyle={FontsStyle.textLeft} />
         </View>
       </View>

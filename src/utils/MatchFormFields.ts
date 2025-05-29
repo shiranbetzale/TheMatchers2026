@@ -94,6 +94,24 @@ const matchFormArray: FormField[] = [
         collapseTitle: "פרטים כלליים"
     },
     {
+        id: "matchIsGer",
+        text: "מוכן/ה לשמוע על גר/ת צדק?",
+        fieldType: "switch",
+        collapseTitle: "פרטים כלליים"
+    },
+    {
+        id: "matchIsHozerBitshuva",
+        text: "מוכן/ה לשמוע על חוזר/ת בתשובה?",
+        fieldType: "switch",
+        collapseTitle: "פרטים כלליים"
+    },
+    {
+        id: "matchIsVaccinatedCorona",
+        text: "מוכן/ה לשמוע על מחוסן קורונה?",
+        fieldType: "switch",
+        collapseTitle: "פרטים כלליים"
+    },
+    {
         id: "matchIsWantNationalService",
         text: "מוכן/ה לשמוע על מישהי שעשתה שירות לאומי?",
         fieldType: "switch",

@@ -1,5 +1,6 @@
-type CustomTextType = {
-  text: string | number;
-  fontWeight?: 'bold' | 'light' | 'medium';
-  customTxtStyle?: any;
+import { TextStyle } from "react-native";
+
+export type CustomTextType = {
+  text: string | number | any;
+  customStyle?: TextStyle | any;
 };

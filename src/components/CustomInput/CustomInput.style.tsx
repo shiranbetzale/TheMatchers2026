@@ -10,12 +10,23 @@ export const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between"
   },
+  smallContainer: {
+    flex: 1,
+    alignItems: "flex-end",
+  },
   input: {
     marginRight: GeneralStyle.space,
-    borderWidth: 2,
     padding: GeneralStyle.space,
     width: 200,
-    borderColor: Colors.border,
+  },
+  smallInput: {
+    padding: GeneralStyle.space / 2,
+    width: 150,
+    marginTop: GeneralStyle.space / 2,
+  },
+  baseInput: {
+    borderWidth: 2,
+    borderColor: Colors.color1,
     borderRadius: 4,
     ...FontsStyle.text
   },
@@ -30,6 +41,6 @@ export const styles = StyleSheet.create({
     flexDirection: "column",
   },
   maxWidth: {
-    maxWidth: 150
+    maxWidth: 100
   }
 });

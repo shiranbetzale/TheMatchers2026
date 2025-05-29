@@ -11,6 +11,10 @@ export const styles = StyleSheet.create({
   switchText: {
     width: "80%"
   },
+  smallSwitch: {
+    alignItems: "flex-end",
+    marginTop: GeneralStyle.space / 2
+  },
   text: {
     marginLeft: GeneralStyle.space
   },

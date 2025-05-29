@@ -10,31 +10,40 @@ const fontFamily = {
 };
 
 export const FontsStyle = StyleSheet.create({
+    baseFont: {
+        color: Colors.black,
+        textAlign: "right",
+        fontSize: 16,
+    },
     title: {
         fontFamily: fontFamily.semiBold,
-        color: Colors.btn,
+        color: Colors.darkGreen,
+        fontSize: 40,
+    },
+    menuTitle: {
+        fontFamily: fontFamily.semiBold,
+        fontSize: 26,
+    },
+    wizardTitle: {
+        fontFamily: fontFamily.medium,
+        color: Colors.color1,
         fontSize: 24,
     },
     textDecoration: {
         fontFamily: fontFamily.semiBold,
-        color: Colors.black,
         textDecorationLine: "underline",
-        fontSize: 24,
     },
     subTitle: {
         fontFamily: fontFamily.medium,
-        textAlign: "right",
-        color: Colors.black,
-        fontSize: 16,
     },
     text: {
         fontFamily: fontFamily.regular,
-        textAlign: "right",
-        color: Colors.black,
-        fontSize: 16,
     },
     textRight: {
         textAlign: "right",
+    },
+    textCenter: {
+        textAlign: "center",
     },
     textLeft: {
         textAlign: "left",

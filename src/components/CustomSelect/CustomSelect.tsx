@@ -1,45 +1,35 @@
 import React, {useState} from 'react';
 import {View} from 'react-native';
 import {styles} from './CustomSelect.style';
+import SelectDropdown from 'react-native-select-dropdown';
 import {CustomSelectType} from './CustomSelect.type';
 import CustomText from '../CustomText/CustomText';
 import {FontsStyle} from '../../utils/FontsStyle';
-import {Dropdown} from 'react-native-element-dropdown';
 
-const CustomSelect = ({
-  text,
-  options,
-  onSelect = () => {},
-}: CustomSelectType) => {
-  const [selectedValue, setSelectedValue] = useState<string | number | null>(
-    null,
-  );
-
-  const data = options.map(option => ({
-    label: option.label,
-    value: option.id,
-  }));
+const CustomSelect = (props: CustomSelectType) => {
+  const {text, options, onSelect = () => {}} = props;
 
   return (
     <View style={styles.container}>
       <CustomText text={text} />
-      <Dropdown
-        style={[styles.dropdownRow, styles.select]}
-        data={data}
-        labelField="label"
-        valueField="value"
-        placeholder="בחר/י מתוך הרשימה"
-        value={selectedValue}
-        onChange={item => {
-          setSelectedValue(item.value);
-          const selectedOption = options.find(
-            option => option.id === item.value,
-          );
-          onSelect(selectedOption);
+      {/* <SelectDropdown
+        defaultButtonText="בחר/י מתוך הרשימה"
+        data={options.map(option => option.label)}
+        rowTextStyle={FontsStyle.text}
+        buttonStyle={[styles.dropdownRow, styles.select]}
+        buttonTextStyle={FontsStyle.text}
+        selectedRowStyle={styles.dropdownRow}
+        onSelect={(selectedItem, index) => {
+          const selectOption = options.find(option => option.label === selectedItem)
+          onSelect(selectOption)
         }}
-        placeholderStyle={FontsStyle.text}
-        selectedTextStyle={FontsStyle.text}
-      />
+        buttonTextAfterSelection={(selectedItem, index) => {
+          return selectedItem
+        }}
+        rowTextForSelection={(item, index) => {
+          return item
+        }}
+      /> */}
     </View>
   );
 };

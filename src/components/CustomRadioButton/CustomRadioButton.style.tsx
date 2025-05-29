@@ -3,6 +3,9 @@ import Colors from "../../utils/Colors";
 import GeneralStyle from "../../utils/GeneralStyle";
 
 export const styles = StyleSheet.create({
+  smallBtn: {
+    marginTop: GeneralStyle.space / 2
+  },
   btn: {
     marginTop: GeneralStyle.space
   },
@@ -11,16 +14,24 @@ export const styles = StyleSheet.create({
     flexDirection: "row-reverse",
     alignItems: "center",
   },
+  smallCircle: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    marginLeft: GeneralStyle.space / 2,
+  },
+  baseCircle: {
+    borderColor: Colors.black,
+    backgroundColor: Colors.white,
+    borderWidth: 2,
+  },
   circle: {
     width: 30,
     height: 30,
     borderRadius: 15,
-    backgroundColor: Colors.white,
     marginLeft: GeneralStyle.space,
-    borderColor: Colors.black,
-    borderWidth: 2,
   },
   selectedCircle: {
-    backgroundColor: Colors.border,
+    backgroundColor: Colors.color1,
   }
 });

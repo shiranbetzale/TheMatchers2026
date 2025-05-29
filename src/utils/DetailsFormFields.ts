@@ -3,18 +3,11 @@ import { calculateAge, getDateBefore } from "./generalFunction";
 
 const detailsFormArray: FormField[] = [
     {
-        id: "id",
-        text: "תעודת זהות:",
-        keyboardTypeOption: "numeric",
-        fieldType: "input",
-        collapseTitle: "פרטים אישיים",
-    },
-    {
         id: "fullName",
         text: "שם מלא:",
         keyboardTypeOption: "default",
         fieldType: "input",
-        collapseTitle: "פרטים אישיים"
+        collapseTitle: "פרטים אישיים",
     },
     {
         id: "gender",
@@ -138,7 +131,8 @@ const detailsFormArray: FormField[] = [
         text: "טלפון:",
         keyboardTypeOption: "numeric",
         fieldType: "input",
-        collapseTitle: "פרטי קשר"
+        collapseTitle: "פרטי קשר",
+        maxLength: 10
     },
     {
         id: "typeOfPhone",
@@ -184,13 +178,7 @@ const detailsFormArray: FormField[] = [
     },
     {
         id: "isGer",
-        text: "מעוניין/ת בגר/ת צדק?",
-        fieldType: "switch",
-        collapseTitle: "סגנון"
-    },
-    {
-        id: "isHozerBitshuva",
-        text: "מעוניין/ת בחוזר/ת בתשובה?",
+        text: "אני גר/ת צדק?",
         fieldType: "switch",
         collapseTitle: "סגנון"
     },
@@ -215,6 +203,12 @@ const detailsFormArray: FormField[] = [
     {
         id: "isCohen",
         text: "את/ה כהן/ת?",
+        fieldType: "switch",
+        collapseTitle: "פרטים כלליים"
+    },
+    {
+        id: "isVaccinatedCorona",
+        text: "את/ה מחוסן לקורונה?",
         fieldType: "switch",
         collapseTitle: "פרטים כלליים"
     },
@@ -524,6 +518,13 @@ const detailsFormArray: FormField[] = [
         id: "rabbiName",
         text: "מי הרב שלי?",
         keyboardTypeOption: "default",
+        fieldType: "input",
+        collapseTitle: "פרטים נוספים"
+    },
+    {
+        id: "rabbiPhone",
+        text: "מספר טלפון של הרב/נית שלי",
+        keyboardTypeOption: "numeric",
         fieldType: "input",
         collapseTitle: "פרטים נוספים"
     },

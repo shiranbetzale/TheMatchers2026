@@ -1,9 +1,12 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import React from 'react';
 import AllCardsScreen from '../../screens/AllCardsScreen/AllCardsScreen';
+import EditFormScreen from '../../screens/EditFormScreen/EditFormScreen';
+import Login from '../../screens/Login/Login';
+import MainScreen from '../../screens/MainScreen/MainScreen';
 import MatchCardsScreen from '../../screens/MatchCardsScreen/MatchCardsScreen';
+import RegisterUserScreen from '../../screens/RegisterUserScreen/RegisterUserScreen';
 import Wizard from '../Wizard/Wizard';
-import { styles } from './MainStackNavigation.style';
 
 const Stack = createNativeStackNavigator();
 
@@ -23,7 +26,27 @@ const MainStackNavigation = () => {
       name: "MatchCardsScreen",
       component: MatchCardsScreen,
       title: "222"
-    }
+    },
+    {
+      name: "Login",
+      component: Login,
+      title: "333"
+    },
+    {
+      name: "MainScreen",
+      component: MainScreen,
+      title: "444"
+    },
+    {
+      name: "EditFormScreen",
+      component: EditFormScreen,
+      title: "555"
+    },
+    {
+      name: "RegisterUserScreen",
+      component: RegisterUserScreen,
+      title: "666"
+    },
   ]
 
   return (

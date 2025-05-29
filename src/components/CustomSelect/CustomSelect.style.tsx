@@ -10,7 +10,7 @@ export const styles = StyleSheet.create({
     flexDirection: "row-reverse",
   },
   dropdownRow: {
-    backgroundColor: Colors.border,
+    backgroundColor: Colors.color1,
   },
   select: {
     marginLeft: GeneralStyle.space

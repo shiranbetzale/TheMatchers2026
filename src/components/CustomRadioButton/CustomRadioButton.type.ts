@@ -4,4 +4,5 @@ export type CustomRadioButtonType = {
   radiosArray: Option[];
   text: string;
   onSelect: (option?: Option) => void;
+  isSmallSize?: boolean;
 };

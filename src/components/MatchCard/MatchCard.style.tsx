@@ -5,19 +5,17 @@ import GeneralStyle from '../../utils/GeneralStyle';
 export const styles = StyleSheet.create({
     container: {
         flex: 1,
-        width: "100%",
         flexDirection: "row-reverse",
+    },
+    imgBtnContainer: {
         alignItems: "center",
-        marginBottom: GeneralStyle.space,
-        alignContent: "space-between",
+        marginLeft: GeneralStyle.space * 2,
     },
     imgContainer: {
-        borderColor: Colors.black,
         width: 100,
         height: 100,
         borderRadius: 50,
         overflow: 'hidden',
-        marginLeft: GeneralStyle.space,
     },
     img: {
         width: "100%",
@@ -26,4 +24,13 @@ export const styles = StyleSheet.create({
     info: {
         flexDirection: "row-reverse",
     },
+    icon: {
+        width: 40,
+        height: 40,
+        backgroundColor: Colors.transparent,
+        justifyContent: "center",
+    },
+    infoButtons: {
+        flexDirection: "row-reverse"
+    }
 });

@@ -1,12 +1,12 @@
 import React from 'react';
-import {FontsStyle} from '../../utils/FontsStyle';
+import { FontsStyle } from '../../utils/FontsStyle';
 import CustomButton from '../CustomButton/CustomButton';
 import CustomText from '../CustomText/CustomText';
-import {styles} from './CustomCollapse.style';
-import {CustomTitleCollapseType} from './CustomCollapse.type';
+import { styles } from './CustomCollapse.style';
+import { CustomTitleCollapseType } from './CustomCollapse.type';
 
 const CustomTitleCollapse = (props: CustomTitleCollapseType) => {
-  const {title, handlePress} = props;
+  const { title, handlePress } = props;
 
   return (
     <CustomButton onPress={handlePress} customStyle={styles.collapseBtn}>

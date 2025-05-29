@@ -5,7 +5,7 @@ import {CustomDatePickerType} from './CustomDatePicker.type';
 import DatePicker from 'react-native-date-picker';
 import CustomText from '../CustomText/CustomText';
 import CustomButton from '../CustomButton/CustomButton';
-// import BluetoothIcon from '../../assets/images/bluetooth.svg';
+import DatePickerSvg from '../../assets/images/datePicker.svg';
 import {FontsStyle} from '../../utils/FontsStyle';
 
 const CustomDatePicker = (props: CustomDatePickerType) => {
@@ -16,16 +16,16 @@ const CustomDatePicker = (props: CustomDatePickerType) => {
   return (
     <View style={styles.container}>
       <CustomText text={text} />
-      {/* <View style={styles.dateContainer}>
+      <View style={styles.dateContainer}>
         <CustomText
           text={date.toLocaleDateString('he-IL')}
           customStyle={FontsStyle.text}
         />
         <CustomButton
           customStyle={styles.datePickerBtn}
-          onPress={() => setOpen(true)}>
-          <BluetoothIcon width={30} height={30} fill="#FFFFFF" />
-        </CustomButton>
+          icon={<DatePickerSvg />}
+          onPress={() => setOpen(true)}
+        />
         <DatePicker
           modal
           open={open}
@@ -41,7 +41,7 @@ const CustomDatePicker = (props: CustomDatePickerType) => {
           }}
           maximumDate={maxDate}
         />
-      </View> */}
+      </View>
     </View>
   );
 };

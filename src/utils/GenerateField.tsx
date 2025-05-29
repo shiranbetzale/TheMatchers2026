@@ -8,12 +8,13 @@ import CustomSwitch from "../components/CustomSwitch/CustomSwitch";
 import { FormField } from "./FormFields.type";
 
 const generateField = (props: FormField) => {
-    const { defaultValue, maxDate, isEditable, minRange, maxRange, step, isMultiline, text, keyboardTypeOption, fieldType, options, handlePress = () => { } } = props;
+    const { maxLength, isSmallSize, defaultValue, maxDate, isEditable, minRange, maxRange, step, isMultiline, text, keyboardTypeOption, fieldType, options, handlePress = () => { } } = props;
 
     switch (fieldType) {
         case "input":
             return <CustomInput
-                isMaxWidth={true}
+                maxLength={maxLength}
+                isSmallSize={isSmallSize}
                 isMultiline={isMultiline}
                 defaultValue={defaultValue}
                 placeholder={text}
@@ -23,6 +24,7 @@ const generateField = (props: FormField) => {
 
         case "radioButton":
             return <CustomRadioButton
+                isSmallSize={isSmallSize}
                 text={text}
                 radiosArray={options || []}
                 onSelect={handlePress} />
@@ -42,17 +44,19 @@ const generateField = (props: FormField) => {
 
         case "switch":
             return <CustomSwitch
-                isMaxWidth={true}
+                isSmallSize={isSmallSize}
                 text={text} />
 
         case "checkbox":
             return <CustomCheckBox
+                isSmallSize={isSmallSize}
                 text={text}
                 options={options || []}
             />
 
         case "range":
             return <CustomRange
+                isSmallSize={isSmallSize}
                 text={text}
                 step={step || 0}
                 minRange={minRange || 0}

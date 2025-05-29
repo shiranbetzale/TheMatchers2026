@@ -1,4 +1,5 @@
 import { StyleSheet } from "react-native";
+import Colors from "../../utils/Colors";
 import GeneralStyle from "../../utils/GeneralStyle";
 
 export const styles = StyleSheet.create({
@@ -14,8 +15,11 @@ export const styles = StyleSheet.create({
     alignItems: "center",
   },
   datePickerBtn: {
-    paddingHorizontal: 0,
-    paddingVertical: 0,
+    backgroundColor: Colors.color1,
+    borderRadius: 4,
+    padding: 0,
+    width: 30,
+    height: 30,
     marginRight: GeneralStyle.space
   }
 });
