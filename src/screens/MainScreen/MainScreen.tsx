@@ -9,8 +9,13 @@ import Colors from '../../utils/Colors';
 import {FontsStyle} from '../../utils/FontsStyle';
 import HomeScreen from '../HomeScreen/HomeScreen';
 import {styles} from './MainScreen.style';
+import {useNavigation} from '@react-navigation/native';
+import {StackNavigationProp} from '@react-navigation/stack';
+import {RootStackParamList} from '../../components/MainStackNavigation/MainStackNavigation.type';
 
-const MainScreen = ({navigation}: any) => {
+const MainScreen = () => {
+  const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
+
   const lastCardsArray: MatchCardType[] = [
     {
       city: 'בני ברק',

@@ -10,7 +10,6 @@ export type MatchCardType = {
   met?: boolean;
   isShowInfoButtons?: boolean;
   isShowMeetingInfo?: boolean;
-  navigation?: any
   isSlide?: boolean;
   mail?: string;
   phone: string;

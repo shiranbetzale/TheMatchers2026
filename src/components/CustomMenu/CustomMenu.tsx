@@ -7,9 +7,13 @@ import CustomButton from '../CustomButton/CustomButton';
 import CustomText from '../CustomText/CustomText';
 import {styles} from './CustomMenu.style';
 import {CustomMenuType} from './CustomMenu.type';
+import { useNavigation } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { RootStackParamList } from '../MainStackNavigation/MainStackNavigation.type';
 
 const CustomMenu = (props: CustomMenuType) => {
-  const {navigation, onPressMenu, title} = props;
+  const {onPressMenu, title} = props;
+  const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
 
   // const handleBackButtonClick = () => {
   //   navigation?.goBack();

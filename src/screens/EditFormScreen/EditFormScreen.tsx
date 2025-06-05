@@ -8,7 +8,7 @@ import generateField from '../../utils/GenerateField';
 import HomeScreen from '../HomeScreen/HomeScreen';
 import {styles} from './EditFormScreen.style';
 
-const EditFormScreen = ({navigation}: any) => {
+const EditFormScreen = () => {
   const [isEditable, setIsEditable] = useState<boolean>(false);
 
   const handlePressEdit = () => {

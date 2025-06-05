@@ -1,4 +1,4 @@
-import { StyleSheet } from 'react-native';
+import {StyleSheet} from 'react-native';
 import Colors from '../../utils/Colors';
 import GeneralStyle from '../../utils/GeneralStyle';
 
@@ -15,14 +15,14 @@ export const styles = StyleSheet.create({
     padding: GeneralStyle.space,
   },
   disabled: {
-    opacity: 0.5
+    opacity: 0.5,
   },
   icon: {
     width: 50,
     height: 50,
     backgroundColor: Colors.transparent,
-    justifyContent: "center",
+    justifyContent: 'center',
     alignItems: 'center',
     padding: GeneralStyle.space,
-  }
+  },
 });

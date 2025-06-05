@@ -11,10 +11,14 @@ import OrderBySvg from '../../assets/images/orderBy.svg';
 import Colors from '../../utils/Colors';
 import HomeScreen from '../HomeScreen/HomeScreen';
 import {styles} from './AllCardsScreen.style';
+import { useNavigation } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { RootStackParamList } from '../../components/MainStackNavigation/MainStackNavigation.type';
 
-const AllCardsScreen = ({navigation}: any) => {
+const AllCardsScreen = () => {
   const [isShowFilter, setIsShowFilter] = useState<boolean>(false);
   const [isShowOrderBy, setIsShowOrderBy] = useState<boolean>(false);
+  const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
 
   const allCardsArray: MatchCardType[] = [
     {

@@ -19,7 +19,7 @@ const CustomRange = (props: CustomRangeType) => {
       <CustomText text={text} />
       <View style={!isSmallSize && styles.rangeContainer}>
         <View style={[isSmallSize ? styles.smallRangeText : styles.rangeText, isSmallSize && styles.left]}>
-          <CustomText text={rangeValues[0]} customStyle={FontsStyle.textRight} />
+          <CustomText text={rangeValues[0]} customStyle={FontsStyle.text} />
         </View>
         <View style={isSmallSize ? styles.smallRange : styles.range}>
           <MultiSlider
@@ -37,7 +37,7 @@ const CustomRange = (props: CustomRangeType) => {
           />
         </View>
         <View style={[isSmallSize ? styles.smallRangeText : styles.rangeText, isSmallSize && styles.right]}>
-          <CustomText text={rangeValues[1]} customStyle={FontsStyle.textLeft} />
+          <CustomText text={rangeValues[1]} customStyle={FontsStyle.text} />
         </View>
       </View>
     </View>
