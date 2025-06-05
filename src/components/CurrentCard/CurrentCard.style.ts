@@ -21,15 +21,11 @@ export const styles = StyleSheet.create({
         width: "80%",
         alignItems: "center",
         marginVertical: GeneralStyle.space,
-        flexDirection: "row-reverse",
         justifyContent: "space-between"
     },
     img: {
         width: "100%",
         height: "100%",
-    },
-    info: {
-        flexDirection: "row-reverse",
     },
     boy: {
         backgroundColor: Colors.lightBlue

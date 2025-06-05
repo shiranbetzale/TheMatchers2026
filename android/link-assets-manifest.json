@@ -1,0 +1,21 @@
+{
+  "migIndex": 1,
+  "data": [
+    {
+      "path": "src/assets/fonts/Birzia-Black.otf",
+      "sha1": "96ec71515b18d0c441bdc961dd035f12b856953c"
+    },
+    {
+      "path": "src/assets/fonts/Birzia-Bold.otf",
+      "sha1": "ae8dd4aea5b85426fb3f15f513c47f69992f03d5"
+    },
+    {
+      "path": "src/assets/fonts/Birzia-Light.otf",
+      "sha1": "a4c33fdf6a99389bf54517899dfa3439b75481ac"
+    },
+    {
+      "path": "src/assets/fonts/Birzia-Medium.otf",
+      "sha1": "cbdd89a7dc85a800084189e6954d4dbff48abbe3"
+    }
+  ]
+}

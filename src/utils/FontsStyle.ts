@@ -1,51 +1,37 @@
-import { StyleSheet } from "react-native";
-import Colors from "./Colors";
+import {StyleSheet} from 'react-native';
+import Colors from './Colors';
 
-const fontFamily = {
-    medium: "IBMPlexSansHebrew-Medium",
-    semiBold: "IBMPlexSansHebrew-SemiBold",
-    bold: "IBMPlexSansHebrew-Medium",
-    regular: "IBMPlexSansHebrew-Regular",
-    light: "IBMPlexSansHebrew-Light",
+const fontMap = {
+  light: 'Birzia-Light',
+  medium: 'Birzia-Medium',
+  bold: 'Birzia-Bold',
 };
 
 export const FontsStyle = StyleSheet.create({
-    baseFont: {
-        color: Colors.black,
-        textAlign: "right",
-        fontSize: 16,
-    },
-    title: {
-        fontFamily: fontFamily.semiBold,
-        color: Colors.darkGreen,
-        fontSize: 40,
-    },
-    menuTitle: {
-        fontFamily: fontFamily.semiBold,
-        fontSize: 26,
-    },
-    wizardTitle: {
-        fontFamily: fontFamily.medium,
-        color: Colors.color1,
-        fontSize: 24,
-    },
-    textDecoration: {
-        fontFamily: fontFamily.semiBold,
-        textDecorationLine: "underline",
-    },
-    subTitle: {
-        fontFamily: fontFamily.medium,
-    },
-    text: {
-        fontFamily: fontFamily.regular,
-    },
-    textRight: {
-        textAlign: "right",
-    },
-    textCenter: {
-        textAlign: "center",
-    },
-    textLeft: {
-        textAlign: "left",
-    }
+  text: {
+    color: Colors.black,
+    fontFamily: fontMap.light,
+    fontSize: 18,
+  },
+  title: {
+    fontFamily: fontMap.bold,
+    color: Colors.darkGreen,
+    fontSize: 40,
+  },
+  menuTitle: {
+    fontFamily: fontMap.bold,
+    fontSize: 26,
+  },
+  wizardTitle: {
+    fontFamily: fontMap.medium,
+    color: Colors.color1,
+    fontSize: 24,
+  },
+  textDecoration: {
+    fontFamily: fontMap.bold,
+    textDecorationLine: 'underline',
+  },
+  subTitle: {
+    fontFamily: fontMap.medium,
+  },
 });

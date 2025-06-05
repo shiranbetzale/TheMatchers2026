@@ -1,13 +1,12 @@
-import { StyleSheet } from "react-native";
-import GeneralStyle from "../../utils/GeneralStyle";
+import {StyleSheet} from 'react-native';
+import GeneralStyle from '../../utils/GeneralStyle';
 
 export const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
   cbContainer: {
-    flexDirection: "column",
-    alignItems: "flex-end",
+    flexDirection: 'column',
   },
   smallCheckbox: {
     width: 20,
@@ -16,16 +15,15 @@ export const styles = StyleSheet.create({
     marginLeft: GeneralStyle.space,
   },
   baseContainer: {
-    alignItems: "flex-end",
-    flexDirection: "column-reverse",
+    flexDirection: 'column',
   },
   checkboxContainer: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     marginTop: GeneralStyle.space,
   },
   checkbox: {
-    alignSelf: "center",
+    alignSelf: 'center',
     marginLeft: GeneralStyle.space,
   },
   label: {

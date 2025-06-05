@@ -1,0 +1,16 @@
+{
+  "register": "register",
+  "settings": "settings",
+  "details": "details",
+  "carSetting": "car setting",
+  "add": "add",
+  "cars": "cars",
+  "addCar": "add car",
+  "mail": "mail",
+  "password": "password",
+  "carNumber": "car number",
+  "codeCar": "code car",
+  "phoneNumber": "phone number",
+  "terms": "terms",
+  "welcome": "welcome"
+}

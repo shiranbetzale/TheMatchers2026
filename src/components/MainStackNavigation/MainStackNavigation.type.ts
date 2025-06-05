@@ -8,4 +8,5 @@ export type RootStackParamList = {
   Register: undefined;
   MainScreen: undefined;
   AllCardsScreen: undefined;
+  OnBoarding: undefined;
 };
