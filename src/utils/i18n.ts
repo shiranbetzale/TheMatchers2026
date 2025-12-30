@@ -47,7 +47,7 @@ i18n
   .use(languageDetector)
   .use(initReactI18next)
   .init({
-    fallbackLng: 'en',
+    fallbackLng: 'he',
     resources,
     compatibilityJSON: 'v4',
     interpolation: {

@@ -9,7 +9,8 @@
     "start": "react-native start",
     "test": "jest",
     "server": "node server/app.js",
-    "dev": "nodemon server/app.js"
+    "dev": "nodemon server/app.js",
+    "start:backend": "node backend/server.js"
   },
   "dependencies": {
     "@ptomasroos/react-native-multi-slider": "^2.2.2",
@@ -24,8 +25,10 @@
     "cors": "^2.8.5",
     "dotenv": "^16.5.0",
     "express": "^5.1.0",
+    "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.15.1",
     "multer": "^2.0.0",
+    "xlsx": "^0.18.5",
     "react": "19.0.0",
     "react-i18next": "^15.5.2",
     "react-native": "0.79.2",

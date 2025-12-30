@@ -21,7 +21,7 @@ export type FormField = {
     keyboardTypeOption?: "default" | "numeric";
     fieldType: "checkbox" | "range" | "input" | "select" | "datePicker" | "switch" | "radioButton";
     options?: Option[];
-    handlePress?: (option?: Option) => void;
+    handlePress?: (option?: Option | boolean) => void;
     minRange?: number;
     maxRange?: number;
     step?: number;
