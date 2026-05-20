@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
-import { Dimensions, SafeAreaView, ScrollView, Text, View } from 'react-native';
+import { Image, SafeAreaView, ScrollView, Text, View } from 'react-native';
 import { styles } from './CustomImageSlider.style';
 import { CustomImageSliderType } from './CustomImageSlider.type';
-import { Image } from 'react-native';
 
 const CustomImageSlider = (props: CustomImageSliderType) => {
   const { images = [] } = props;
@@ -31,13 +30,13 @@ const CustomImageSlider = (props: CustomImageSliderType) => {
           <Image
             key={index}
             source={{ uri: image }}
-            style={{ width, height, resizeMode: "cover" }}
+            style={[styles.slideImage, {width, height}]}
           />
         ))}
       </ScrollView>
       <View style={styles.pagination}>
         {images.map((i, k) => (
-          <Text key={k} style={k == active ? styles.activeDot : styles.dot}>
+          <Text key={k} style={k === active ? styles.activeDot : styles.dot}>
             •
           </Text>
         ))}

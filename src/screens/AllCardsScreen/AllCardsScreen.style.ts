@@ -1,13 +1,7 @@
-import {StyleSheet, ViewStyle} from 'react-native';
 import Colors from '../../utils/Colors';
 import GeneralStyle from '../../utils/GeneralStyle';
 
-type Style = {
-  matchCard: any;
-  pinChildrenContainer: any;
-};
-
-export const styles = StyleSheet.create<Style>({
+export const styles = {
   matchCard: (color: string) => ({
     padding: 0,
     marginBottom: GeneralStyle.space,
@@ -18,4 +12,4 @@ export const styles = StyleSheet.create<Style>({
   pinChildrenContainer: {
     backgroundColor: Colors.white,
   },
-});
+};

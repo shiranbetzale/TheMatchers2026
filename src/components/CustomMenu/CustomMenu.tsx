@@ -1,4 +1,4 @@
-import React, {useEffect} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import BackSvg from '../../assets/images/back.svg';
 import MenuSvg from '../../assets/images/menu.svg';

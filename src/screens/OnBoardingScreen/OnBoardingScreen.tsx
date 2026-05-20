@@ -1,4 +1,4 @@
-import React, {useRef, useState} from 'react';
+import React, { useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -8,26 +8,49 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {useNavigation} from '@react-navigation/native';
-import {StackNavigationProp} from '@react-navigation/stack';
-import {RootStackParamList} from '../../components/MainStackNavigation/MainStackNavigation.type';
-import {styles} from './OnBoardingScreen.style';
-import {carousleData} from '../../data/carousleData';
+import { useNavigation } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
 
-type NavigationProp = StackNavigationProp<RootStackParamList, 'OnBoarding'>;
+import { RootStackParamList } from '../../components/MainStackNavigation/MainStackNavigation.type';
+import { styles } from './OnBoardingScreen.style';
+import { carousleData } from '../../data/carousleData';
+import { useLanguage } from '../../utils/LanguageProvider';
 
-const {width} = Dimensions.get('window');
+type NavigationProp = StackNavigationProp<
+  RootStackParamList,
+  'OnBoarding'
+>;
+
+const { width } = Dimensions.get('window');
 
 const OnBoardingScreen = () => {
   const navigation = useNavigation<NavigationProp>();
-  const flatListRef = useRef<FlatList>(null);
-  const [currentIndex, setCurrentIndex] = useState(0);
+  const flatListRef = useRef<FlatList<any>>(null);
+  const [currentIndex, setCurrentIndex] = useState<number>(0);
+  const { t } = useLanguage();
+
+  const finishOnboarding = async () => {
+    await AsyncStorage.setItem('hasSeenOnboarding', 'true');
+    navigation.navigate('Login');
+  };
 
   const handleNext = () => {
     if (currentIndex < carousleData.length - 1) {
-      flatListRef.current?.scrollToIndex({index: currentIndex + 1});
+      flatListRef.current?.scrollToIndex({
+        index: currentIndex + 1,
+        animated: true,
+      });
     } else {
       finishOnboarding();
+    }
+  };
+
+  const handlePrev = () => {
+    if (currentIndex > 0) {
+      flatListRef.current?.scrollToIndex({
+        index: currentIndex - 1,
+        animated: true,
+      });
     }
   };
 
@@ -35,54 +58,77 @@ const OnBoardingScreen = () => {
     finishOnboarding();
   };
 
-  const finishOnboarding = async () => {
-    await AsyncStorage.setItem('hasSeenOnboarding', 'true');
-    navigation.navigate('Login');
-  };
-
-  const onViewableItemsChanged = useRef(({viewableItems}: any) => {
-    if (viewableItems.length > 0) {
-      setCurrentIndex(viewableItems[0].index);
+  const onViewableItemsChanged = useRef(
+    ({ viewableItems }: { viewableItems: any[] }) => {
+      if (viewableItems.length > 0 && viewableItems[0].index !== null) {
+        setCurrentIndex(viewableItems[0].index);
+      }
     }
-  }).current;
+  ).current;
 
   return (
     <View style={styles.container}>
+      <View style={styles.bgShapeOne} />
+      <View style={styles.bgShapeTwo} />
       <FlatList
         ref={flatListRef}
         data={carousleData}
         horizontal
         pagingEnabled
         showsHorizontalScrollIndicator={false}
-        keyExtractor={item => item.id}
-        renderItem={({item}) => (
-          <View style={styles.slide}>
-            <Image source={{uri: item.image}} style={styles.image} />
-            <Text style={styles.title}>{item.title}</Text>
+        keyExtractor={(item) => String(item.id)}
+        renderItem={({ item }) => (
+          <View style={[styles.slide, { width }]}>
+            <View style={styles.slideCard}>
+              <Image source={{ uri: item.image }} style={styles.image} />
+              <Text style={styles.title}>
+                {t(item.title)}
+              </Text>
+            </View>
           </View>
         )}
         onViewableItemsChanged={onViewableItemsChanged}
-        viewabilityConfig={{viewAreaCoveragePercentThreshold: 50}}
+        viewabilityConfig={{ viewAreaCoveragePercentThreshold: 50 }}
       />
 
       <View style={styles.dotsContainer}>
-        {carousleData.map((_, index) => (
+        {carousleData.map((slide, index) => (
           <View
-            key={index}
-            style={[styles.dot, currentIndex === index && styles.activeDot]}
+            key={slide.id ?? index}
+            style={[
+              styles.dot,
+              currentIndex === index && styles.activeDot,
+            ]}
           />
         ))}
       </View>
 
       <View style={styles.buttonsRow}>
-        {currentIndex < carousleData.length - 1 && (
-          <TouchableOpacity onPress={handleSkip}>
-            <Text style={styles.skipText}>דלג</Text>
+        {currentIndex > 0 && (
+          <TouchableOpacity
+            onPress={handlePrev}
+            style={styles.prevButton}
+          >
+            <Text style={styles.prevButtonText}>
+              {t('previous')}
+            </Text>
           </TouchableOpacity>
         )}
-        <TouchableOpacity onPress={handleNext} style={styles.nextButton}>
+
+        <TouchableOpacity onPress={handleSkip}>
+          <Text style={styles.skipText}>
+            {t('skip')}
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          onPress={handleNext}
+          style={styles.nextButton}
+        >
           <Text style={styles.nextButtonText}>
-            {currentIndex === carousleData.length - 1 ? 'התחל' : 'הבא'}
+            {currentIndex === carousleData.length - 1
+              ? t('start')
+              : t('next')}
           </Text>
         </TouchableOpacity>
       </View>

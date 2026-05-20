@@ -6,9 +6,18 @@ import Colors from "../../utils/Colors";
 import { Option } from "../../utils/FormFields.type";
 import { FontsStyle } from "../../utils/FontsStyle";
 
-const CustomSingleCheckBox = (props: Option) => {
-  const { id, label, isSmallSize = false } = props;
+type SingleCheckBoxProps = Option & {
+  onChange?: (option: Option, value: boolean) => void;
+};
+
+const CustomSingleCheckBox = (props: SingleCheckBoxProps) => {
+  const { id, label, isSmallSize = false, onChange } = props;
   const [isSelected, setSelection] = useState(false);
+
+  const handleToggle = (next: boolean) => {
+    setSelection(next);
+    onChange?.(props, next);
+  };
 
   return (
     <>
@@ -17,7 +26,7 @@ const CustomSingleCheckBox = (props: Option) => {
         // hideBox={true}
         boxType="square"
         value={isSelected}
-        onValueChange={setSelection}
+        onValueChange={handleToggle}
         style={isSmallSize ? styles.smallCheckbox : styles.checkbox}
         key={`checkBox_${id}`}
         onFillColor={Colors.color1}

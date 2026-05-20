@@ -1,35 +1,26 @@
-import {StyleSheet} from 'react-native';
+import {ViewStyle} from 'react-native';
 import Colors from '../../utils/Colors';
 import {FontsStyle} from '../../utils/FontsStyle';
 import GeneralStyle from '../../utils/GeneralStyle';
 
-type Style = {
-  container: any;
-  txt: any;
-  matchCard: any;
-  shortButtons: any;
-  name: any;
-  btn: any;
-};
-
-export const styles = StyleSheet.create<Style>({
+export const styles = {
   container: {
     marginBottom: GeneralStyle.space * 2,
-  },
+  } satisfies ViewStyle,
   txt: {
     marginVertical: GeneralStyle.space,
-  },
-  matchCard: (color: string) => ({
+  } satisfies ViewStyle,
+  matchCard: (border: string, bg: string) => ({
     padding: 0,
     marginBottom: GeneralStyle.space,
     borderWidth: 5,
-    borderColor: color,
-    backgroundColor: Colors.white,
-  }),
+    borderColor: border,
+    backgroundColor: bg,
+  } satisfies ViewStyle),
   shortButtons: {
     marginBottom: GeneralStyle.space,
     flexDirection: 'row-reverse',
-  },
+  } satisfies ViewStyle,
   name: {
     ...FontsStyle.menuTitle,
     ...FontsStyle.textDecoration,
@@ -37,5 +28,5 @@ export const styles = StyleSheet.create<Style>({
   },
   btn: {
     margin: GeneralStyle.space / 2,
-  },
-});
+  } satisfies ViewStyle,
+};

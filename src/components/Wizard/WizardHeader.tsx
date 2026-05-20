@@ -18,7 +18,7 @@ const WizardHeader = (props: WizardHeaderType) => {
       />
       <CustomText
         customStyle={textProps?.customStyle}
-        text={textProps?.text}
+        text={textProps?.text ?? ''}
       />
       <CustomButton
         customStyle={styles.btn}

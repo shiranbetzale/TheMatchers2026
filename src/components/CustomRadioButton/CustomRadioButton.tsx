@@ -8,7 +8,7 @@ import { FontsStyle } from '../../utils/FontsStyle';
 
 const CustomRadioButton = (props: CustomRadioButtonType) => {
   const { isSmallSize = false, radiosArray, text, onSelect = () => { } } = props;
-  const [selectedOption, setSelectedOption] = useState<Option>(radiosArray[1]);
+  const [selectedOption, setSelectedOption] = useState<Option>(radiosArray[0]);
 
   const handleOptionSelect = (option: Option) => {
     setSelectedOption(option);

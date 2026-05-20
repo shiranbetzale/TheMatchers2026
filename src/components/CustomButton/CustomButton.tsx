@@ -7,6 +7,8 @@ import { CustomButtonType } from './CustomButton.type';
 const CustomButton = (props: CustomButtonType) => {
   const { icon, onPress = () => { }, text, customTextStyle, customStyle, isDisabled, children } = props;
 
+  const defaultTextColor = !icon ? { color: '#fff' } : undefined;
+
   return (
     <TouchableOpacity
       style={[icon ? styles.icon : styles.container, customStyle, isDisabled && styles.disabled]}
@@ -16,7 +18,7 @@ const CustomButton = (props: CustomButtonType) => {
       {text &&
         <CustomText
           text={text}
-          customStyle={customTextStyle}
+          customStyle={[defaultTextColor, customTextStyle]}
         />
       }
       {children}

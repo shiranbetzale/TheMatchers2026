@@ -5,11 +5,21 @@ import GeneralStyle from '../../utils/GeneralStyle';
 export const styles = StyleSheet.create({
     container: {
         flex: 1,
+    },
+    rtlRow: {
         flexDirection: "row-reverse",
+    },
+    ltrRow: {
+        flexDirection: "row",
     },
     imgBtnContainer: {
         alignItems: "center",
+    },
+    imgBtnContainerRtl: {
         marginLeft: GeneralStyle.space * 2,
+    },
+    imgBtnContainerLtr: {
+        marginRight: GeneralStyle.space * 2,
     },
     imgContainer: {
         width: 100,
@@ -22,7 +32,7 @@ export const styles = StyleSheet.create({
         height: "100%",
     },
     info: {
-        flexDirection: "row-reverse",
+        alignItems: "center",
     },
     icon: {
         width: 40,
@@ -31,6 +41,6 @@ export const styles = StyleSheet.create({
         justifyContent: "center",
     },
     infoButtons: {
-        flexDirection: "row-reverse"
+        alignItems: "center",
     }
 });

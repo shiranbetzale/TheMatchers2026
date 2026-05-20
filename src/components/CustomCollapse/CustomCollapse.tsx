@@ -11,8 +11,8 @@ const CustomCollapse = (props: CustomCollapseType) => {
   const [expandedSections, setExpandedSections] = useState(new Set());
 
   const handleToggle = (title: string) => {
-    setExpandedSections((expandedSections) => {
-      const next = new Set(expandedSections);
+    setExpandedSections((currentExpandedSections) => {
+      const next = new Set(currentExpandedSections);
       if (next.has(title)) {
         next.delete(title);
       } else {

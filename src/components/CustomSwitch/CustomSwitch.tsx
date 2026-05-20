@@ -24,9 +24,9 @@ const CustomSwitch = (props: CustomSwitchType) => {
       </View>
       <View style={isSmallSize ? styles.smallSwitch : styles.switch}>
         <Switch
-          trackColor={{ false: Colors.black, true: Colors.color1 }}
-          thumbColor={isEnabled ? Colors.color1 : Colors.white}
-          ios_backgroundColor={Colors.black}
+          trackColor={{ false: '#c8d0dc', true: Colors.color1 }}
+          thumbColor={isEnabled ? Colors.darkGreen : Colors.white}
+          ios_backgroundColor="#c8d0dc"
           onValueChange={toggleSwitch}
           value={isEnabled}
         />

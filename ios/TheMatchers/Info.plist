@@ -33,6 +33,15 @@
 	</dict>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string></string>
+	<key>RCTNewArchEnabled</key>
+	<true/>
+	<key>UIAppFonts</key>
+	<array>
+		<string>Birzia-Black.otf</string>
+		<string>Birzia-Bold.otf</string>
+		<string>Birzia-Light.otf</string>
+		<string>Birzia-Medium.otf</string>
+	</array>
 	<key>UILaunchStoryboardName</key>
 	<string>BootSplash</string>
 	<key>UIRequiredDeviceCapabilities</key>
@@ -47,12 +56,5 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>
-	<key>UIAppFonts</key>
-	<array>
-		<string>Birzia-Black.otf</string>
-		<string>Birzia-Bold.otf</string>
-		<string>Birzia-Light.otf</string>
-		<string>Birzia-Medium.otf</string>
-	</array>
 </dict>
 </plist>

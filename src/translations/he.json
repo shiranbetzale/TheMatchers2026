@@ -41,9 +41,36 @@
   "cancel": "בטל",
   "actions": "פעולות",
   "selectLanguage": "בחר שפה",
+  "skip": "דלג",
+  "start": "התחל",
+  "next": "הבא",
+  "previous": "הקודם",
+  "onboardWelcome": "ברוך הבא!",
+  "onboardFindMatch": "מצא את ההתאמה המושלמת",
+  "onboardStart": "התחל עכשיו",
   "gender": "מגדר",
   "male": "זכר",
   "female": "נקבה",
   "showPassword": "הצג",
-  "hidePassword": "הסתר"
+  "hidePassword": "הסתר",
+  "yes": "כן",
+  "no": "לא",
+  "matchCard": {
+    "name": "שם",
+    "age": "גיל",
+    "height": "גובה",
+    "ageAndHeight": "גיל וגובה",
+    "status": "סטטוס",
+    "city": "עיר מגורים",
+    "cityShort": "עיר",
+    "worldview": "השקפה",
+    "haredi": "חרדי",
+    "offered": "האם הוצע"
+  },
+  "profileValues": {
+    "bneiBrak": "בני ברק",
+    "single": "רווק",
+    "divorced": "גרוש",
+    "widower": "אלמן"
+  }
 }

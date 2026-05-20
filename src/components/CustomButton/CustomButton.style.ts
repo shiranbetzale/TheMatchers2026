@@ -5,10 +5,11 @@ import GeneralStyle from '../../utils/GeneralStyle';
 export const styles = StyleSheet.create({
   container: {
     alignItems: 'center',
-    padding: GeneralStyle.space,
-    borderRadius: 5,
+    paddingVertical: GeneralStyle.space * 1.1,
+    paddingHorizontal: GeneralStyle.space * 1.5,
+    borderRadius: 14,
     ...Colors.Shadow,
-    backgroundColor: Colors.darkGreen,
+    backgroundColor: Colors.color1,
   },
   countContainer: {
     alignItems: 'center',

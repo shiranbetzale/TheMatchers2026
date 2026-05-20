@@ -8,9 +8,9 @@ import { FontsStyle } from '../../utils/FontsStyle';
 
 const CustomRange = (props: CustomRangeType) => {
   const { isSmallSize = false, text, minRange = 0, maxRange = 10, step = 1 } = props;
-  const [rangeValues, setRangeValues] = useState([minRange, maxRange]);
+  const [rangeValues, setRangeValues] = useState<number[]>([minRange, maxRange]);
 
-  const handleRangeChange = (values: any) => {
+  const handleRangeChange = (values: number[]) => {
     setRangeValues(values);
   };
 

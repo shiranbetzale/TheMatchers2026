@@ -1,12 +1,14 @@
 import React from 'react';
-import {View} from 'react-native';
+import { View } from 'react-native';
+
 import CurrentCard from '../../components/CurrentCard/CurrentCard';
 import MatchCard from '../../components/MatchCard/MatchCard';
-import {MatchCardType} from '../../components/MatchCard/MatchCard.type';
+import { MatchCardType } from '../../components/MatchCard/MatchCard.type';
 import HomeScreen from '../HomeScreen/HomeScreen';
-import {styles} from './MatchCardsScreen.style';
 
-const MatchCardsScreen = ({navigation}: any) => {
+import { styles } from './MatchCardsScreen.style';
+
+const MatchCardsScreen = () => {
   const matchArray: MatchCardType[] = [
     {
       city: 'בני ברק',
@@ -176,19 +178,16 @@ const MatchCardsScreen = ({navigation}: any) => {
 
   return (
     <HomeScreen pinChildren={<CurrentCard {...currCard} />}>
-      {matchArray.map((matchItem: MatchCardType, index) => {
-        return (
-          <View style={styles.card}>
-            <MatchCard
-              isShowMoreInfo={false}
-              isShowInfoButtons={true}
-              isShowMeetingInfo={true}
-              {...matchItem}
-              key={index}
-            />
-          </View>
-        );
-      })}
+      {matchArray.map((matchItem, index) => (
+        <View key={index} style={styles.card}>
+          <MatchCard
+            {...matchItem}
+            isShowMoreInfo={false}
+            isShowInfoButtons={true}
+            isShowMeetingInfo={true}
+          />
+        </View>
+      ))}
     </HomeScreen>
   );
 };

@@ -1,10 +1,11 @@
-import { TextStyle } from "react-native";
+import { ComponentType } from "react";
+import { StyleProp, TextStyle } from "react-native";
 
 export type WizardStep = {
     id: number;
     name: string;
     title: string;
-    comp: any;
+    comp: ComponentType;
 }
 
 export type WizardBtnType = {
@@ -14,7 +15,7 @@ export type WizardBtnType = {
 }
 
 export type WizardTxtType = {
-    customStyle?: TextStyle,
+    customStyle?: StyleProp<TextStyle>,
     text?: string;
 }
 

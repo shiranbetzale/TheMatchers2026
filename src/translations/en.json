@@ -41,9 +41,36 @@
   "cancel": "Cancel",
   "actions": "Actions",
   "selectLanguage": "Select language",
+  "skip": "Skip",
+  "start": "Start",
+  "next": "Next",
+  "previous": "Previous",
+  "onboardWelcome": "Welcome!",
+  "onboardFindMatch": "Find the perfect match",
+  "onboardStart": "Start now",
   "gender": "Gender",
   "male": "Male",
   "female": "Female",
   "showPassword": "Show",
-  "hidePassword": "Hide"
+  "hidePassword": "Hide",
+  "yes": "Yes",
+  "no": "No",
+  "matchCard": {
+    "name": "Name",
+    "age": "Age",
+    "height": "Height",
+    "ageAndHeight": "Age and height",
+    "status": "Status",
+    "city": "City",
+    "cityShort": "City",
+    "worldview": "Worldview",
+    "haredi": "Haredi",
+    "offered": "Offered"
+  },
+  "profileValues": {
+    "bneiBrak": "Bnei Brak",
+    "single": "Single",
+    "divorced": "Divorced",
+    "widower": "Widower"
+  }
 }

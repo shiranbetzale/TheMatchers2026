@@ -1,46 +1,68 @@
-import React, {useState} from 'react';
-import {View, Alert} from 'react-native';
+import React, { useState } from 'react';
+import { View, Alert } from 'react-native';
+import { AxiosError } from 'axios';
+import { StackNavigationProp } from '@react-navigation/stack';
+
 import CustomButton from '../../components/CustomButton/CustomButton';
 import CustomInput from '../../components/CustomInput/CustomInput';
 import CustomText from '../../components/CustomText/CustomText';
 import WhiteCard from '../../components/WhiteCard/WhiteCard';
 import HomeScreen from '../HomeScreen/HomeScreen';
-import {styles} from './RegisterScreen.style';
-import axios from 'axios';
+import CustomRadioButton from '../../components/CustomRadioButton/CustomRadioButton';
 
-const RegisterScreen = ({navigation}: any) => {
-  const [fullName, setFullName] = useState('');
-  const [phone, setPhone] = useState('');
+import { RootStackParamList } from '../../components/MainStackNavigation/MainStackNavigation.type';
+import { styles } from './RegisterScreen.style';
+import { useLanguage } from '../../utils/LanguageProvider';
+import api from '../../services/api';
+
+type NavigationProp = StackNavigationProp<
+  RootStackParamList,
+  'Register'
+>;
+
+interface Props {
+  navigation: NavigationProp;
+}
+
+const RegisterScreen = ({ navigation: _navigation }: Props) => {
+  const [fullName, setFullName] = useState<string>('');
+  const [phone, setPhone] = useState<string>('');
+  const [gender, setGender] = useState<'male' | 'female'>('female');
+
+  const { t } = useLanguage();
 
   const handleSave = async () => {
-    if (!fullName || !phone) {
-      Alert.alert('שגיאה', 'נא למלא את כל השדות');
+    if (!fullName.trim() || !phone.trim()) {
+      Alert.alert(t('error'), t('errorRequiredFields'));
+      return;
+    }
+
+    if (!/^\d{9,10}$/.test(phone)) {
+      Alert.alert(t('error'), t('invalidPhone'));
       return;
     }
 
     try {
-      const response = await axios.post(
-        'http://192.168.x.x:5000/api/users/register',
-        {
-          fullName,
-          phone,
-        },
-      );
-      Alert.alert('הצלחה', 'המשתמש נרשם בהצלחה');
-      //  navigation?.navigate('UsersList'); // ודא שיש מסך כזה או שנה לניווט אחר
-    } catch (error) {
-      if (error?.response) {
-        // השרת החזיר שגיאה
-        console.log('Server error:', error?.response.data);
-        Alert.alert('שגיאה', error.response?.data.message || 'שגיאה בשרת');
-      } else if (error?.request) {
-        // לא התקבלה תגובה מהשרת
-        console.log('No response from server:', error?.request);
-        Alert.alert('שגיאה', 'לא התקבלה תגובה מהשרת');
+      await api.post('/api/users/register', {
+        fullName,
+        phone,
+        gender,
+      });
+
+      Alert.alert(t('success'), t('matchmakerRegistered'));
+      // navigation.navigate('Login');
+    } catch (err) {
+      const error = err as AxiosError<any>;
+
+      if (error.response) {
+        Alert.alert(
+          t('error'),
+          error.response.data?.message || t('errorServer'),
+        );
+      } else if (error.request) {
+        Alert.alert(t('error'), t('errorNoResponse'));
       } else {
-        // שגיאה אחרת
-        console.log('Error', error?.message);
-        Alert.alert('שגיאה', error?.message);
+        Alert.alert(t('error'), error.message || t('errorGeneric'));
       }
     }
   };
@@ -48,17 +70,43 @@ const RegisterScreen = ({navigation}: any) => {
   return (
     <View style={styles.container}>
       <HomeScreen>
-        <CustomText text={'רישום שדכנ/ית'} customStyle={styles.title} />
+        <CustomText
+          text={'registerMatchmakerTitle'}
+          customStyle={styles.title}
+        />
+
         <WhiteCard customStyle={styles.whiteCardContainer}>
-          <CustomInput placeholder={'שם מלא:'} onChangeText={setFullName} />
           <CustomInput
-            placeholder={'נייד:'}
-            keyboardType={'numeric'}
+            placeholder={t('fullName')}
+            value={fullName}
+            onChangeText={setFullName}
+          />
+
+          <CustomInput
+            placeholder={t('mobile')}
+            keyboardType="numeric"
+            inputMode="numeric"
+            onlyDigits
             maxLength={10}
+            value={phone}
             onChangeText={setPhone}
           />
+
           <View style={styles.space}>
-            <CustomButton text="שמור" onPress={handleSave} />
+            <CustomRadioButton
+              text={t('gender')}
+              radiosArray={[
+                { id: 1, name: 'male', label: t('male') },
+                { id: 2, name: 'female', label: t('female') },
+              ]}
+              onSelect={option => {
+                if (option) setGender(option.name as 'male' | 'female');
+              }}
+            />
+          </View>
+
+          <View style={styles.space}>
+            <CustomButton text={t('save')} onPress={handleSave} />
           </View>
         </WhiteCard>
       </HomeScreen>

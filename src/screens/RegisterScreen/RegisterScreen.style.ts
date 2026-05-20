@@ -9,10 +9,8 @@ export const styles = StyleSheet.create({
   title: {
     paddingTop: GeneralStyle.space * 2,
     ...FontsStyle.title,
-    ...FontsStyle.textCenter,
   },
   whiteCardContainer: {
-    verticalAlign: 'center',
     marginVertical: GeneralStyle.space,
   },
   space: {

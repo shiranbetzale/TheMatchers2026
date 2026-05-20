@@ -2,6 +2,7 @@ import React from 'react';
 import {styles} from './DrawerNavigation.style';
 import {
   createDrawerNavigator,
+  DrawerHeaderProps,
   DrawerNavigationOptions,
 } from '@react-navigation/drawer';
 import CustomMenu from '../CustomMenu/CustomMenu';
@@ -12,6 +13,17 @@ import {DrawerNavigationType} from './DrawerNavigation.type';
 
 const Drawer = createDrawerNavigator();
 
+const renderHeader = ({navigation, route, options}: DrawerHeaderProps) => {
+  const title = getHeaderTitle(options, route.name);
+
+  return (
+    <CustomMenu
+      title={title}
+      onPressMenu={() => navigation.toggleDrawer()}
+    />
+  );
+};
+
 const DrawerNavigation = (props: DrawerNavigationType) => {
   const {initialRoute} = props;
 
@@ -20,16 +32,7 @@ const DrawerNavigation = (props: DrawerNavigationType) => {
     headerTitleStyle: FontsStyle.textDecoration,
     drawerType: 'front',
     drawerPosition: 'right',
-    header: ({navigation, route, options}) => {
-      const title = getHeaderTitle(options, route.name);
-
-      return (
-        <CustomMenu
-          title={title}
-          onPressMenu={() => navigation.toggleDrawer()}
-        />
-      );
-    },
+    header: renderHeader,
   };
 
   return (

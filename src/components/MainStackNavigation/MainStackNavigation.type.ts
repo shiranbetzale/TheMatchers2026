@@ -6,6 +6,10 @@ export type RootStackParamList = {
   MatchCardsScreen: undefined;
   Settings: undefined;
   Register: undefined;
+  RegisterUserScreen: undefined;
+  UsersList: undefined;
+  Wizard: undefined;
+  HomeScreen: undefined;
   MainScreen: undefined;
   AllCardsScreen: undefined;
   OnBoarding: undefined;

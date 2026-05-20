@@ -1,9 +1,7 @@
 import React from 'react';
-import {Alert, Share} from 'react-native';
+import {Share} from 'react-native';
 import {Linking, View} from 'react-native';
-import EmailSvg from '../../assets/images/email.svg';
 import PhoneSvg from '../../assets/images/phone.svg';
-import WhatsappSvg from '../../assets/images/whatsapp.svg';
 import {FontsStyle} from '../../utils/FontsStyle';
 import CustomButton from '../CustomButton/CustomButton';
 import CustomImage from '../CustomImage/CustomImage';
@@ -13,9 +11,11 @@ import WhiteCard from '../WhiteCard/WhiteCard';
 import {styles} from './MatchCard.style';
 import {MatchCardType} from './MatchCard.type';
 import ShareSvg from '../../assets/images/share.svg';
-import {sendEmail} from '../../utils/generalFunction';
+import {useLanguage} from '../../utils/LanguageProvider';
+import {translateProfileValue} from '../../utils/profileTranslations';
 
 const MatchCard = (props: MatchCardType) => {
+  const {isRTL, t} = useLanguage();
   const {
     city,
     isShowMoreInfo = false,
@@ -35,33 +35,40 @@ const MatchCard = (props: MatchCardType) => {
 
   const details = [
     {
-      text: 'שם',
+      text: t('matchCard.name'),
       info: name,
       isShow: true,
     },
     {
-      text: 'גיל וגובה',
+      text: t('matchCard.ageAndHeight'),
       info: `${height} ,${age}`,
       isShow: true,
     },
     {
-      text: 'סטטוס',
-      info: `${status}${numOfChildren > 0 ? ' + ' + numOfChildren : ''}`,
+      text: t('matchCard.status'),
+      info: `${translateProfileValue(status, t)}${
+        numOfChildren > 0 ? ' + ' + numOfChildren : ''
+      }`,
       isShow: true,
     },
     {
-      text: 'עיר מגורים',
-      info: city,
+      text: t('matchCard.city'),
+      info: translateProfileValue(city, t),
       isShow: true,
     },
     {
-      text: 'השקפה',
-      info: 'חרדי',
+      text: t('matchCard.worldview'),
+      info: t('matchCard.haredi'),
       isShow: isShowMoreInfo,
     },
     {
-      text: 'האם הוצע',
-      info: offered ? 'כן' : 'לא',
+      text: t('matchCard.met'),
+      info: met ? t('yes') : t('no'),
+      isShow: isShowMeetingInfo,
+    },
+    {
+      text: t('matchCard.offered'),
+      info: offered ? t('yes') : t('no'),
       isShow: isShowMeetingInfo,
     },
     // {
@@ -71,7 +78,6 @@ const MatchCard = (props: MatchCardType) => {
     // }
   ];
 
-  const msg = 'type something';
   const file = images[0];
   // const imageUrl = 'data:image/png;base64,' + base64Data;
 
@@ -86,33 +92,17 @@ const MatchCard = (props: MatchCardType) => {
     Share.share(shareOptions);
   };
 
-  const handleSendToWhatsapp = () => {
-    Linking.openURL(`whatsapp://send?text=${msg}&phone=${matcherPhone}`)
-      .then(data => {
-        console.log('WhatsApp Opened');
-      })
-      .catch(() => {
-        Alert.alert('אין לך וואטסאפ במכשיר!');
-      });
-  };
-
   const handleCall = () => {
     Linking.openURL(`tel:${matcherPhone}`);
   };
 
-  const handleSendEmail = () => {
-    sendEmail(
-      'test@gmail.com',
-      'Greeting!',
-      'I think you are fucked up how many letters you get.',
-    ).then(() => {
-      console.log('Our email successful provided to device mail ');
-    });
-  };
-
   return (
-    <WhiteCard customStyle={styles.container}>
-      <View style={styles.imgBtnContainer}>
+    <WhiteCard customStyle={[styles.container, isRTL ? styles.rtlRow : styles.ltrRow]}>
+      <View
+        style={[
+          styles.imgBtnContainer,
+          isRTL ? styles.imgBtnContainerRtl : styles.imgBtnContainerLtr,
+        ]}>
         <View style={styles.imgContainer}>
           {images?.length > 1 && isSlide ? (
             <CustomImageSlider images={images} />
@@ -122,7 +112,7 @@ const MatchCard = (props: MatchCardType) => {
         </View>
         <View>
           {isShowInfoButtons && (
-            <View style={styles.infoButtons}>
+            <View style={[styles.infoButtons, isRTL ? styles.rtlRow : styles.ltrRow]}>
               <CustomButton
                 onPress={() => handleShare()}
                 customStyle={styles.icon}>
@@ -134,7 +124,7 @@ const MatchCard = (props: MatchCardType) => {
               <CustomButton
                 onPress={() => handleCall()}
                 customStyle={styles.icon}>
-                {/* <PhoneSvg /> */}
+                <PhoneSvg />
               </CustomButton>
               {/* <CustomButton onPress={() => handleSendEmail()} customStyle={styles.icon} >
               <GmailSvg />
@@ -147,17 +137,13 @@ const MatchCard = (props: MatchCardType) => {
         {details.map(infoItem => {
           return (
             infoItem.isShow && (
-              <View style={styles.info}>
-                <CustomText
-                  text={infoItem.isShow}
-                  customStyle={FontsStyle.text}
-                />
+              <View style={[styles.info, isRTL ? styles.rtlRow : styles.ltrRow]}>
                 <CustomText
                   text={`${infoItem.text}: `}
                   customStyle={FontsStyle.subTitle}
                 />
                 <CustomText
-                  text={infoItem.info}
+                  text={infoItem.info ?? ''}
                   customStyle={FontsStyle.text}
                 />
               </View>

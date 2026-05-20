@@ -1,16 +1,17 @@
 import React, { useState } from 'react';
+import { View } from 'react-native';
 import { styles } from './Wizard.style';
 import { WizardBtnType, WizardTxtType, WizardStep } from './Wizard.type';
-import { View } from 'react-native';
 import { FontsStyle } from '../../utils/FontsStyle';
 import WizardHeader from './WizardHeader';
 import Step1Screen from '../../screens/Step1Screen/Step1Screen';
 import Step2Screen from '../../screens/Step2Screen/Step2Screen';
 import Step3Screen from '../../screens/Step3Screen/Step3Screen';
 import HomeScreen from '../../screens/HomeScreen/HomeScreen';
+import Colors from '../../utils/Colors';
 
 const Wizard = () => {
-  const [wizardStep, setWizarsStep] = useState<number>(1);
+  const [wizardStep, setWizardStep] = useState<number>(1);
 
   const wizardSteps: WizardStep[] = [
     { id: 1, name: "Step1", title: "קצת עלי", comp: Step1Screen },
@@ -18,27 +19,35 @@ const Wizard = () => {
     { id: 3, name: "Step3", title: "העלאת תמונות", comp: Step3Screen }
   ];
 
+  const currentStep = wizardSteps.find(step => step.id === wizardStep);
+
   const renderComp = () => {
-    const SpecificStep = wizardSteps.find((step) => step.id === wizardStep)?.comp
-    return <SpecificStep />;
-  }
+    const SpecificStep = currentStep?.comp;
+    return SpecificStep ? <SpecificStep /> : null;
+  };
+
+  const goToStep = (step: number) => {
+    if(step >= 1 && step <= wizardSteps.length) {
+      setWizardStep(step);
+    }
+  };
 
   const btnAProps: WizardBtnType = {
     isBtnDis: wizardStep <= 1,
     btnTxt: "הקודם",
-    btnFunc: () => setWizarsStep(wizardStep - 1)
-  }
+    btnFunc: () => goToStep(wizardStep - 1)
+  };
 
   const btnBProps: WizardBtnType = {
     isBtnDis: wizardStep >= wizardSteps.length,
     btnTxt: "הבא",
-    btnFunc: () => setWizarsStep(wizardStep + 1)
-  }
+    btnFunc: () => goToStep(wizardStep + 1)
+  };
 
   const txtProps: WizardTxtType = {
-    customStyle: FontsStyle.wizardTitle,
-    text: wizardSteps.find((step) => step.id === wizardStep)?.title
-  }
+    customStyle: [FontsStyle.wizardTitle, { color: Colors.white }],
+    text: currentStep?.title || ''
+  };
 
   return (
     <HomeScreen pinChildren={

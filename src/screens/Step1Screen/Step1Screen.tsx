@@ -1,42 +1,50 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import CustomCollapse from '../../components/CustomCollapse/CustomCollapse';
 import {CollapseSingleType} from '../../components/CustomCollapse/CustomCollapse.type';
 import detailsFormArray from '../../utils/DetailsFormFields';
-import {Option} from '../../utils/FormFields.type';
+import {Condition, Option} from '../../utils/FormFields.type';
 import {groupBy} from '../../utils/generalFunction';
 
 const Step1Screen = () => {
   const [detailsFormArrayFiltered, setDetailsFormArrayFiltered] = useState<
     CollapseSingleType[]
   >([]);
-  const detailsFormArrayBeforeFiltered = groupBy(
-    detailsFormArray,
-    'collapseTitle',
+
+  // קיבוץ הנתונים לפי collapseTitle
+  const detailsFormArrayBeforeFiltered: CollapseSingleType[] = useMemo(
+    () => groupBy(detailsFormArray, 'collapseTitle'),
+    [],
   );
 
+  // טעינה ראשונית
   useEffect(() => {
-    setDetailsFormArrayFiltered(detailsFormArrayBeforeFiltered);
-  }, []);
+    setDetailsFormArrayFiltered([...detailsFormArrayBeforeFiltered]);
+  }, [detailsFormArrayBeforeFiltered]);
 
+  // לחיצה על אופציה (סינון דינמי של השדות)
   const handlePress = (option?: Option) => {
-    let newArray: any = [];
+    const newArray: CollapseSingleType[] =
+      detailsFormArrayBeforeFiltered.map(
+        (section: CollapseSingleType) => {
+          const filteredData = section.data?.filter(field => {
+            // אם יש תנאים – בודקים התאמה
+            if (field?.condition?.length) {
+              return field.condition.some((condition: Condition) =>
+                condition.fieldId === option?.name &&
+                condition.value === String(option?.id),
+              );
+            }
 
-    detailsFormArrayBeforeFiltered.filter((item: CollapseSingleType) => {
-      const filteredData = item?.data?.filter(itemDataField => {
-        if (itemDataField?.condition?.length) {
-          return itemDataField?.condition?.find((itemCondition: any) => {
-            return (
-              itemCondition.fieldId === option?.name &&
-              itemCondition.value === option?.id.toString()
-            );
+            // אם אין תנאים – תמיד מוצג
+            return true;
           });
-        } else {
-          return itemDataField;
-        }
-      });
-      item.data = filteredData;
-      newArray.push(item);
-    });
+
+          return {
+            ...section,
+            data: filteredData,
+          };
+        },
+      );
 
     setDetailsFormArrayFiltered(newArray);
   };

@@ -5,11 +5,12 @@ import GeneralStyle from '../../utils/GeneralStyle';
 export const styles = StyleSheet.create({
   container: {
     width: "100%",
-    backgroundColor: Colors.white,
-    borderRadius: 4,
-    paddingHorizontal: GeneralStyle.space,
-    paddingVertical: GeneralStyle.space,
+    backgroundColor: Colors.surface,
+    borderRadius: 14,
+    paddingHorizontal: GeneralStyle.space * 1.5,
+    paddingVertical: GeneralStyle.space * 1.2,
+    borderWidth: 1,
+    borderColor: Colors.border,
     ...Colors.Shadow,
-    opacity: 0.85,
   }
 });

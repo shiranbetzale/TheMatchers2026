@@ -2,7 +2,7 @@ import en from './en.json';
 import he from './he.json';
 
 interface Translations {
-  [lang: string]: Record<string, string>;
+  [lang: string]: Record<string, unknown>;
 }
 
 const i18n: Translations = {

@@ -1,9 +1,10 @@
 import {FontsStyle} from '../../utils/FontsStyle';
+import { StyleProp, TextStyle } from 'react-native';
 
 export type FontType = keyof typeof FontsStyle;
 
 export type CustomTextType = {
-  text: any;
+  text: string | number;
   fontType?: FontType;
-  customStyle?: any;
+  customStyle?: StyleProp<TextStyle>;
 };

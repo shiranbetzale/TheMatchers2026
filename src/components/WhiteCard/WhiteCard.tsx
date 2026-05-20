@@ -7,7 +7,7 @@ const WhiteCard = (props: WhiteCardType) => {
   const { children, customStyle } = props;
 
   return (
-    <View style={[styles.container, { ...customStyle }]}>
+    <View style={[styles.container, customStyle]}>
       {children}
     </View>
   );

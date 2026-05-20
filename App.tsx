@@ -1,34 +1,93 @@
-import {NavigationContainer} from '@react-navigation/native';
-import React, {useEffect, useState} from 'react';
+import React, { useEffect, useRef, useState } from 'react';
+import { Platform, SafeAreaView, StatusBar, StyleSheet, View, Animated, I18nManager } from 'react-native';
 import 'react-native-gesture-handler';
-import DrawerNavigation from './src/components/DrawerNavigation/DrawerNavigation';
-import {Platform, SafeAreaView, StatusBar, StyleSheet} from 'react-native';
-import {LanguageProvider} from './src/utils/LanguageProvider';
+import { NavigationContainer } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import BootSplash from 'react-native-bootsplash';
+import DrawerNavigation from './src/components/DrawerNavigation/DrawerNavigation';
+import { LanguageProvider } from './src/utils/LanguageProvider';
+
+type Route = 'Login' | 'OnBoarding';
 
 const App = () => {
-  const [initialRoute, setInitialRoute] = useState<any>(null);
+  const [initialRoute, setInitialRoute] = useState<Route | null>(null);
+  const fadeAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     const init = async () => {
-      const seen = await AsyncStorage.getItem('hasSeenOnboarding');
-      setInitialRoute(seen === 'true' ? 'Login' : 'OnBoarding');
-      BootSplash.hide({fade: true});
+      try {
+        const seen = await AsyncStorage.getItem('hasSeenOnboarding');
+        setInitialRoute(seen === 'true' ? 'Login' : 'OnBoarding');
+      } catch (e) {
+        console.warn('Error loading onboarding state:', e);
+        setInitialRoute('Login');
+      } finally {
+        BootSplash.hide({ fade: true });
+      }
     };
     init();
   }, []);
 
-  if (initialRoute === null) return null;
+  useEffect(() => {
+    if (initialRoute !== null) {
+      // Fade-in אפקט כאשר המסך מוכן לרינדור
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 500,
+        useNativeDriver: true,
+      }).start();
+    }
+  }, [fadeAnim, initialRoute]);
+
+  if (initialRoute === null) {
+    // Loader מותאם אישית עם לוגו
+    return (
+      <View style={styles.loaderContainer}>
+        <Animated.Image
+          source={require('./src/assets/images/logo.png')} // החליפי בנתיב ללוגו שלך
+          style={[
+            styles.logo,
+            {
+              opacity: fadeAnim,
+              transform: [
+                {
+                  scale: fadeAnim.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [0.8, 1],
+                  }),
+                },
+              ],
+            },
+          ]}
+          resizeMode="contain"
+        />
+      </View>
+    );
+  }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <LanguageProvider>
-        <NavigationContainer>
-          <DrawerNavigation initialRoute={initialRoute} />
-        </NavigationContainer>
-      </LanguageProvider>
-    </SafeAreaView>
+    <Animated.View
+      style={[
+        styles.container,
+        I18nManager.isRTL ? styles.rtl : styles.ltr,
+        {
+          opacity: fadeAnim,
+        },
+      ]}
+    >
+      <SafeAreaView
+        style={[
+          styles.safeArea,
+          I18nManager.isRTL ? styles.rtl : styles.ltr,
+        ]}
+      >
+        <LanguageProvider>
+          <NavigationContainer>
+            <DrawerNavigation initialRoute={initialRoute} />
+          </NavigationContainer>
+        </LanguageProvider>
+      </SafeAreaView>
+    </Animated.View>
   );
 };
 
@@ -36,7 +95,27 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     width: '100%',
+    backgroundColor: '#fff',
+  },
+  safeArea: {
+    flex: 1,
     paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
+  },
+  ltr: {
+    direction: 'ltr',
+  },
+  rtl: {
+    direction: 'rtl',
+  },
+  loaderContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+  },
+  logo: {
+    width: 150,
+    height: 150,
   },
 });
 

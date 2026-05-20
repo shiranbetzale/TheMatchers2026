@@ -1,7 +1,7 @@
 import { ReactNode } from "react";
-import { ViewStyle } from "react-native";
+import { StyleProp, ViewStyle } from "react-native";
 
 export type WhiteCardType = {
   children: ReactNode;
-  customStyle?: ViewStyle;
+  customStyle?: StyleProp<ViewStyle>;
 };

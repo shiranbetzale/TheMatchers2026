@@ -6,9 +6,15 @@ import GeneralStyle from "../../utils/GeneralStyle";
 export const styles = StyleSheet.create({
   container: {
     flex: 1,
-    flexDirection: "row-reverse",
     alignItems: "center",
-    justifyContent: "space-between"
+    justifyContent: "space-between",
+    position: "relative",
+  },
+  row: {
+    flexDirection: "row",
+  },
+  rowReverse: {
+    flexDirection: "row-reverse",
   },
   smallContainer: {
     flex: 1,
@@ -25,9 +31,10 @@ export const styles = StyleSheet.create({
     marginTop: GeneralStyle.space / 2,
   },
   baseInput: {
-    borderWidth: 2,
-    borderColor: Colors.color1,
-    borderRadius: 4,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderRadius: 12,
+    backgroundColor: Colors.surface,
     ...FontsStyle.text
   },
   textArea: {
@@ -42,5 +49,23 @@ export const styles = StyleSheet.create({
   },
   maxWidth: {
     maxWidth: 100
+  },
+  toggleSecure: {
+    position: "absolute",
+    right: GeneralStyle.space,
+    top: 0,
+    bottom: 0,
+    justifyContent: "center",
+    alignItems: "center",
+    padding: GeneralStyle.space / 2,
+  },
+  toggleSecureRtl: {
+    left: GeneralStyle.space,
+    right: undefined,
+  },
+  toggleSecureText: {
+    ...FontsStyle.text,
+    fontSize: 14,
+    color: Colors.darkGreen,
   }
 });

@@ -1,20 +1,26 @@
 import React from 'react';
-import {View} from 'react-native';
+import { View } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
+
 import CustomButton from '../../components/CustomButton/CustomButton';
 import CustomText from '../../components/CustomText/CustomText';
 import MatchCard from '../../components/MatchCard/MatchCard';
-import {MatchCardType} from '../../components/MatchCard/MatchCard.type';
+import { MatchCardType } from '../../components/MatchCard/MatchCard.type';
 import WhiteCard from '../../components/WhiteCard/WhiteCard';
-import Colors from '../../utils/Colors';
-import {FontsStyle} from '../../utils/FontsStyle';
 import HomeScreen from '../HomeScreen/HomeScreen';
-import {styles} from './MainScreen.style';
-import {useNavigation} from '@react-navigation/native';
-import {StackNavigationProp} from '@react-navigation/stack';
-import {RootStackParamList} from '../../components/MainStackNavigation/MainStackNavigation.type';
+
+import Colors from '../../utils/Colors';
+import { RootStackParamList } from '../../components/MainStackNavigation/MainStackNavigation.type';
+import { styles } from './MainScreen.style';
+import { useLanguage } from '../../utils/LanguageProvider';
 
 const MainScreen = () => {
-  const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
+  const navigation =
+    useNavigation<StackNavigationProp<RootStackParamList>>();
+  const { t } = useLanguage();
+
+  const name = 'בצלאל שירן';
 
   const lastCardsArray: MatchCardType[] = [
     {
@@ -73,52 +79,63 @@ const MainScreen = () => {
     },
   ];
 
-  const name = 'בצלאל שירן';
-
   return (
     <HomeScreen>
       <View style={styles.container}>
-        <CustomText text={`שלום ${name},`} customStyle={styles.name} />
+        <CustomText
+          text={`${t('hello')} ${name},`}
+          customStyle={styles.name}
+        />
+
         <View style={styles.txt}>
-          <CustomText text={'3 כרטיסים אחרונים שהתווספו'} />
+          <CustomText text={t('lastCards')} />
         </View>
-        {lastCardsArray.map((matchItem: MatchCardType, index) => {
-          const newColor =
-            matchItem.gender === 'זכר' ? Colors.lightBlue : Colors.pink;
+
+        {lastCardsArray.map((item, index) => {
+          const isMale = item.gender === 'זכר';
+          const bgColor = isMale ? '#E8F0FF' : '#FFF4E8';
+          const borderColor = isMale ? Colors.darkGreen : Colors.color1;
+
           return (
             <CustomButton
               key={index}
-              onPress={() => navigation?.navigate('MatchCardsScreen')}
-              customStyle={styles.matchCard(newColor)}>
-              <MatchCard {...matchItem} {...navigation} isSlide={false} />
+              onPress={() =>
+                navigation.navigate('MatchCardsScreen')
+              }
+              customStyle={styles.matchCard(borderColor, bgColor)}
+            >
+              <MatchCard {...item} isSlide={false} />
             </CustomButton>
           );
         })}
+
         <CustomButton
-          text="לכל הכרטיסים"
-          onPress={() => {
-            navigation?.navigate('AllCardsScreen');
-          }}
+          text={t('allCards')}
+          onPress={() =>
+            navigation.navigate('AllCardsScreen')
+          }
         />
       </View>
+
       <WhiteCard>
         <View style={styles.txt}>
-          <CustomText text={'פעולות נוספות:'} />
+          <CustomText text={t('moreActions')} />
         </View>
+
         <View style={styles.shortButtons}>
           <CustomButton
             customStyle={styles.btn}
-            text="רישום משודך בודד"
-            onPress={() => {
-              navigation?.navigate('MatchCardsScreen');
-            }}
+            text={t('singleRegistration')}
+            onPress={() =>
+              navigation.navigate('MatchCardsScreen')
+            }
           />
           <CustomButton
             customStyle={styles.btn}
-            text="יצירת קשר"
-            onPress={() => {
-              navigation?.navigate('MatchCardsScreen');
-            }}
+            text={t('contact')}
+            onPress={() =>
+              navigation.navigate('MatchCardsScreen')
+            }
           />
         </View>
       </WhiteCard>

@@ -1,13 +1,11 @@
-import React, {useState} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import {styles} from './CustomSelect.style';
-import SelectDropdown from 'react-native-select-dropdown';
 import {CustomSelectType} from './CustomSelect.type';
 import CustomText from '../CustomText/CustomText';
-import {FontsStyle} from '../../utils/FontsStyle';
 
 const CustomSelect = (props: CustomSelectType) => {
-  const {text, options, onSelect = () => {}} = props;
+  const {text} = props;
 
   return (
     <View style={styles.container}>

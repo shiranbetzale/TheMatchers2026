@@ -1,46 +1,59 @@
-import React, {useEffect, useState} from 'react';
-import {styles} from './Step2Screen.style';
+import React, {useEffect, useMemo, useState} from 'react';
 import matchFormArray from '../../utils/MatchFormFields';
 import CustomCollapse from '../../components/CustomCollapse/CustomCollapse';
 import {groupBy} from '../../utils/generalFunction';
 import {CollapseSingleType} from '../../components/CustomCollapse/CustomCollapse.type';
-import {Option} from '../../utils/FormFields.type';
+import {Condition, Option} from '../../utils/FormFields.type';
 
 const Step2Screen = () => {
   const [matchFormArrayFiltered, setMatchFormArrayFiltered] = useState<
     CollapseSingleType[]
   >([]);
-  const matchFormArrayBeforeFiltered = groupBy(matchFormArray, 'collapseTitle');
 
+  // קיבוץ ראשוני לפי collapseTitle
+  const matchFormArrayBeforeFiltered: CollapseSingleType[] = useMemo(
+    () => groupBy(matchFormArray, 'collapseTitle'),
+    [],
+  );
+
+  // טעינה ראשונית
   useEffect(() => {
-    setMatchFormArrayFiltered(groupBy(matchFormArray, 'collapseTitle'));
-  }, []);
+    setMatchFormArrayFiltered([...matchFormArrayBeforeFiltered]);
+  }, [matchFormArrayBeforeFiltered]);
 
+  // לחיצה על אופציה – סינון דינמי
   const handlePress = (option?: Option) => {
-    let newArray: any = [];
+    const newArray: CollapseSingleType[] =
+      matchFormArrayBeforeFiltered.map(
+        (section: CollapseSingleType) => {
+          const filteredData = section.data?.filter(field => {
+            // אם יש תנאים – בדיקה
+            if (field?.condition?.length) {
+              return field.condition.some((condition: Condition) =>
+                condition.fieldId === option?.name &&
+                condition.value === String(option?.id),
+              );
+            }
 
-    matchFormArrayBeforeFiltered.filter((item: CollapseSingleType) => {
-      const filteredData = item?.data?.filter(itemDataField => {
-        if (itemDataField?.condition?.length) {
-          return itemDataField?.condition?.find((itemCondition: any) => {
-            return (
-              itemCondition.fieldId === option?.name &&
-              itemCondition.value === option?.id.toString()
-            );
+            // אם אין תנאים – תמיד מוצג
+            return true;
           });
-        } else {
-          return itemDataField;
-        }
-      });
-      item.data = filteredData;
-      newArray.push(item);
-    });
+
+          return {
+            ...section,
+            data: filteredData,
+          };
+        },
+      );
 
     setMatchFormArrayFiltered(newArray);
   };
 
   return (
-    <CustomCollapse sections={matchFormArrayFiltered} handlePress={() => {}} />
+    <CustomCollapse
+      sections={matchFormArrayFiltered}
+      handlePress={handlePress}
+    />
   );
 };
 

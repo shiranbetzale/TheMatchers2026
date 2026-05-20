@@ -1,9 +1,8 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { ScrollView, View } from 'react-native';
 import FilterFields from '../../utils/FilterFields';
 import generateField from '../../utils/GenerateField';
 import CustomButton from '../CustomButton/CustomButton';
-import CustomText from '../CustomText/CustomText';
 import { styles } from './CustomFilter.style';
 import { CustomFilterType } from './CustomFilter.type';
 

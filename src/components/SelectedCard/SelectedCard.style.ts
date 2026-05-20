@@ -21,15 +21,20 @@ export const styles = StyleSheet.create({
         width: "80%",
         alignItems: "center",
         marginVertical: GeneralStyle.space,
-        flexDirection: "row-reverse",
         justifyContent: "space-between"
+    },
+    rtlRow: {
+        flexDirection: "row-reverse",
+    },
+    ltrRow: {
+        flexDirection: "row",
     },
     img: {
         width: "100%",
         height: "100%",
     },
     info: {
-        flexDirection: "row-reverse",
+        alignItems: "center",
     },
     boy: {
         backgroundColor: Colors.lightBlue

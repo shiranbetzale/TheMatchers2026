@@ -6,8 +6,11 @@ import CustomText from '../CustomText/CustomText';
 import {MatchCardType} from '../MatchCard/MatchCard.type';
 import {styles} from './CurrentCard.style';
 import SelectedCard from '../SelectedCard/SelectedCard';
+import {useLanguage} from '../../utils/LanguageProvider';
+import {translateProfileValue} from '../../utils/profileTranslations';
 
 const CurrentCard = (props: MatchCardType) => {
+  const {t} = useLanguage();
   const {
     city,
     isSlide = true,
@@ -22,22 +25,26 @@ const CurrentCard = (props: MatchCardType) => {
 
   const details = [
     {
-      text: 'גיל',
+      text: t('matchCard.age'),
       info: age,
     },
     {
-      text: 'גובה',
+      text: t('matchCard.height'),
       info: height,
     },
     {
-      text: 'סטטוס',
-      info: `${status}${numOfChildren > 0 ? ' + ' + numOfChildren : ''}`,
+      text: t('matchCard.status'),
+      info: `${translateProfileValue(status, t)}${
+        numOfChildren > 0 ? ' + ' + numOfChildren : ''
+      }`,
     },
     {
-      text: 'עיר',
-      info: city,
+      text: t('matchCard.cityShort'),
+      info: translateProfileValue(city, t),
     },
   ];
+
+  const isMale = gender === 'זכר' || gender === 'male' || gender === t('male');
 
   const getImage = () => {
     return images?.length > 1 && isSlide ? (
@@ -49,7 +56,7 @@ const CurrentCard = (props: MatchCardType) => {
 
   return (
     <View
-      style={[styles.container, gender === 'זכר' ? styles.boy : styles.girl]}>
+      style={[styles.container, isMale ? styles.boy : styles.girl]}>
       <CustomText text={name} customStyle={styles.txt} />
       <View style={styles.imgContainer}>{getImage()}</View>
       <SelectedCard details={details} />
