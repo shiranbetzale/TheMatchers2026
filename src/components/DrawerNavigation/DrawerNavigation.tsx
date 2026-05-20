@@ -10,6 +10,7 @@ import {FontsStyle} from '../../utils/FontsStyle';
 import {getHeaderTitle} from '@react-navigation/elements';
 import {drawerData} from '../../data/drawerData';
 import {DrawerNavigationType} from './DrawerNavigation.type';
+import {useLanguage} from '../../utils/LanguageProvider';
 
 const Drawer = createDrawerNavigator();
 
@@ -26,12 +27,13 @@ const renderHeader = ({navigation, route, options}: DrawerHeaderProps) => {
 
 const DrawerNavigation = (props: DrawerNavigationType) => {
   const {initialRoute} = props;
+  const {isRTL} = useLanguage();
 
   const screenOptionsProps: DrawerNavigationOptions = {
     headerStyle: styles.headerStyle,
     headerTitleStyle: FontsStyle.textDecoration,
     drawerType: 'front',
-    drawerPosition: 'right',
+    drawerPosition: isRTL ? 'right' : 'left',
     header: renderHeader,
   };
 

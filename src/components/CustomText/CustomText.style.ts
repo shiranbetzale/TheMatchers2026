@@ -7,8 +7,10 @@ export const styles = {
   },
   ltr: {
     textAlign: 'left' as const,
+    writingDirection: 'ltr' as const,
   },
   rtl: {
     textAlign: 'right' as const,
+    writingDirection: 'rtl' as const,
   },
 };

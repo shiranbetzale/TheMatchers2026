@@ -101,7 +101,7 @@ const Login = () => {
 
   return (
     <>
-      <View style={[styles.container, isRTL ? styles.rtl : styles.ltr]}>
+      <View style={styles.container}>
         <HomeScreen>
           <View style={styles.langSwitchContainer}>
             <TouchableOpacity
@@ -119,18 +119,10 @@ const Login = () => {
           <CustomText text="welcome" customStyle={styles.title} />
 
           <WhiteCard
-            customStyle={[
-              styles.whiteCardContainer,
-              isRTL ? styles.rtl : styles.ltr,
-            ]}
+            customStyle={styles.whiteCardContainer}
             key={language} // force rerender on language change
           >
-            <View
-              style={[
-                styles.formContent,
-                isRTL ? styles.rtl : styles.ltr,
-              ]}
-            >
+            <View style={styles.formContent}>
               <CustomTab tabs={tabs} activeTab={activeTab} onTabPress={handleTabPress} />
 
               <View style={styles.space}>

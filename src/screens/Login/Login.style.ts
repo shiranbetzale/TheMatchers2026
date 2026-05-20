@@ -9,12 +9,6 @@ export const styles = StyleSheet.create({
    // justifyContent: 'center',
    // position: 'relative',
   },
-  ltr: {
-    direction: 'ltr',
-  },
-  rtl: {
-    direction: 'rtl',
-  },
   row: {
     flexDirection: 'row',
   },
@@ -80,11 +74,10 @@ marginBottom: GeneralStyle.space * 2,
   whiteCardContainer: {
     ///  verticalAlign: 'center',
    // marginVertical: GeneralStyle.space,
-    //width: '90%',
-    //alignSelf: 'center',
+    alignSelf: 'center',
   },
   formContent: {
-   // width: '100%',
+    width: '100%',
   },
   space: {
     marginVertical: GeneralStyle.space,

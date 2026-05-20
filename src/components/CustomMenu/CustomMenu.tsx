@@ -10,10 +10,12 @@ import {CustomMenuType} from './CustomMenu.type';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../MainStackNavigation/MainStackNavigation.type';
+import {useLanguage} from '../../utils/LanguageProvider';
 
 const CustomMenu = (props: CustomMenuType) => {
   const {onPressMenu, title} = props;
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
+  const {isRTL} = useLanguage();
 
   // const handleBackButtonClick = () => {
   //   navigation?.goBack();
@@ -28,8 +30,8 @@ const CustomMenu = (props: CustomMenuType) => {
   // }, []);
 
   return (
-    <View style={styles.container}>
-      <View style={styles.menuTxtContainer}>
+    <View style={[styles.container, isRTL ? styles.rowReverse : styles.row]}>
+      <View style={[styles.menuTxtContainer, isRTL ? styles.rowReverse : styles.row]}>
         <CustomButton
           onPress={() => onPressMenu()}
           icon={<MenuSvg width={24} height={24} />}

@@ -1,17 +1,18 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Platform, SafeAreaView, StatusBar, StyleSheet, View, Animated, I18nManager } from 'react-native';
+import { Platform, SafeAreaView, StatusBar, StyleSheet, View, Animated } from 'react-native';
 import 'react-native-gesture-handler';
 import { NavigationContainer } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import BootSplash from 'react-native-bootsplash';
 import DrawerNavigation from './src/components/DrawerNavigation/DrawerNavigation';
-import { LanguageProvider } from './src/utils/LanguageProvider';
+import { LanguageProvider, useLanguage } from './src/utils/LanguageProvider';
 
 type Route = 'Login' | 'OnBoarding';
 
-const App = () => {
+const AppContent = () => {
   const [initialRoute, setInitialRoute] = useState<Route | null>(null);
   const fadeAnim = useRef(new Animated.Value(0)).current;
+  const {isRTL} = useLanguage();
 
   useEffect(() => {
     const init = async () => {
@@ -69,27 +70,27 @@ const App = () => {
     <Animated.View
       style={[
         styles.container,
-        I18nManager.isRTL ? styles.rtl : styles.ltr,
         {
           opacity: fadeAnim,
         },
       ]}
     >
       <SafeAreaView
-        style={[
-          styles.safeArea,
-          I18nManager.isRTL ? styles.rtl : styles.ltr,
-        ]}
+        style={styles.safeArea}
       >
-        <LanguageProvider>
-          <NavigationContainer>
-            <DrawerNavigation initialRoute={initialRoute} />
-          </NavigationContainer>
-        </LanguageProvider>
+        <NavigationContainer>
+          <DrawerNavigation key={isRTL ? 'rtl' : 'ltr'} initialRoute={initialRoute} />
+        </NavigationContainer>
       </SafeAreaView>
     </Animated.View>
   );
 };
+
+const App = () => (
+  <LanguageProvider>
+    <AppContent />
+  </LanguageProvider>
+);
 
 const styles = StyleSheet.create({
   container: {
@@ -100,12 +101,6 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
     paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
-  },
-  ltr: {
-    direction: 'ltr',
-  },
-  rtl: {
-    direction: 'rtl',
   },
   loaderContainer: {
     flex: 1,

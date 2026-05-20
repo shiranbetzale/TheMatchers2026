@@ -7,7 +7,6 @@ import {MatchCardType} from '../MatchCard/MatchCard.type';
 import {styles} from './CurrentCard.style';
 import SelectedCard from '../SelectedCard/SelectedCard';
 import {useLanguage} from '../../utils/LanguageProvider';
-import {translateProfileValue} from '../../utils/profileTranslations';
 
 const CurrentCard = (props: MatchCardType) => {
   const {t} = useLanguage();
@@ -34,13 +33,13 @@ const CurrentCard = (props: MatchCardType) => {
     },
     {
       text: t('matchCard.status'),
-      info: `${translateProfileValue(status, t)}${
+      info: `${status ? t(status) : ''}${
         numOfChildren > 0 ? ' + ' + numOfChildren : ''
       }`,
     },
     {
       text: t('matchCard.cityShort'),
-      info: translateProfileValue(city, t),
+      info: city ? t(city) : '',
     },
   ];
 

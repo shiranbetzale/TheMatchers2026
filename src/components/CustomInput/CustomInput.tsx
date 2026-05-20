@@ -1,9 +1,9 @@
-import React, { useMemo, useState } from 'react';
-import { TextInput, View, TouchableOpacity, Text } from 'react-native';
+import React, {useMemo, useState} from 'react';
+import {TextInput, View, TouchableOpacity, Text} from 'react-native';
 import CustomText from '../CustomText/CustomText';
-import { styles } from './CustomInput.style';
-import { CustomInputType } from './CustomInput.type';
-import { useLanguage } from '../../utils/LanguageProvider';
+import {styles} from './CustomInput.style';
+import {CustomInputType} from './CustomInput.type';
+import {useLanguage} from '../../utils/LanguageProvider';
 
 const CustomInput = (props: CustomInputType) => {
   const {
@@ -18,12 +18,15 @@ const CustomInput = (props: CustomInputType) => {
     isMultiline = false,
     isEditable = true,
     value, // הערך מגיע מהורה
-    onChangeText = () => { },
+    onChangeText = () => {},
   } = props;
-  const { isRTL } = useLanguage();
+  const {isRTL} = useLanguage();
   const [isSecure, setIsSecure] = useState(secureTextEntry);
   const showToggle = allowToggleSecure && secureTextEntry;
-  const toggleText = useMemo(() => (isRTL ? (isSecure ? '👁️' : '👁️‍🗨️') : (isSecure ? '👁️' : '👁️‍🗨️')), [isSecure, isRTL]);
+  const toggleText = useMemo(
+    () => (isRTL ? (isSecure ? '👁️' : '👁️‍🗨️') : isSecure ? '👁️' : '👁️‍🗨️'),
+    [isSecure, isRTL],
+  );
 
   return (
     <View
@@ -31,8 +34,7 @@ const CustomInput = (props: CustomInputType) => {
         isSmallSize ? styles.smallContainer : styles.container,
         isMultiline && styles.textAreaContainer,
         isRTL ? styles.rowReverse : styles.row,
-      ]}
-    >
+      ]}>
       <View style={!isMultiline && styles.maxWidth}>
         <CustomText text={placeholder} />
       </View>
@@ -41,6 +43,7 @@ const CustomInput = (props: CustomInputType) => {
           isSmallSize ? styles.smallInput : styles.input,
           isMultiline && styles.textArea,
           styles.baseInput,
+          isRTL ? styles.rtlInput : styles.ltrInput,
         ]}
         onChangeText={text => {
           const next = onlyDigits ? text.replace(/\D+/g, '') : text;
@@ -52,15 +55,14 @@ const CustomInput = (props: CustomInputType) => {
         secureTextEntry={isSecure}
         multiline={isMultiline}
         editable={isEditable}
-          maxLength={maxLength}
-          placeholder={placeholder}
+        maxLength={maxLength}
+        placeholder={placeholder}
         textAlign={isRTL ? 'right' : 'left'}
       />
       {showToggle && (
         <TouchableOpacity
           onPress={() => setIsSecure(prev => !prev)}
-          style={[styles.toggleSecure, isRTL && styles.toggleSecureRtl]}
-        >
+          style={[styles.toggleSecure, isRTL && styles.toggleSecureRtl]}>
           <Text style={styles.toggleSecureText}>{toggleText}</Text>
         </TouchableOpacity>
       )}

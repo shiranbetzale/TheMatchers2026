@@ -55,6 +55,10 @@
   "hidePassword": "Hide",
   "yes": "Yes",
   "no": "No",
+  "bnei Brak": "Bnei Brak",
+  "single": "Single",
+  "divorced": "Divorced",
+  "widower": "Widower",
   "matchCard": {
     "name": "Name",
     "age": "Age",
@@ -66,11 +70,5 @@
     "worldview": "Worldview",
     "haredi": "Haredi",
     "offered": "Offered"
-  },
-  "profileValues": {
-    "bneiBrak": "Bnei Brak",
-    "single": "Single",
-    "divorced": "Divorced",
-    "widower": "Widower"
   }
 }

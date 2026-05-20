@@ -12,7 +12,6 @@ import {styles} from './MatchCard.style';
 import {MatchCardType} from './MatchCard.type';
 import ShareSvg from '../../assets/images/share.svg';
 import {useLanguage} from '../../utils/LanguageProvider';
-import {translateProfileValue} from '../../utils/profileTranslations';
 
 const MatchCard = (props: MatchCardType) => {
   const {isRTL, t} = useLanguage();
@@ -46,14 +45,14 @@ const MatchCard = (props: MatchCardType) => {
     },
     {
       text: t('matchCard.status'),
-      info: `${translateProfileValue(status, t)}${
+      info: `${status ? t(status) : ''}${
         numOfChildren > 0 ? ' + ' + numOfChildren : ''
       }`,
       isShow: true,
     },
     {
       text: t('matchCard.city'),
-      info: translateProfileValue(city, t),
+      info: city ? t(city) : '',
       isShow: true,
     },
     {

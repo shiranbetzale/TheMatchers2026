@@ -37,6 +37,12 @@ export const styles = StyleSheet.create({
     backgroundColor: Colors.surface,
     ...FontsStyle.text
   },
+  ltrInput: {
+    writingDirection: 'ltr',
+  },
+  rtlInput: {
+    writingDirection: 'rtl',
+  },
   textArea: {
     height: 140,
     width: "100%",

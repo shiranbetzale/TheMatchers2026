@@ -4,7 +4,6 @@ import GeneralStyle from '../../utils/GeneralStyle';
 
 export const styles = StyleSheet.create({
     container: {
-        flexDirection: "row-reverse",
         backgroundColor: Colors.color1,
         alignItems: "center",
         alignContent: "center",
@@ -12,9 +11,14 @@ export const styles = StyleSheet.create({
         justifyContent: "space-between"
     },
     menuTxtContainer: {
-        flexDirection: "row-reverse",
         alignItems: "center",
         alignContent: "center",
+    },
+    row: {
+        flexDirection: "row",
+    },
+    rowReverse: {
+        flexDirection: "row-reverse",
     },
     space: {
         marginLeft: GeneralStyle.space
