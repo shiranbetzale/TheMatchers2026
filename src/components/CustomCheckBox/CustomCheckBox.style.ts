@@ -7,6 +7,7 @@ export const styles = StyleSheet.create({
   },
   cbContainer: {
     flexDirection: 'column',
+    width: '100%',
   },
   smallCheckbox: {
     width: 20,
@@ -17,14 +18,20 @@ export const styles = StyleSheet.create({
   baseContainer: {
     flexDirection: 'column',
   },
+  alignLtr: {
+    alignItems: 'flex-start',
+  },
+  alignRtl: {
+    alignItems: 'flex-end',
+  },
   checkboxContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     marginTop: GeneralStyle.space,
+    gap: GeneralStyle.space,
   },
   checkbox: {
     alignSelf: 'center',
-    marginLeft: GeneralStyle.space,
   },
   label: {
     margin: GeneralStyle.space,

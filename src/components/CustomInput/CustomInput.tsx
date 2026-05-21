@@ -32,8 +32,11 @@ const CustomInput = (props: CustomInputType) => {
     <View
       style={[
         isSmallSize ? styles.smallContainer : styles.container,
-        isMultiline && styles.textAreaContainer,
-        isRTL ? styles.rowReverse : styles.row,
+        !isMultiline && (isRTL ? styles.rowReverse : styles.row),
+        isMultiline && [
+          styles.textAreaContainer,
+          isRTL ? styles.textAreaContainerRtl : styles.textAreaContainerLtr,
+        ],
       ]}>
       <View style={!isMultiline && styles.maxWidth}>
         <CustomText text={placeholder} />
@@ -43,6 +46,7 @@ const CustomInput = (props: CustomInputType) => {
           isSmallSize ? styles.smallInput : styles.input,
           isMultiline && styles.textArea,
           styles.baseInput,
+          !isEditable && styles.readOnlyInput,
           isRTL ? styles.rtlInput : styles.ltrInput,
         ]}
         onChangeText={text => {

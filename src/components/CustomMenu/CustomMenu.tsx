@@ -13,7 +13,7 @@ import { RootStackParamList } from '../MainStackNavigation/MainStackNavigation.t
 import {useLanguage} from '../../utils/LanguageProvider';
 
 const CustomMenu = (props: CustomMenuType) => {
-  const {onPressMenu, title} = props;
+  const {isBackHidden = false, onPressMenu, title} = props;
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
   const {isRTL} = useLanguage();
 
@@ -39,10 +39,12 @@ const CustomMenu = (props: CustomMenuType) => {
         <CustomText text={title} customStyle={FontsStyle.menuTitle} />
       </View>
       <View>
-        <CustomButton
-          onPress={() => navigation.goBack()}
-          icon={<BackSvg width={24} height={24} />}
-        />
+        {!isBackHidden && (
+          <CustomButton
+            onPress={() => navigation.goBack()}
+            icon={<BackSvg width={24} height={24} />}
+          />
+        )}
       </View>
     </View>
   );

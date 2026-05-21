@@ -6,22 +6,25 @@ import {StackNavigationProp} from '@react-navigation/stack';
 import CustomButton from '../../components/CustomButton/CustomButton';
 import CustomFilter from '../../components/CustomFilter/CustomFilter';
 import CustomHeader from '../../components/CustomHeader/CustomHeader';
+import CustomImage from '../../components/CustomImage/CustomImage';
 import CustomOrderBy from '../../components/CustomOrderBy/CustomOrderBy';
-import MatchCard from '../../components/MatchCard/MatchCard';
+import CustomText from '../../components/CustomText/CustomText';
 import {MatchCardType} from '../../components/MatchCard/MatchCard.type';
 import FilterSvg from '../../assets/images/filter.svg';
 import OrderBySvg from '../../assets/images/orderBy.svg';
 import Colors from '../../utils/Colors';
 import HomeScreen from '../HomeScreen/HomeScreen';
-import {styles} from './AllCardsScreen.style';
 import {RootStackParamList} from '../../components/MainStackNavigation/MainStackNavigation.type';
+import {useLanguage} from '../../utils/LanguageProvider';
+import {styles} from './AdminAllCardsScreen.style';
 
 type NavigationProp = StackNavigationProp<RootStackParamList>;
 
-const AllCardsScreen = () => {
+const AdminAllCardsScreen = () => {
   const [isShowFilter, setIsShowFilter] = useState(false);
   const [isShowOrderBy, setIsShowOrderBy] = useState(false);
   const navigation = useNavigation<NavigationProp>();
+  const {isRTL, t} = useLanguage();
 
   const allCardsArray: MatchCardType[] = [
     {
@@ -148,16 +151,70 @@ const AllCardsScreen = () => {
           matchItem.gender === 'male' ? Colors.lightBlue : Colors.pink;
 
         return (
-          <CustomButton
+          <View
             key={index}
-            onPress={() => navigation.navigate('MatchCardsScreen')}
-            customStyle={styles.matchCard(cardColor)}>
-            <MatchCard {...matchItem} isSlide={false} />
-          </CustomButton>
+            style={[
+              styles.listCard(cardColor),
+              isRTL ? styles.rowReverse : styles.row,
+            ]}>
+            <View style={styles.avatarContainer}>
+              <CustomImage
+                customImgStyle={styles.avatar}
+                src={matchItem.images[0]}
+              />
+            </View>
+
+            <View
+              style={[
+                styles.cardInfo,
+                isRTL ? styles.alignRight : styles.alignLeft,
+              ]}>
+              <CustomText text={matchItem.name} customStyle={styles.nameText} />
+              <CustomText
+                text={`${t('matchCard.age')}: ${matchItem.age} | ${t(
+                  'matchCard.height',
+                )}: ${matchItem.height}`}
+                customStyle={styles.metaText}
+              />
+              <CustomText
+                text={`${t('matchCard.status')}: ${t(matchItem.status)}${
+                  matchItem.numOfChildren ? ` + ${matchItem.numOfChildren}` : ''
+                }`}
+                customStyle={styles.metaText}
+              />
+              <CustomText
+                text={`${t('matchCard.cityShort')}: ${
+                  matchItem.city ? t(matchItem.city) : ''
+                }`}
+                customStyle={styles.metaText}
+              />
+              <CustomText
+                text={`${t('phoneNumber')}: ${matchItem.phone}`}
+                customStyle={styles.metaText}
+              />
+            </View>
+
+            <View style={styles.actions}>
+              <CustomButton
+                text="view"
+                customStyle={styles.viewButton}
+                customTextStyle={styles.actionText}
+                onPress={() => navigation.navigate('MatchCardsScreen')}
+              />
+              <CustomButton
+                text="edit"
+                customStyle={styles.editButton}
+                customTextStyle={styles.actionText}
+                onPress={() =>
+                  navigation.navigate('EditFormScreen', {card: matchItem})
+                }
+              />
+            </View>
+          </View>
         );
       })}
     </HomeScreen>
   );
 };
 
-export default AllCardsScreen;
+export default AdminAllCardsScreen;

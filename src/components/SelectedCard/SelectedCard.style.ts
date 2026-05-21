@@ -43,7 +43,7 @@ export const styles = StyleSheet.create({
         backgroundColor: Colors.pink
     },
     txt: {
-        color: Colors.black,
         ...FontsStyle.menuTitle,
+        color: Colors.darkGreen,
     }
 });

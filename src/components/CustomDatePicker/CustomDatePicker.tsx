@@ -9,16 +9,21 @@ import DatePickerSvg from '../../assets/images/datePicker.svg';
 import {FontsStyle} from '../../utils/FontsStyle';
 
 const CustomDatePicker = (props: CustomDatePickerType) => {
-  const {text, maxDate} = props;
-  const [date, setDate] = useState<Date>(new Date());
+  const {text, value, maxDate, onChangeDate} = props;
+  const [date, setDate] = useState<Date | undefined>();
   const [open, setOpen] = useState<boolean>(false);
+  const valueDate = value ? new Date(value) : undefined;
+  const selectedDate =
+    date ||
+    (valueDate && !Number.isNaN(valueDate.getTime()) ? valueDate : undefined);
+  const pickerDate = selectedDate || maxDate || new Date();
 
   return (
     <View style={styles.container}>
       <CustomText text={text} />
       <View style={styles.dateContainer}>
         <CustomText
-          text={date.toLocaleDateString('he-IL')}
+          text={selectedDate ? selectedDate.toLocaleDateString('he-IL') : ''}
           customStyle={FontsStyle.text}
         />
         <CustomButton
@@ -29,12 +34,12 @@ const CustomDatePicker = (props: CustomDatePickerType) => {
         <DatePicker
           modal
           open={open}
-          date={date}
+          date={pickerDate}
           mode="date"
-          onConfirm={selectedDate => {
+          onConfirm={nextDate => {
             setOpen(false);
-            setDate(selectedDate);
-            // console.log(date);
+            setDate(nextDate);
+            onChangeDate?.(nextDate);
           }}
           onCancel={() => {
             setOpen(false);

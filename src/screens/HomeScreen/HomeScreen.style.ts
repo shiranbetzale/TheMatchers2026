@@ -35,12 +35,12 @@ export const styles = StyleSheet.create({
   },
   bgShapeOne: {
     position: 'absolute',
-    width: width * 1.2,
-    height: width * 1.2,
+    width: width * 0.95,
+    height: width * 0.95,
     borderRadius: width,
-    backgroundColor: '#C5A15E33', // gold tint
-    top: -width * 0.7,
-    left: -width * 0.3,
+    backgroundColor: '#071E3D12',
+    top: -width * 0.58,
+    left: -width * 0.28,
     zIndex: 0,
   },
   bgShapeTwo: {
@@ -48,9 +48,20 @@ export const styles = StyleSheet.create({
     width: width * 1.1,
     height: width * 1.1,
     borderRadius: width,
-    backgroundColor: '#6FA6FF33', // lighter blue tint
+    backgroundColor: Colors.softBlue,
     bottom: -width * 0.5,
     right: -width * 0.2,
+    zIndex: 0,
+  },
+  bgShapeThree: {
+    position: 'absolute',
+    width: width * 0.7,
+    height: width * 0.7,
+    borderRadius: width,
+    borderWidth: 1,
+    borderColor: '#B88A3555',
+    top: width * 0.15,
+    right: -width * 0.3,
     zIndex: 0,
   },
   // pinChildren: {
@@ -62,11 +73,12 @@ export const styles = StyleSheet.create({
   scrollContainer: {
     flex: 1,
     backgroundColor: 'transparent',
+    zIndex: 1,
   },
   scrollContent: {
-    paddingTop: 80, // רווח כדי שהתוכן לא יתנגש עם pinChildren
-    paddingHorizontal: 16,
-    paddingBottom: 20,
+    paddingTop: 48,
+    paddingHorizontal: 18,
+    paddingBottom: 28,
   },
 
 });

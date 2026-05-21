@@ -1,18 +1,57 @@
-import { StyleSheet } from "react-native";
-import Colors from "../../utils/Colors";
-import GeneralStyle from "../../utils/GeneralStyle";
+import {StyleSheet} from 'react-native';
+import Colors from '../../utils/Colors';
+import {FontsStyle} from '../../utils/FontsStyle';
+import GeneralStyle from '../../utils/GeneralStyle';
 
 export const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "space-between",
-    flexDirection: "row-reverse",
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: GeneralStyle.space,
   },
-  dropdownRow: {
-    backgroundColor: Colors.color1,
+  row: {
+    flexDirection: 'row',
+  },
+  rowReverse: {
+    flexDirection: 'row-reverse',
   },
   select: {
-    marginLeft: GeneralStyle.space
-  }
+    minWidth: 180,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderRadius: 12,
+    backgroundColor: Colors.surface,
+    paddingHorizontal: GeneralStyle.space,
+    paddingVertical: GeneralStyle.space,
+  },
+  readOnlySelect: {
+    borderWidth: 0,
+    backgroundColor: 'transparent',
+  },
+  selectText: {
+    ...FontsStyle.text,
+    textAlign: 'center',
+  },
+  overlay: {
+    flex: 1,
+    justifyContent: 'center',
+    paddingHorizontal: GeneralStyle.space * 2,
+    backgroundColor: 'rgba(0, 0, 0, 0.35)',
+  },
+  optionsContainer: {
+    overflow: 'hidden',
+    borderRadius: 12,
+    backgroundColor: Colors.white,
+    ...Colors.Shadow,
+  },
+  option: {
+    paddingHorizontal: GeneralStyle.space * 1.5,
+    paddingVertical: GeneralStyle.space * 1.2,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
+  },
+  optionText: {
+    ...FontsStyle.text,
+    textAlign: 'center',
+  },
 });

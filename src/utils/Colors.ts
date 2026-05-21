@@ -1,20 +1,20 @@
 import DeviceInfo from "react-native-device-info";
 
 const shadowAndroid = {
-    shadowColor: "rgba(15,46,99,0.25)",
-    elevation: 15,
-    backgroundColor: "#ffffff",
+    shadowColor: "rgba(8,22,48,0.28)",
+    elevation: 12,
+    backgroundColor: "#FEFCF8",
 };
 
 const shadowiOS = {
-    shadowColor: "rgba(15,46,99,0.12)",
+    shadowColor: "rgba(8,22,48,0.16)",
     shadowOffset: {
         width: 0,
-        height: 5,
+        height: 8,
     },
     shadowOpacity: 1,
-    shadowRadius: 12,
-    backgroundColor: "#ffffff",
+    shadowRadius: 18,
+    backgroundColor: "#FEFCF8",
 };
 
 const oldShadow = {
@@ -32,15 +32,19 @@ const shadowDeferrer = (iOS: any, newAndroid: any, oldAndroid: any) => {
 };
 
 const Colors = {
-    pink: "#f1a8b3",
-    lightBlue: "#9bd1e9",
-    color1: "#C5A15E", // gold accent
-    appBg: "#F7F4EF", // calm background
-    surface: "#FFFFFF",
-    border: "#E4DCCF",
+    pink: "#F5D7DC",
+    lightBlue: "#D9E7F7",
+    color1: "#B88A35",
+    color1Light: "#E9D7B5",
+    appBg: "#F8F6F1",
+    surface: "#FEFCF8",
+    surfaceMuted: "#F1ECE3",
+    border: "#D9C8AA",
     white: '#fff',
-    black: "#1f1f1f",
-    darkGreen: "#0F2E63", // deep blue accent
+    black: "#151923",
+    darkGreen: "#071E3D",
+    slate: "#334155",
+    softBlue: "#EAF1FB",
     transparent: "transparent",
     Shadow: shadowDeferrer(shadowiOS, shadowAndroid, oldShadow),
 }

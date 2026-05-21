@@ -1,10 +1,14 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
+import {Platform} from 'react-native';
 
 export const API_TOKEN_KEY = 'authToken';
 
 const api = axios.create({
-  baseURL: 'http://192.168.x.x:5000',
+  baseURL:
+    Platform.OS === 'android'
+      ? 'http://10.0.2.2:4000'
+      : 'http://localhost:4000',
   timeout: 15000,
 });
 

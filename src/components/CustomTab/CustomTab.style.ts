@@ -4,10 +4,20 @@ import GeneralStyle from "../../utils/GeneralStyle";
 
 export const styles = StyleSheet.create({
   tabContainer: {
+    width: "100%",
     marginBottom: GeneralStyle.space,
-    borderBottomWidth: 2,
+    borderBottomWidth: 1,
     paddingBottom: GeneralStyle.space / 2,
-    borderBottomColor: Colors.darkGreen,
+    borderBottomColor: Colors.border,
+  },
+  tabsRow: {
+    alignItems: "center",
+  },
+  alignLeft: {
+    alignSelf: "flex-start",
+  },
+  alignRight: {
+    alignSelf: "flex-end",
   },
   row: {
     flexDirection: "row",
@@ -16,39 +26,30 @@ export const styles = StyleSheet.create({
     flexDirection: "row-reverse",
   },
   tab: {
-    paddingVertical: GeneralStyle.space,
+    paddingVertical: GeneralStyle.space * 0.9,
     paddingHorizontal: GeneralStyle.space * 2,
     backgroundColor: Colors.surface,
-    borderRadius: 12,
+    borderRadius: 14,
     borderWidth: 1,
     borderColor: Colors.border,
     margin: 1,
-  },
-  borderLeft: {
-    borderLeftWidth: 2,
-    borderLeftColor: Colors.darkGreen,
   },
   activeTabTxt: {
     color: Colors.white
   },
   activeTab: {
-    backgroundColor: Colors.color1
+    backgroundColor: Colors.darkGreen,
+    borderColor: Colors.color1,
   },
   tabBorder: {
-  },
-  tabBorderLtr: {
     flexDirection: "row",
-    marginLeft: GeneralStyle.space,
+    alignItems: "center",
   },
-  tabBorderRtl: {
-    flexDirection: "row-reverse",
-    marginRight: GeneralStyle.space,
-  },
-  separatorLtr: {
-    marginLeft: GeneralStyle.space,
-  },
-  separatorRtl: {
-    marginRight: GeneralStyle.space,
+  separator: {
+    width: 2,
+    height: 48,
+    backgroundColor: Colors.color1,
+    marginHorizontal: GeneralStyle.space * 2,
   },
   tabText: {
     color: Colors.darkGreen,

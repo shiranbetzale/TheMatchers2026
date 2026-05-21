@@ -7,11 +7,12 @@ import { Option } from "../../utils/FormFields.type";
 import { FontsStyle } from "../../utils/FontsStyle";
 
 type SingleCheckBoxProps = Option & {
+  isRTL?: boolean;
   onChange?: (option: Option, value: boolean) => void;
 };
 
 const CustomSingleCheckBox = (props: SingleCheckBoxProps) => {
-  const { id, label, isSmallSize = false, onChange } = props;
+  const { id, isRTL = false, label, isSmallSize = false, onChange } = props;
   const [isSelected, setSelection] = useState(false);
 
   const handleToggle = (next: boolean) => {
@@ -20,8 +21,10 @@ const CustomSingleCheckBox = (props: SingleCheckBoxProps) => {
   };
 
   return (
-    <>
-      <CustomText text={label} customStyle={FontsStyle.text} />
+    <React.Fragment>
+      {isRTL && (
+        <CustomText text={label} customStyle={FontsStyle.text} />
+      )}
       <CheckBox
         // hideBox={true}
         boxType="square"
@@ -35,7 +38,10 @@ const CustomSingleCheckBox = (props: SingleCheckBoxProps) => {
         tintColor={Colors.black}
         tintColors={{ true: Colors.color1, false: Colors.black }}
       />
-    </>
+      {!isRTL && (
+        <CustomText text={label} customStyle={FontsStyle.text} />
+      )}
+    </React.Fragment>
   );
 };
 

@@ -4,13 +4,12 @@ import GeneralStyle from '../../utils/GeneralStyle';
 export const styles = {
   matchCard: (color: string) => ({
     padding: 0,
-    marginBottom: GeneralStyle.space * 1.2,
+    marginBottom: GeneralStyle.space,
     borderWidth: 1,
     borderLeftWidth: 5,
-    borderRadius: 18,
     backgroundColor: Colors.surface,
     borderColor: color,
-    ...Colors.Shadow,
+    borderRadius: 18,
   }),
   pinChildrenContainer: {
     backgroundColor: Colors.surface,

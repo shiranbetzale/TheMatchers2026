@@ -1,4 +1,6 @@
 export type CustomDatePickerType = {
-    text: string;
-    maxDate?: Date;
+  text: string;
+  value?: string | number;
+  maxDate?: Date;
+  onChangeDate?: (date: Date) => void;
 };

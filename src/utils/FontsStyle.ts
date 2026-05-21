@@ -1,4 +1,4 @@
-import { StyleSheet } from 'react-native';
+import {StyleSheet} from 'react-native';
 import Colors from './Colors';
 
 const fontMap = {
@@ -11,17 +11,18 @@ export const FontsStyle = StyleSheet.create({
   text: {
     color: Colors.black,
     fontFamily: fontMap.light,
-    fontSize: 18,
+    fontSize: 15,
   },
   title: {
     fontFamily: fontMap.bold,
     color: Colors.darkGreen,
-    fontSize: 40,
-    textAlign: "center"
+    fontSize: 42,
+    textAlign: 'center',
   },
   menuTitle: {
     fontFamily: fontMap.bold,
-    fontSize: 26,
+    fontSize: 24,
+    color: Colors.surface,
   },
   wizardTitle: {
     fontFamily: fontMap.medium,
@@ -30,7 +31,7 @@ export const FontsStyle = StyleSheet.create({
   },
   textDecoration: {
     fontFamily: fontMap.bold,
-    textDecorationLine: 'underline',
+    color: Colors.darkGreen,
   },
   subTitle: {
     fontFamily: fontMap.medium,

@@ -58,7 +58,7 @@ const CurrentCard = (props: MatchCardType) => {
       style={[styles.container, isMale ? styles.boy : styles.girl]}>
       <CustomText text={name} customStyle={styles.txt} />
       <View style={styles.imgContainer}>{getImage()}</View>
-      <SelectedCard details={details} />
+      <SelectedCard card={props} details={details} />
     </View>
   );
 };

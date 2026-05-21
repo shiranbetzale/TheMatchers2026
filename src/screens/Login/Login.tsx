@@ -1,11 +1,11 @@
-import React, { useMemo, useState } from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import {
   View,
   TouchableOpacity,
   Text,
   Modal,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { CommonActions, useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import HomeScreen from '../HomeScreen/HomeScreen';
 import WhiteCard from '../../components/WhiteCard/WhiteCard';
@@ -17,7 +17,7 @@ import { styles } from './Login.style';
 import { RootStackParamList } from '../../components/MainStackNavigation/MainStackNavigation.type';
 import { useLanguage } from '../../utils/LanguageProvider';
 import ErrorBanner from '../../components/ErrorBanner/ErrorBanner';
-import { loginWithPassword } from '../../services/auth';
+import {UserRole, isSessionValid, saveSession} from '../../services/session';
 
 type LoginMode = 'matchmaker' | 'candidate';
 
@@ -41,8 +41,8 @@ const Login = () => {
   const [error, setError] = useState<string | null>(null);
 
   const tabModes = useMemo<LoginMode[]>(
-    () => (isRTL ? ['candidate', 'matchmaker'] : ['matchmaker', 'candidate']),
-    [isRTL],
+    () => ['matchmaker', 'candidate'],
+    [],
   );
 
   const tabs = useMemo(
@@ -55,6 +55,21 @@ const Login = () => {
 
   const activeTab = tabModes.indexOf(activeMode);
   const isMatchmakerLogin = activeMode === 'matchmaker';
+
+  useEffect(() => {
+    const redirectActiveSession = async () => {
+      if (await isSessionValid()) {
+        navigation.dispatch(
+          CommonActions.reset({
+            index: 0,
+            routes: [{name: 'MainScreen'}],
+          }),
+        );
+      }
+    };
+
+    redirectActiveSession();
+  }, [navigation]);
 
   const handleTabPress = (index: number) => {
     const nextMode = tabModes[index];
@@ -87,11 +102,21 @@ const Login = () => {
       setError(null);
       setIsSubmitting(true);
 
+      let role: UserRole = isMatchmakerLogin ? 'matchmaker' : 'user';
+
       if (isMatchmakerLogin) {
-        await loginWithPassword(mobile, password);
+       // await loginWithPassword(mobile, password);
+       // role = user.role;
       }
 
-      navigation.navigate('MainScreen');
+      await saveSession(role);
+
+      navigation.dispatch(
+        CommonActions.reset({
+          index: 0,
+          routes: [{name: 'MainScreen'}],
+        }),
+      );
     } catch {
       setError(t('errorGeneric'));
     } finally {
@@ -193,8 +218,8 @@ const Login = () => {
               <TouchableOpacity
                 key={lang.code}
                 style={styles.modalOption}
-                onPress={() => {
-                  changeLanguage(lang.code);
+                onPress={async () => {
+                  await changeLanguage(lang.code);
                   setLangModalVisible(false);
                 }}
               >

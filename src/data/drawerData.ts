@@ -1,10 +1,13 @@
 import Wizard from '../components/Wizard/Wizard';
+import AdminAllCardsScreen from '../screens/AdminAllCardsScreen/AdminAllCardsScreen';
 import AllCardsScreen from '../screens/AllCardsScreen/AllCardsScreen';
+import ContactScreen from '../screens/ContactScreen/ContactScreen';
 import EditFormScreen from '../screens/EditFormScreen/EditFormScreen';
 import HomeScreen from '../screens/HomeScreen/HomeScreen';
 import Login from '../screens/Login/Login';
 import MainScreen from '../screens/MainScreen/MainScreen';
 import MatchCardsScreen from '../screens/MatchCardsScreen/MatchCardsScreen';
+import MatchmakerCardsScreen from '../screens/MatchmakerCardsScreen/MatchmakerCardsScreen';
 import OnBoardingScreen from '../screens/OnBoardingScreen/OnBoardingScreen';
 import RegisterScreen from '../screens/RegisterScreen/RegisterScreen';
 import RegisterUserScreen from '../screens/RegisterUserScreen/RegisterUserScreen';
@@ -19,12 +22,13 @@ export const drawerData = [
   {
     name: 'Register',
     component: RegisterScreen,
-    isHeaderShown: false,
+    adminOnly: true,
   },
   {
     name: 'UsersList',
     component: UsersListScreen,
     isHeaderShown: false,
+    adminOnly: true,
   },
   {
     name: 'Wizard',
@@ -33,6 +37,16 @@ export const drawerData = [
   {
     name: 'AllCardsScreen',
     component: AllCardsScreen,
+  },
+  {
+    name: 'AdminAllCardsScreen',
+    component: AdminAllCardsScreen,
+    adminOnly: true,
+  },
+  {
+    name: 'MatchmakerCardsScreen',
+    component: MatchmakerCardsScreen,
+    allowedRoles: ['admin', 'matchmaker'],
   },
   {
     name: 'MatchCardsScreen',
@@ -45,6 +59,10 @@ export const drawerData = [
   {
     name: 'MainScreen',
     component: MainScreen,
+  },
+  {
+    name: 'ContactScreen',
+    component: ContactScreen,
   },
   {
     name: 'EditFormScreen',

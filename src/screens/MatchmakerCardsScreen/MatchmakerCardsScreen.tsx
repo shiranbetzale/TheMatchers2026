@@ -13,17 +13,17 @@ import FilterSvg from '../../assets/images/filter.svg';
 import OrderBySvg from '../../assets/images/orderBy.svg';
 import Colors from '../../utils/Colors';
 import HomeScreen from '../HomeScreen/HomeScreen';
-import {styles} from './AllCardsScreen.style';
 import {RootStackParamList} from '../../components/MainStackNavigation/MainStackNavigation.type';
+import {styles} from './MatchmakerCardsScreen.style';
 
 type NavigationProp = StackNavigationProp<RootStackParamList>;
 
-const AllCardsScreen = () => {
+const MatchmakerCardsScreen = () => {
   const [isShowFilter, setIsShowFilter] = useState(false);
   const [isShowOrderBy, setIsShowOrderBy] = useState(false);
   const navigation = useNavigation<NavigationProp>();
 
-  const allCardsArray: MatchCardType[] = [
+  const cards: MatchCardType[] = [
     {
       city: 'bnei Brak',
       matcherMail: 'matchmaker1@example.com',
@@ -87,27 +87,6 @@ const AllCardsScreen = () => {
         'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=500&auto=format&fit=crop&q=80',
       ],
     },
-    {
-      city: 'haifa',
-      matcherMail: 'matchmaker4@example.com',
-      mail: 'candidate4@example.com',
-      phone: '0524444444',
-      matcherPhone: '0549450954',
-      matcherName: 'שירן בצלאל',
-      name: 'Rachel Stern',
-      offered: false,
-      met: true,
-      gender: 'female',
-      age: 34,
-      height: '1.70',
-      status: 'widower',
-      numOfChildren: 1,
-      isShowInfoButtons: true,
-      isShowMeetingInfo: true,
-      images: [
-        'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=500&auto=format&fit=crop&q=80',
-      ],
-    },
   ];
 
   const toggleFilter = () => {
@@ -143,16 +122,16 @@ const AllCardsScreen = () => {
           )}
         </View>
       }>
-      {allCardsArray.map((matchItem, index) => {
+      {cards.map((card, index) => {
         const cardColor =
-          matchItem.gender === 'male' ? Colors.lightBlue : Colors.pink;
+          card.gender === 'male' ? Colors.lightBlue : Colors.pink;
 
         return (
           <CustomButton
             key={index}
-            onPress={() => navigation.navigate('MatchCardsScreen')}
-            customStyle={styles.matchCard(cardColor)}>
-            <MatchCard {...matchItem} isSlide={false} />
+            customStyle={styles.matchCard(cardColor)}
+            onPress={() => navigation.navigate('EditFormScreen', {card})}>
+            <MatchCard {...card} isSlide={false} />
           </CustomButton>
         );
       })}
@@ -160,4 +139,4 @@ const AllCardsScreen = () => {
   );
 };
 
-export default AllCardsScreen;
+export default MatchmakerCardsScreen;

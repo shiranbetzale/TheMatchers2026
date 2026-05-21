@@ -1,6 +1,8 @@
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import React from 'react';
+import AdminAllCardsScreen from '../../screens/AdminAllCardsScreen/AdminAllCardsScreen';
 import AllCardsScreen from '../../screens/AllCardsScreen/AllCardsScreen';
+import ContactScreen from '../../screens/ContactScreen/ContactScreen';
 import EditFormScreen from '../../screens/EditFormScreen/EditFormScreen';
 import Login from '../../screens/Login/Login';
 import MainScreen from '../../screens/MainScreen/MainScreen';
@@ -13,54 +15,64 @@ const Stack = createNativeStackNavigator();
 const MainStackNavigation = () => {
   const stackArr = [
     {
-      name: "Wizard",
+      name: 'Wizard',
       component: Wizard,
-      title: "000"
+      title: '000',
     },
     {
-      name: "AllCardsScreen",
+      name: 'AllCardsScreen',
       component: AllCardsScreen,
-      title: "111"
+      title: '111',
     },
     {
-      name: "MatchCardsScreen",
+      name: 'AdminAllCardsScreen',
+      component: AdminAllCardsScreen,
+      title: '112',
+    },
+    {
+      name: 'MatchCardsScreen',
       component: MatchCardsScreen,
-      title: "222"
+      title: '222',
     },
     {
-      name: "Login",
+      name: 'Login',
       component: Login,
-      title: "333"
+      title: '333',
     },
     {
-      name: "MainScreen",
+      name: 'MainScreen',
       component: MainScreen,
-      title: "444"
+      title: '444',
     },
     {
-      name: "EditFormScreen",
+      name: 'ContactScreen',
+      component: ContactScreen,
+      title: '445',
+    },
+    {
+      name: 'EditFormScreen',
       component: EditFormScreen,
-      title: "555"
+      title: '555',
     },
     {
-      name: "RegisterUserScreen",
+      name: 'RegisterUserScreen',
       component: RegisterUserScreen,
-      title: "666"
+      title: '666',
     },
-  ]
+  ];
 
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
-      {
-        stackArr.map((stackItem, index) => {
-          return <Stack.Screen
+    <Stack.Navigator screenOptions={{headerShown: false}}>
+      {stackArr.map((stackItem, index) => {
+        return (
+          <Stack.Screen
             key={index}
             name={stackItem.name}
             component={stackItem.component}
-            options={{ title: stackItem.title, headerShown: false }}
+            options={{title: stackItem.title, headerShown: false}}
           />
-        })
-      }
+        );
+      })}
     </Stack.Navigator>
   );
 };

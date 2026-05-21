@@ -9,6 +9,7 @@ const HomeScreen = ({ children, pinChildren }: HomeScreenType) => {
       <View style={styles.bgContainer}>
         <View style={styles.bgShapeOne} />
         <View style={styles.bgShapeTwo} />
+        <View style={styles.bgShapeThree} />
       </View>
 
       {/* תוכן מקובע מעל הרקע */}

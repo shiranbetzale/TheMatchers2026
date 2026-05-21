@@ -13,12 +13,12 @@ import {RootStackParamList} from '../MainStackNavigation/MainStackNavigation.typ
 import {useLanguage} from '../../utils/LanguageProvider';
 
 const SelectedCard = (props: SelectedCardType) => {
-  const {details} = props;
+  const {card, details} = props;
   const {isRTL} = useLanguage();
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
 
   const handlePress = () => {
-    navigation?.navigate('EditFormScreen');
+    navigation?.navigate('EditFormScreen', {card});
   };
 
   return (

@@ -15,7 +15,7 @@ if linkage != nil
 end
 
 target 'TheMatchers' do
-  config = use_native_modules!(['node', File.join(__dir__, '..', 'scripts', 'react-native-config-ios.js')])
+  config = use_native_modules!
 
   use_react_native!(
     :path => config[:reactNativePath],

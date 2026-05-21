@@ -6,8 +6,9 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import BootSplash from 'react-native-bootsplash';
 import DrawerNavigation from './src/components/DrawerNavigation/DrawerNavigation';
 import { LanguageProvider, useLanguage } from './src/utils/LanguageProvider';
+import {isSessionValid} from './src/services/session';
 
-type Route = 'Login' | 'OnBoarding';
+type Route = 'Login' | 'MainScreen' | 'OnBoarding';
 
 const AppContent = () => {
   const [initialRoute, setInitialRoute] = useState<Route | null>(null);
@@ -18,7 +19,14 @@ const AppContent = () => {
     const init = async () => {
       try {
         const seen = await AsyncStorage.getItem('hasSeenOnboarding');
-        setInitialRoute(seen === 'true' ? 'Login' : 'OnBoarding');
+        const hasActiveSession = await isSessionValid();
+
+        if (seen !== 'true') {
+          setInitialRoute('OnBoarding');
+          return;
+        }
+
+        setInitialRoute(hasActiveSession ? 'MainScreen' : 'Login');
       } catch (e) {
         console.warn('Error loading onboarding state:', e);
         setInitialRoute('Login');

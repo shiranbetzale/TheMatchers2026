@@ -1,8 +1,9 @@
 import React from 'react';
-import {Share} from 'react-native';
-import {Linking, View} from 'react-native';
+import {Linking, Share, View} from 'react-native';
 import PhoneSvg from '../../assets/images/phone.svg';
+import WhatsappSvg from '../../assets/images/whatsapp.svg';
 import {FontsStyle} from '../../utils/FontsStyle';
+import {sendEmail} from '../../utils/generalFunction';
 import CustomButton from '../CustomButton/CustomButton';
 import CustomImage from '../CustomImage/CustomImage';
 import CustomImageSlider from '../CustomImageSlider/CustomImageSlider';
@@ -19,6 +20,10 @@ const MatchCard = (props: MatchCardType) => {
     city,
     isShowMoreInfo = false,
     matcherPhone,
+    matcherMail,
+    matcherName,
+    phone,
+    mail,
     isSlide = true,
     isShowMeetingInfo = false,
     isShowInfoButtons = false,
@@ -56,6 +61,11 @@ const MatchCard = (props: MatchCardType) => {
       isShow: true,
     },
     {
+      text: 'שדכנית',
+      info: matcherName || matcherPhone,
+      isShow: true,
+    },
+    {
       text: t('matchCard.worldview'),
       info: t('matchCard.haredi'),
       isShow: isShowMoreInfo,
@@ -77,26 +87,59 @@ const MatchCard = (props: MatchCardType) => {
     // }
   ];
 
-  const file = images[0];
-  // const imageUrl = 'data:image/png;base64,' + base64Data;
+  const profileMessage = [
+    `${t('matchCard.name')}: ${name}`,
+    `${t('matchCard.age')}: ${age}`,
+    `${t('matchCard.height')}: ${height}`,
+    `${t('matchCard.status')}: ${status ? t(status) : ''}`,
+    `${t('matchCard.city')}: ${city ? t(city) : ''}`,
+    `${t('phoneNumber')}: ${phone}`,
+    mail ? `${t('email')}: ${mail}` : '',
+    images?.[0] ? `תמונה: ${images[0]}` : '',
+  ]
+    .filter(Boolean)
+    .join('\n');
 
   const handleShare = () => {
     const shareOptions = {
-      title: 'Title',
-      message: 'Message to share',
-      //url: `data:image/png;base64,${base64}`,
-      files: file,
-      subject: 'Subject',
+      title: name,
+      message: profileMessage,
+      url: images?.[0],
+      subject: `פרטי משודך/ת: ${name}`,
     };
     Share.share(shareOptions);
   };
 
-  const handleCall = () => {
+  const handleCandidateCall = () => {
+    Linking.openURL(`tel:${phone}`);
+  };
+
+  const handleMatcherCall = () => {
     Linking.openURL(`tel:${matcherPhone}`);
   };
 
+  const handleWhatsapp = () => {
+    const targetPhone = matcherPhone.replace(/\D/g, '');
+    const encodedMessage = encodeURIComponent(profileMessage);
+    Linking.openURL(
+      `whatsapp://send?phone=972${targetPhone.replace(
+        /^0/,
+        '',
+      )}&text=${encodedMessage}`,
+    );
+  };
+
+  const handleSendEmail = () => {
+    if (matcherMail) {
+      sendEmail(matcherMail, `פרטי משודך/ת: ${name}`, profileMessage);
+    } else {
+      handleShare();
+    }
+  };
+
   return (
-    <WhiteCard customStyle={[styles.container, isRTL ? styles.rtlRow : styles.ltrRow]}>
+    <WhiteCard
+      customStyle={[styles.container, isRTL ? styles.rtlRow : styles.ltrRow]}>
       <View
         style={[
           styles.imgBtnContainer,
@@ -111,23 +154,34 @@ const MatchCard = (props: MatchCardType) => {
         </View>
         <View>
           {isShowInfoButtons && (
-            <View style={[styles.infoButtons, isRTL ? styles.rtlRow : styles.ltrRow]}>
+            <View
+              style={[
+                styles.infoButtons,
+                isRTL ? styles.rtlRow : styles.ltrRow,
+              ]}>
               <CustomButton
                 onPress={() => handleShare()}
                 customStyle={styles.icon}>
                 <ShareSvg />
               </CustomButton>
-              {/* <CustomButton onPress={() => handleSendToWhatsapp()} customStyle={styles.icon} >
-              <WhatsappSvg />
-            </CustomButton> */}
+              <CustomButton onPress={handleWhatsapp} customStyle={styles.icon}>
+                <WhatsappSvg />
+              </CustomButton>
               <CustomButton
-                onPress={() => handleCall()}
+                onPress={() => handleCandidateCall()}
                 customStyle={styles.icon}>
                 <PhoneSvg />
               </CustomButton>
-              {/* <CustomButton onPress={() => handleSendEmail()} customStyle={styles.icon} >
-              <GmailSvg />
-            </CustomButton> */}
+              <CustomButton
+                onPress={() => handleMatcherCall()}
+                customStyle={styles.icon}>
+                <PhoneSvg />
+              </CustomButton>
+              <CustomButton
+                onPress={handleSendEmail}
+                customStyle={styles.mailIcon}>
+                <CustomText text="@" customStyle={styles.mailIconText} />
+              </CustomButton>
             </View>
           )}
         </View>
@@ -136,7 +190,9 @@ const MatchCard = (props: MatchCardType) => {
         {details.map(infoItem => {
           return (
             infoItem.isShow && (
-              <View style={[styles.info, isRTL ? styles.rtlRow : styles.ltrRow]}>
+              <View
+                key={infoItem.text}
+                style={[styles.info, isRTL ? styles.rtlRow : styles.ltrRow]}>
                 <CustomText
                   text={`${infoItem.text}: `}
                   customStyle={FontsStyle.subTitle}

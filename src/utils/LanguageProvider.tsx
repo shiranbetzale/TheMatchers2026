@@ -1,4 +1,5 @@
 import React, {createContext, useState, useEffect, ReactNode, useContext} from 'react';
+import {I18nManager} from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import i18n from './i18n';
 
@@ -32,6 +33,10 @@ export const LanguageProvider = ({children}: {children: ReactNode}) => {
 
   useEffect(() => {
     const loadLang = async () => {
+      I18nManager.allowRTL(false);
+      I18nManager.forceRTL(false);
+      I18nManager.swapLeftAndRightInRTL(false);
+
       const savedLang = await AsyncStorage.getItem(LANG_KEY);
       const lang = savedLang || 'en';
       await i18n.changeLanguage(lang);

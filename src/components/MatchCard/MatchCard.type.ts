@@ -15,6 +15,7 @@ export type MatchCardType = {
   phone: string;
   matcherPhone: string;
   matcherMail?: string;
+  matcherName?: string;
   isShowMoreInfo?: boolean;
   city?: string;
 };
