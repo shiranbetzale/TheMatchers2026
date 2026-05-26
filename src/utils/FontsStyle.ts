@@ -36,4 +36,9 @@ export const FontsStyle = StyleSheet.create({
   subTitle: {
     fontFamily: fontMap.medium,
   },
+  questionLabel: {
+    fontFamily: fontMap.medium,
+    color: Colors.darkGreen,
+    fontSize: 16,
+  },
 });

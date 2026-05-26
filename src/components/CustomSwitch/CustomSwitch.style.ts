@@ -3,38 +3,46 @@ import GeneralStyle from "../../utils/GeneralStyle";
 
 export const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "space-between",
+    width: '100%',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: GeneralStyle.spacing.sm,
+  },
+  smallContainer: {
+    minHeight: 34,
   },
   row: {
-    flexDirection: "row",
+    flexDirection: 'row',
   },
   rowReverse: {
-    flexDirection: "row-reverse",
+    flexDirection: 'row-reverse',
   },
   alignStart: {
-    alignItems: "flex-start",
+    alignItems: 'flex-start',
   },
   alignEnd: {
-    alignItems: "flex-end",
+    alignItems: 'flex-end',
   },
   switchText: {
-    width: "80%"
+    flex: 1,
+    minWidth: 0,
   },
   smallSwitch: {
-    marginTop: GeneralStyle.spacing.sm / 2
+    flexShrink: 0,
   },
   text: {
-    marginHorizontal: GeneralStyle.spacing.sm
+    flexShrink: 1,
+    width: '100%',
   },
   textLeft: {
-    textAlign: "left",
+    textAlign: 'left',
+    writingDirection: 'ltr',
   },
   textRight: {
-    textAlign: "right",
+    textAlign: 'right',
+    writingDirection: 'rtl',
   },
   switch: {
-    width: "20%"
-  }
+    flexShrink: 0,
+  },
 });

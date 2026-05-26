@@ -5,6 +5,7 @@ import { styles } from './CustomRadioButton.style';
 import CustomText from '../CustomText/CustomText';
 import { Option } from '../../utils/FormFields.type';
 import { FontsStyle } from '../../utils/FontsStyle';
+import {useLanguage} from '../../utils/LanguageProvider';
 
 const CustomRadioButton = (props: CustomRadioButtonType) => {
   const {
@@ -15,6 +16,7 @@ const CustomRadioButton = (props: CustomRadioButtonType) => {
     onSelect = () => {},
     value,
   } = props;
+  const {isRTL} = useLanguage();
   const selectedValueOption = useMemo(
     () =>
       radiosArray.find(
@@ -43,7 +45,13 @@ const CustomRadioButton = (props: CustomRadioButtonType) => {
 
   return (
     <View pointerEvents={isEditable ? 'auto' : 'none'}>
-      <CustomText text={text} />
+      <CustomText
+        text={text}
+        customStyle={[
+          FontsStyle.questionLabel,
+          isRTL ? styles.textRight : styles.textLeft,
+        ]}
+      />
       <>
         {radiosArray.map((radioItem) => {
           return <TouchableOpacity

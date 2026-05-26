@@ -1,16 +1,28 @@
 import { StyleSheet } from 'react-native';
 import Colors from '../../utils/Colors';
 import GeneralStyle from '../../utils/GeneralStyle';
+import {FontsStyle} from '../../utils/FontsStyle';
 
 export const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    alignItems: "flex-end",
+    width: '100%',
+    minHeight: 76,
+    alignItems: 'stretch',
     justifyContent: "center",
+  },
+  smallContainer: {
+    minHeight: 76,
+  },
+  label: {
+    ...FontsStyle.questionLabel,
+    width: '100%',
+    flexShrink: 0,
+    marginBottom: GeneralStyle.spacing.xs,
   },
   smallRange: {
     marginRight: GeneralStyle.spacing.sm,
-    marginBottom: GeneralStyle.spacing.sm / 2
+    marginBottom: GeneralStyle.spacing.sm / 2,
+    alignItems: 'center',
   },
   rangeContainer: {
     flexDirection: "row",
@@ -27,11 +39,10 @@ export const styles = StyleSheet.create({
     width: "15%",
   },
   smallRangeText: {
-    position: "absolute",
-    bottom: -8,
+    width: '15%',
   },
   left: {
-    left: - GeneralStyle.spacing.sm,
+    left: 0,
   },
   right: {
     right: 0
@@ -47,5 +58,13 @@ export const styles = StyleSheet.create({
   },
   selectedStyle: {
     backgroundColor: Colors.darkGreen
-  }
+  },
+  textRight: {
+    textAlign: 'right',
+    writingDirection: 'rtl',
+  },
+  textLeft: {
+    textAlign: 'left',
+    writingDirection: 'ltr',
+  },
 });

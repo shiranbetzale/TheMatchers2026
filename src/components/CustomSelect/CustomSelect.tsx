@@ -20,7 +20,15 @@ const CustomSelect = (props: CustomSelectType) => {
 
   return (
     <View style={[styles.container, isRTL ? styles.rowReverse : styles.row]}>
-      <CustomText text={text} />
+      <View style={styles.labelWrapper}>
+        <CustomText
+          text={text}
+          customStyle={[
+            styles.label,
+            isRTL ? styles.rtlText : styles.ltrText,
+          ]}
+        />
+      </View>
 
       <TouchableOpacity
         style={[styles.select, !isEditable && styles.readOnlySelect]}

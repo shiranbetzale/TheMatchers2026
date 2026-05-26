@@ -12,7 +12,7 @@ export const styles = StyleSheet.create({
     },
     contentContainer: {
         paddingTop: GeneralStyle.spacing.md,
-        paddingBottom: GeneralStyle.spacing.xl,
+        paddingBottom: GeneralStyle.spacing.xl * 4,
         overflow: 'visible',
     },
     whiteCardContainer: {

@@ -33,5 +33,15 @@ export const styles = StyleSheet.create({
   },
   selectedCircle: {
     backgroundColor: Colors.color1,
-  }
+  },
+  textRight: {
+    textAlign: 'right',
+    writingDirection: 'rtl',
+    width: '100%',
+  },
+  textLeft: {
+    textAlign: 'left',
+    writingDirection: 'ltr',
+    width: '100%',
+  },
 });

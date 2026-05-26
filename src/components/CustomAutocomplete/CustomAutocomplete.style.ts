@@ -5,7 +5,8 @@ import GeneralStyle from '../../utils/GeneralStyle';
 
 export const styles = StyleSheet.create({
   container: {
-    flex: 1,
+    width: '100%',
+    minHeight: 48,
     alignItems: 'center',
     justifyContent: 'space-between',
     position: 'relative',
@@ -13,7 +14,8 @@ export const styles = StyleSheet.create({
     zIndex: 20,
   },
   smallContainer: {
-    flex: 1,
+    width: '100%',
+    minHeight: 48,
     alignItems: 'flex-end',
     position: 'relative',
     zIndex: 20,
@@ -25,23 +27,28 @@ export const styles = StyleSheet.create({
     flexDirection: 'row-reverse',
   },
   labelWrapper: {
-    maxWidth: 140,
+    width: '42%',
+    minWidth: 104,
+    flexShrink: 0,
   },
   label: {
-    ...FontsStyle.text,
-    color: Colors.darkGreen,
-    fontSize: 15,
+    ...FontsStyle.questionLabel,
+    width: '100%',
+    flexShrink: 0,
   },
   input: {
-    marginRight: GeneralStyle.spacing.sm,
+    flex: 1,
+    minWidth: 0,
+    minHeight: 44,
     paddingHorizontal: GeneralStyle.spacing.md,
     paddingVertical: GeneralStyle.spacing.sm,
-    width: 200,
   },
   smallInput: {
+    flex: 1,
+    minWidth: 0,
+    minHeight: 40,
     paddingHorizontal: GeneralStyle.spacing.sm,
     paddingVertical: GeneralStyle.spacing.xs,
-    width: 150,
     marginTop: GeneralStyle.spacing.xs,
   },
   baseInput: {
@@ -70,10 +77,10 @@ export const styles = StyleSheet.create({
     ...Colors.Shadow,
   },
   wideSuggestionsPanel: {
-    width: 200,
+    width: '58%',
   },
   smallSuggestionsPanel: {
-    width: 150,
+    width: '58%',
   },
   suggestionsRtl: {
     left: 0,

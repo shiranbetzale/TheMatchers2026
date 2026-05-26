@@ -11,7 +11,7 @@ import {useLanguage} from '../../utils/LanguageProvider';
 
 const CustomDatePicker = (props: CustomDatePickerType) => {
   const {text, value, maxDate, isEditable = true, onChangeDate} = props;
-  const {language} = useLanguage();
+  const {isRTL, language} = useLanguage();
   const [date, setDate] = useState<Date | undefined>();
   const [open, setOpen] = useState<boolean>(false);
   const valueDate = value ? new Date(value) : undefined;
@@ -35,15 +35,27 @@ const CustomDatePicker = (props: CustomDatePickerType) => {
   };
 
   return (
-    <View style={styles.container}>
-      <CustomText text={text} />
+    <View style={[styles.container, isRTL ? styles.rowReverse : styles.row]}>
+      <View style={styles.labelWrapper}>
+        <CustomText
+          text={text}
+          customStyle={[
+            styles.label,
+            isRTL ? styles.textRight : styles.textLeft,
+          ]}
+        />
+      </View>
       <View
         pointerEvents={isEditable ? 'auto' : 'none'}
-        style={styles.dateContainer}
+        style={[styles.dateContainer, isRTL ? styles.rowReverse : styles.row]}
       >
         <CustomText
           text={selectedDate ? selectedDate.toLocaleDateString(language === 'he' ? 'he-IL' : 'en-US') : ''}
-          customStyle={FontsStyle.text}
+          customStyle={[
+            FontsStyle.text,
+            styles.dateText,
+            isRTL ? styles.textRight : styles.textLeft,
+          ]}
         />
         <CustomButton
           customStyle={styles.datePickerBtn}

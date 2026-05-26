@@ -5,6 +5,8 @@ import GeneralStyle from '../../utils/GeneralStyle';
 
 export const styles = StyleSheet.create({
   container: {
+    width: '100%',
+    minHeight: 48,
     alignItems: 'center',
     justifyContent: 'space-between',
     gap: GeneralStyle.spacing.sm,
@@ -16,7 +18,9 @@ export const styles = StyleSheet.create({
     flexDirection: 'row-reverse',
   },
   select: {
-    minWidth: 180,
+    flex: 1,
+    minWidth: 0,
+    minHeight: 44,
     borderWidth: 1,
     borderColor: Colors.borderSoft,
     borderRadius: GeneralStyle.radius.md,
@@ -31,6 +35,16 @@ export const styles = StyleSheet.create({
   },
   selectText: {
     ...FontsStyle.text,
+  },
+  labelWrapper: {
+    width: '42%',
+    minWidth: 104,
+    flexShrink: 0,
+  },
+  label: {
+    ...FontsStyle.questionLabel,
+    width: '100%',
+    flexShrink: 0,
   },
   rtlText: {
     textAlign: 'right',

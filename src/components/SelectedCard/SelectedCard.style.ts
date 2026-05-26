@@ -47,11 +47,24 @@ export const styles = StyleSheet.create({
     },
     info: {
         alignItems: "center",
+        flexWrap: 'wrap',
         marginBottom: 0,
     },
     detailsBlock: {
         flex: 1,
+        minWidth: 0,
+    },
+    detailsBlockRtl: {
         alignItems: 'flex-end',
+    },
+    detailsBlockLtr: {
+        alignItems: 'flex-start',
+    },
+    textRight: {
+        textAlign: 'right',
+    },
+    textLeft: {
+        textAlign: 'left',
     },
     boy: {
         backgroundColor: Colors.lightBlue

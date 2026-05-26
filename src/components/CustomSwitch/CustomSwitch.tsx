@@ -1,6 +1,7 @@
 import React, {useEffect, useState} from 'react';
 import {Switch, View} from 'react-native';
 import Colors from '../../utils/Colors';
+import {FontsStyle} from '../../utils/FontsStyle';
 import CustomText from '../CustomText/CustomText';
 import {styles} from './CustomSwitch.style';
 import {CustomSwitchType} from './CustomSwitch.type';
@@ -35,13 +36,15 @@ const CustomSwitch = (props: CustomSwitchType) => {
   return (
     <View
       style={[
-        !isSmallSize && styles.container,
-        !isSmallSize && (isRTL ? styles.rowReverse : styles.row),
+        styles.container,
+        isSmallSize && styles.smallContainer,
+        isRTL ? styles.rowReverse : styles.row,
       ]}>
-      <View style={!isSmallSize && styles.switchText}>
+      <View style={styles.switchText}>
         <CustomText
           text={text}
           customStyle={[
+            FontsStyle.questionLabel,
             styles.text,
             isRTL ? styles.textRight : styles.textLeft,
           ]}
@@ -49,7 +52,8 @@ const CustomSwitch = (props: CustomSwitchType) => {
       </View>
       <View
         style={[
-          isSmallSize ? styles.smallSwitch : styles.switch,
+          styles.switch,
+          isSmallSize && styles.smallSwitch,
           isRTL ? styles.alignEnd : styles.alignStart,
         ]}>
         <Switch

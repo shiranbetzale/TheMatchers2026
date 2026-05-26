@@ -4,10 +4,12 @@ import CustomText from '../CustomText/CustomText';
 import { styles } from './CustomRange.style';
 import { CustomRangeType } from './CustomRange.type';
 import MultiSlider from '@ptomasroos/react-native-multi-slider';
-import { FontsStyle } from '../../utils/FontsStyle';
+import {FontsStyle} from '../../utils/FontsStyle';
+import {useLanguage} from '../../utils/LanguageProvider';
 
 const CustomRange = (props: CustomRangeType) => {
   const { isSmallSize = false, text, minRange = 0, maxRange = 10, step = 1 } = props;
+  const {isRTL} = useLanguage();
   const [rangeValues, setRangeValues] = useState<number[]>([minRange, maxRange]);
 
   const handleRangeChange = (values: number[]) => {
@@ -15,9 +17,15 @@ const CustomRange = (props: CustomRangeType) => {
   };
 
   return (
-    <View style={!isSmallSize && styles.container}>
-      <CustomText text={text} />
-      <View style={!isSmallSize && styles.rangeContainer}>
+    <View style={[styles.container, isSmallSize && styles.smallContainer]}>
+      <CustomText
+        text={text}
+        customStyle={[
+          styles.label,
+          isRTL ? styles.textRight : styles.textLeft,
+        ]}
+      />
+      <View style={styles.rangeContainer}>
         <View style={[isSmallSize ? styles.smallRangeText : styles.rangeText, isSmallSize && styles.left]}>
           <CustomText text={rangeValues[0]} customStyle={FontsStyle.text} />
         </View>

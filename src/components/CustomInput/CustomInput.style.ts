@@ -5,7 +5,7 @@ import GeneralStyle from '../../utils/GeneralStyle';
 
 export const styles = StyleSheet.create({
   container: {
-    flex: 1,
+    width: '100%',
     alignItems: 'center',
     justifyContent: 'space-between',
     position: 'relative',
@@ -18,19 +18,20 @@ export const styles = StyleSheet.create({
     flexDirection: 'row-reverse',
   },
   smallContainer: {
-    flex: 1,
+    width: '100%',
     alignItems: 'flex-end',
   },
   input: {
-    marginRight: GeneralStyle.spacing.sm,
+    flex: 1,
+    minWidth: 0,
     paddingHorizontal: GeneralStyle.spacing.md,
     paddingVertical: GeneralStyle.spacing.sm,
-    width: 200,
   },
   smallInput: {
+    flex: 1,
+    minWidth: 0,
     paddingHorizontal: GeneralStyle.spacing.sm,
     paddingVertical: GeneralStyle.spacing.xs,
-    width: 150,
     marginTop: GeneralStyle.spacing.xs,
   },
   baseInput: {
@@ -54,6 +55,7 @@ export const styles = StyleSheet.create({
     writingDirection: 'rtl',
   },
   textArea: {
+    flex: 0,
     height: 140,
     width: '100%',
     marginTop: GeneralStyle.spacing.sm,
@@ -70,8 +72,21 @@ export const styles = StyleSheet.create({
   textAreaContainerRtl: {
     alignItems: 'flex-end',
   },
-  maxWidth: {
-    maxWidth: 140,
+  labelWrapper: {
+    flex: 0.42,
+    minWidth: 92,
+    flexShrink: 0,
+  },
+  label: {
+    ...FontsStyle.questionLabel,
+    width: '100%',
+    flexShrink: 0,
+  },
+  textRight: {
+    textAlign: 'right',
+  },
+  textLeft: {
+    textAlign: 'left',
   },
   toggleSecure: {
     position: 'absolute',

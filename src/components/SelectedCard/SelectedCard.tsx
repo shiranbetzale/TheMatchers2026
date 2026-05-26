@@ -25,18 +25,34 @@ const SelectedCard = (props: SelectedCardType) => {
 
   return (
     <WhiteCard customStyle={[styles.infoContainer, isRTL ? styles.rtlRow : styles.ltrRow]}>
-      <View style={styles.detailsBlock}>
+      <View
+        style={[
+          styles.detailsBlock,
+          isRTL ? styles.detailsBlockRtl : styles.detailsBlockLtr,
+        ]}>
         {details.map((infoItem, index) => {
           return (
             <View style={[styles.info, isRTL ? styles.rtlRow : styles.ltrRow]} key={index}>
               <CustomText
                 text={infoItem.text}
-                customStyle={FontsStyle.subTitle}
+                customStyle={[
+                  FontsStyle.subTitle,
+                  isRTL ? styles.textRight : styles.textLeft,
+                ]}
               />
-              <CustomText text=": " customStyle={FontsStyle.subTitle} />
+              <CustomText
+                text=": "
+                customStyle={[
+                  FontsStyle.subTitle,
+                  isRTL ? styles.textRight : styles.textLeft,
+                ]}
+              />
               <CustomText
                 text={infoItem.info}
-                customStyle={FontsStyle.text}
+                customStyle={[
+                  FontsStyle.text,
+                  isRTL ? styles.textRight : styles.textLeft,
+                ]}
               />
             </View>
           );

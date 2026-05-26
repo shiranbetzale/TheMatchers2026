@@ -6,6 +6,7 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../../components/MainStackNavigation/MainStackNavigation.type';
 import api from '../../services/api';
 import CustomText from '../../components/CustomText/CustomText';
+import {FontsStyle} from '../../utils/FontsStyle';
 
 interface User {
   _id: string;
@@ -142,7 +143,7 @@ const styles = StyleSheet.create({
   headerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 },
   title: { fontSize: 24, fontWeight: 'bold' },
   addButton: { backgroundColor: '#0F2E63', paddingHorizontal: 12, paddingVertical: 8, borderRadius: 8 },
-  addButtonText: { color: '#fff', fontWeight: '600' },
+  addButtonText: {...FontsStyle.text, color: '#fff'},
   tableHeader: { flexDirection: 'row', marginBottom: 6 },
   headerCell: { fontWeight: '600' },
   row: { flexDirection: 'row', alignItems: 'center', marginBottom: 10 },

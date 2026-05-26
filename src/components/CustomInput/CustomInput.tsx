@@ -38,8 +38,14 @@ const CustomInput = (props: CustomInputType) => {
           isRTL ? styles.textAreaContainerRtl : styles.textAreaContainerLtr,
         ],
       ]}>
-      <View style={!isMultiline && styles.maxWidth}>
-        <CustomText text={placeholder} />
+      <View style={!isMultiline ? styles.labelWrapper : undefined}>
+        <CustomText
+          text={placeholder}
+          customStyle={[
+            styles.label,
+            isRTL ? styles.textRight : styles.textLeft,
+          ]}
+        />
       </View>
       <TextInput
         style={[

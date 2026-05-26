@@ -1,4 +1,4 @@
-import { Dimensions, StyleSheet } from 'react-native';
+import {StyleSheet} from 'react-native';
 import Colors from '../../utils/Colors';
 import {FontsStyle} from '../../utils/FontsStyle';
 import GeneralStyle from '../../utils/GeneralStyle';
@@ -24,7 +24,8 @@ export const styles = StyleSheet.create({
     gap: GeneralStyle.spacing.sm,
   },
   containerDynamicComp: {
-    height: Dimensions.get("window").height - 175,
+    flex: 1,
+    minHeight: 0,
     backgroundColor: Colors.transparent,
   },
   errorContainer: {

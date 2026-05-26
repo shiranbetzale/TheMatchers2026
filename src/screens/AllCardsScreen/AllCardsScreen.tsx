@@ -1,6 +1,11 @@
 import React, {useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
-import {RouteProp, useNavigation, useRoute} from '@react-navigation/native';
+import {
+  RouteProp,
+  useFocusEffect,
+  useNavigation,
+  useRoute,
+} from '@react-navigation/native';
 import {StackNavigationProp} from '@react-navigation/stack';
 
 import CustomButton from '../../components/CustomButton/CustomButton';
@@ -30,6 +35,13 @@ const AllCardsScreen = () => {
   const [isShowOrderBy, setIsShowOrderBy] = useState(false);
   const [sessionPhone, setSessionPhone] = useState('');
   const [isAdmin, setIsAdmin] = useState(false);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      setIsShowFilter(false);
+      setIsShowOrderBy(false);
+    }, []),
+  );
 
   const allCardsArray: MatchCardType[] = [
     {

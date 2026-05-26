@@ -35,14 +35,8 @@ export const styles = StyleSheet.create({
         width: "100%",
         height: "100%",
     },
-    boy: {
-        borderLeftWidth: 3,
-        borderLeftColor: Colors.darkGreen,
-    },
-    girl: {
-        borderLeftWidth: 3,
-        borderLeftColor: Colors.color1,
-    },
+    boy: {},
+    girl: {},
     txt: {
         ...FontsStyle.menuTitle,
         fontSize: 20,

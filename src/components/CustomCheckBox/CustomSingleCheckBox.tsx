@@ -1,10 +1,8 @@
 import React, { useState } from "react";
-import CheckBox from '@react-native-community/checkbox';
+import {Text, TouchableOpacity, View} from "react-native";
 import { styles } from "./CustomCheckBox.style";
 import CustomText from "../CustomText/CustomText";
-import Colors from "../../utils/Colors";
 import { Option } from "../../utils/FormFields.type";
-import { FontsStyle } from "../../utils/FontsStyle";
 
 type SingleCheckBoxProps = Option & {
   isRTL?: boolean;
@@ -34,26 +32,29 @@ const CustomSingleCheckBox = (props: SingleCheckBoxProps) => {
 
   return (
     <React.Fragment>
-      {isRTL && (
-        <CustomText text={label} customStyle={FontsStyle.text} />
-      )}
-      <CheckBox
-        // hideBox={true}
-        boxType="square"
-        value={isSelected}
+      <TouchableOpacity
+        activeOpacity={0.85}
         disabled={!isEditable}
-        onValueChange={handleToggle}
-        style={isSmallSize ? styles.smallCheckbox : styles.checkbox}
-        key={`checkBox_${id}`}
-        onFillColor={Colors.color1}
-        onCheckColor={Colors.white}
-        onTintColor={Colors.color1}
-        tintColor={Colors.black}
-        tintColors={{ true: Colors.color1, false: Colors.black }}
+        onPress={() => handleToggle(!isSelected)}
+        style={[
+          isSmallSize ? styles.smallCheckbox : styles.checkbox,
+          styles.checkboxBox,
+          isSelected && styles.checkboxBoxSelected,
+          !isEditable && styles.disabledCheckbox,
+        ]}>
+        {isSelected && (
+          <View style={styles.checkMarkContainer}>
+            <Text style={styles.checkMark}>✓</Text>
+          </View>
+        )}
+      </TouchableOpacity>
+      <CustomText
+        text={label}
+        customStyle={[
+          styles.optionText,
+          isRTL ? styles.textRight : styles.textLeft,
+        ]}
       />
-      {!isRTL && (
-        <CustomText text={label} customStyle={FontsStyle.text} />
-      )}
     </React.Fragment>
   );
 };
