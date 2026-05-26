@@ -7,13 +7,13 @@ export const styles = StyleSheet.create({
     flex: 1,
   },
   title: {
-    paddingTop: GeneralStyle.space * 2,
+    paddingTop: GeneralStyle.spacing.sm * 2,
     ...FontsStyle.title,
   },
   whiteCardContainer: {
-    marginVertical: GeneralStyle.space,
+    marginVertical: GeneralStyle.spacing.sm,
   },
   space: {
-    marginVertical: GeneralStyle.space,
+    marginVertical: GeneralStyle.spacing.sm,
   },
 });

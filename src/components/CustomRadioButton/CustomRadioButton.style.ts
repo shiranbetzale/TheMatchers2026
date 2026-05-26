@@ -4,10 +4,10 @@ import GeneralStyle from "../../utils/GeneralStyle";
 
 export const styles = StyleSheet.create({
   smallBtn: {
-    marginTop: GeneralStyle.space / 2
+    marginTop: GeneralStyle.spacing.sm / 2
   },
   btn: {
-    marginTop: GeneralStyle.space
+    marginTop: GeneralStyle.spacing.sm
   },
   optionsContainer: {
     alignContent: "center",
@@ -18,7 +18,7 @@ export const styles = StyleSheet.create({
     width: 20,
     height: 20,
     borderRadius: 10,
-    marginLeft: GeneralStyle.space / 2,
+    marginLeft: GeneralStyle.spacing.sm / 2,
   },
   baseCircle: {
     borderColor: Colors.black,
@@ -29,7 +29,7 @@ export const styles = StyleSheet.create({
     width: 30,
     height: 30,
     borderRadius: 15,
-    marginLeft: GeneralStyle.space,
+    marginLeft: GeneralStyle.spacing.sm,
   },
   selectedCircle: {
     backgroundColor: Colors.color1,

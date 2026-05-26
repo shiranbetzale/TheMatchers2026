@@ -1,3 +1,5 @@
+import {Option} from '../../utils/FormFields.type';
+
 export type CollapseSingleType = {
   title: string;
   data: any[];
@@ -6,10 +8,12 @@ export type CollapseSingleType = {
 export type CustomTitleCollapseType = {
   title: string;
   handlePress: () => void;
+  isDisabled?: boolean;
 };
 
 export type CustomCollapseType = {
   sections: CollapseSingleType[];
-  handlePress: () => void;
+  handlePress: (option?: Option | boolean, fieldId?: string) => void;
+  lockedSectionTitles?: string[];
+  autoExpandUnlockedSection?: boolean;
 };
-

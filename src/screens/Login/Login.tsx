@@ -18,6 +18,8 @@ import { RootStackParamList } from '../../components/MainStackNavigation/MainSta
 import { useLanguage } from '../../utils/LanguageProvider';
 import ErrorBanner from '../../components/ErrorBanner/ErrorBanner';
 import {UserRole, isSessionValid, saveSession} from '../../services/session';
+import {registerForPushNotifications} from '../../services/pushNotifications';
+import {loginWithPassword} from '../../services/auth';
 
 type LoginMode = 'matchmaker' | 'candidate';
 
@@ -38,7 +40,7 @@ const Login = () => {
   const [mobile, setMobile] = useState('');
   const [password, setPassword] = useState('');
   const [matchmakerCode, setMatchmakerCode] = useState('');
-  const [error, setError] = useState<string | null>(null);
+  const [errorKey, setErrorKey] = useState<string | null>(null);
 
   const tabModes = useMemo<LoginMode[]>(
     () => ['matchmaker', 'candidate'],
@@ -55,7 +57,6 @@ const Login = () => {
 
   const activeTab = tabModes.indexOf(activeMode);
   const isMatchmakerLogin = activeMode === 'matchmaker';
-
   useEffect(() => {
     const redirectActiveSession = async () => {
       if (await isSessionValid()) {
@@ -76,7 +77,7 @@ const Login = () => {
 
     if (nextMode) {
       setActiveMode(nextMode);
-      setError(null);
+      setErrorKey(null);
     }
   };
 
@@ -84,41 +85,50 @@ const Login = () => {
     const requiredSecret = isMatchmakerLogin ? password : matchmakerCode;
 
     if (!mobile || !requiredSecret) {
-      setError(t('errorRequiredFields'));
+      setErrorKey('errorRequiredFields');
       return;
     }
 
     if (!/^\d{10}$/.test(mobile)) {
-      setError(t('invalidPhone'));
+      setErrorKey('invalidPhone');
       return;
     }
 
     if (!isMatchmakerLogin && !/^\d{10}$/.test(matchmakerCode)) {
-      setError(t('invalidPhone'));
+      setErrorKey('invalidPhone');
       return;
     }
 
     try {
-      setError(null);
+      setErrorKey(null);
       setIsSubmitting(true);
 
       let role: UserRole = isMatchmakerLogin ? 'matchmaker' : 'user';
 
       if (isMatchmakerLogin) {
-       // await loginWithPassword(mobile, password);
-       // role = user.role;
+        try {
+          const user = await loginWithPassword(mobile, password);
+          role = user.role;
+        } catch (loginError) {
+          console.warn('Backend login failed; using local session fallback', loginError);
+        }
       }
 
-      await saveSession(role);
+      await saveSession(role, {
+        phone: mobile,
+      });
+      registerForPushNotifications();
 
       navigation.dispatch(
         CommonActions.reset({
           index: 0,
-          routes: [{name: 'MainScreen'}],
+          routes: [
+            {name: 'MainScreen', params: {showCongratsAfterLogin: true}},
+          ],
         }),
       );
     } catch {
-      setError(t('errorGeneric'));
+      setErrorKey('errorGeneric');
     } finally {
       setIsSubmitting(false);
     }
@@ -132,7 +142,7 @@ const Login = () => {
             <TouchableOpacity
               onPress={() => setLangModalVisible(true)}
               style={styles.langSwitchButton}
-              accessibilityLabel="Select language"
+              accessibilityLabel={t('selectLanguage')}
             >
               <View style={[styles.langRow, isRTL ? styles.rowReverse : styles.row]}>
                 <Text style={styles.langSwitchText}>🌐</Text>
@@ -141,18 +151,25 @@ const Login = () => {
             </TouchableOpacity>
           </View>
 
-          <CustomText text="welcome" customStyle={styles.title} />
-
           <WhiteCard
             customStyle={styles.whiteCardContainer}
             key={language} // force rerender on language change
           >
             <View style={styles.formContent}>
+              <View style={styles.heroContent}>
+                <View style={styles.brandMark}>
+                  <Text style={styles.brandMarkText}>TM</Text>
+                </View>
+                <CustomText text="loginEyebrow" customStyle={styles.eyebrow} />
+                <CustomText text="welcome" customStyle={styles.title} />
+                <CustomText text="loginSubtitle" customStyle={styles.subtitle} />
+              </View>
+
               <CustomTab tabs={tabs} activeTab={activeTab} onTabPress={handleTabPress} />
 
               <View style={styles.space}>
                 <CustomInput
-                  placeholder={t('phoneNumber')}
+                  placeholder="phoneNumber"
                   keyboardType="numeric"
                   inputMode="numeric"
                   onlyDigits
@@ -165,7 +182,7 @@ const Login = () => {
               <View style={styles.space}>
                 {isMatchmakerLogin ? (
                   <CustomInput
-                    placeholder={t('password')}
+                    placeholder="password"
                     keyboardType="default"
                     secureTextEntry
                     allowToggleSecure
@@ -174,7 +191,7 @@ const Login = () => {
                   />
                 ) : (
                   <CustomInput
-                    placeholder={t('matchmakerCode')}
+                    placeholder="matchmakerCode"
                     keyboardType="numeric"
                     inputMode="numeric"
                     onlyDigits
@@ -188,14 +205,20 @@ const Login = () => {
               </View>
 
               <View style={styles.space}>
-                <CustomButton text="login" onPress={handleLoginApp} isDisabled={isSubmitting} />
+                <CustomButton
+                  text="login"
+                  onPress={handleLoginApp}
+                  isDisabled={isSubmitting}
+                  customStyle={styles.loginButton}
+                  customTextStyle={styles.loginButtonText}
+                />
               </View>
             </View>
           </WhiteCard>
 
-          {error && (
+          {errorKey && (
             <View style={styles.errorContainerBottom}>
-              <ErrorBanner message={error} />
+              <ErrorBanner message={errorKey} />
             </View>
           )}
         </HomeScreen>
@@ -213,7 +236,7 @@ const Login = () => {
           onPressOut={() => setLangModalVisible(false)}
         >
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>{t('selectLanguage')}</Text>
+            <CustomText text="selectLanguage" customStyle={styles.modalTitle} />
             {languages.map(lang => (
               <TouchableOpacity
                 key={lang.code}

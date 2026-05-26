@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Platform, SafeAreaView, StatusBar, StyleSheet, View, Animated } from 'react-native';
+import { Alert, Platform, SafeAreaView, StatusBar, StyleSheet, View, Animated } from 'react-native';
 import 'react-native-gesture-handler';
 import { NavigationContainer } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -7,6 +7,10 @@ import BootSplash from 'react-native-bootsplash';
 import DrawerNavigation from './src/components/DrawerNavigation/DrawerNavigation';
 import { LanguageProvider, useLanguage } from './src/utils/LanguageProvider';
 import {isSessionValid} from './src/services/session';
+import {
+  handleForegroundPushNotifications,
+  registerForPushNotifications,
+} from './src/services/pushNotifications';
 
 type Route = 'Login' | 'MainScreen' | 'OnBoarding';
 
@@ -20,6 +24,10 @@ const AppContent = () => {
       try {
         const seen = await AsyncStorage.getItem('hasSeenOnboarding');
         const hasActiveSession = await isSessionValid();
+
+        if (hasActiveSession) {
+          registerForPushNotifications();
+        }
 
         if (seen !== 'true') {
           setInitialRoute('OnBoarding');
@@ -35,6 +43,15 @@ const AppContent = () => {
       }
     };
     init();
+  }, []);
+
+  useEffect(() => {
+    return handleForegroundPushNotifications(message => {
+      const title = message.notification?.title || 'התראה חדשה';
+      const body = message.notification?.body || '';
+
+      Alert.alert(title, body);
+    });
   }, []);
 
   useEffect(() => {

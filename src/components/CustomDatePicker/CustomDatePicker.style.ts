@@ -10,16 +10,18 @@ export const styles = StyleSheet.create({
     flexDirection: "row-reverse",
   },
   dateContainer: {
-    marginLeft: GeneralStyle.space,
+    marginLeft: GeneralStyle.spacing.sm,
     flexDirection: "row-reverse",
     alignItems: "center",
   },
   datePickerBtn: {
-    backgroundColor: Colors.color1,
-    borderRadius: 4,
+    backgroundColor: Colors.goldSoft,
+    borderRadius: GeneralStyle.radius.sm,
     padding: 0,
-    width: 30,
-    height: 30,
-    marginRight: GeneralStyle.space
+    width: 36,
+    height: 36,
+    borderWidth: 1,
+    borderColor: Colors.color1Light,
+    marginRight: GeneralStyle.spacing.sm
   }
 });

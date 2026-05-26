@@ -9,6 +9,7 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     position: 'relative',
+    gap: GeneralStyle.spacing.sm,
   },
   row: {
     flexDirection: 'row',
@@ -21,21 +22,23 @@ export const styles = StyleSheet.create({
     alignItems: 'flex-end',
   },
   input: {
-    marginRight: GeneralStyle.space,
-    paddingHorizontal: GeneralStyle.space * 1.3,
-    paddingVertical: GeneralStyle.space,
+    marginRight: GeneralStyle.spacing.sm,
+    paddingHorizontal: GeneralStyle.spacing.md,
+    paddingVertical: GeneralStyle.spacing.sm,
     width: 200,
   },
   smallInput: {
-    padding: GeneralStyle.space / 2,
+    paddingHorizontal: GeneralStyle.spacing.sm,
+    paddingVertical: GeneralStyle.spacing.xs,
     width: 150,
-    marginTop: GeneralStyle.space / 2,
+    marginTop: GeneralStyle.spacing.xs,
   },
   baseInput: {
     borderWidth: 1,
-    borderColor: Colors.border,
-    borderRadius: 14,
-    backgroundColor: Colors.white,
+    borderColor: Colors.borderSoft,
+    borderRadius: GeneralStyle.radius.md,
+    backgroundColor: Colors.surfaceElevated,
+    borderBottomColor: Colors.borderSoft,
     ...FontsStyle.text,
     color: Colors.black,
   },
@@ -53,7 +56,7 @@ export const styles = StyleSheet.create({
   textArea: {
     height: 140,
     width: '100%',
-    marginTop: GeneralStyle.space,
+    marginTop: GeneralStyle.spacing.sm,
     marginRight: 0,
     textAlignVertical: 'top',
   },
@@ -72,12 +75,12 @@ export const styles = StyleSheet.create({
   },
   toggleSecure: {
     position: 'absolute',
-    right: GeneralStyle.space * 2,
+    right: GeneralStyle.spacing.lg,
     justifyContent: 'center',
     zIndex: 1,
   },
   toggleSecureRtl: {
-    left: GeneralStyle.space,
+    left: GeneralStyle.spacing.sm,
     right: undefined,
   },
   toggleSecureText: {

@@ -8,7 +8,7 @@ import {useLanguage} from '../../utils/LanguageProvider';
 
 const CustomSelect = (props: CustomSelectType) => {
   const {isEditable = true, onSelect, options, text, value} = props;
-  const {isRTL, t} = useLanguage();
+  const {isRTL} = useLanguage();
   const [isOpen, setIsOpen] = useState(false);
   const [selectedOption, setSelectedOption] = useState<Option | undefined>();
 
@@ -28,8 +28,11 @@ const CustomSelect = (props: CustomSelectType) => {
         disabled={!isEditable}
         onPress={() => setIsOpen(true)}>
         <CustomText
-          text={selectedOption?.label || value || t('selectPlaceholder')}
-          customStyle={styles.selectText}
+          text={selectedOption?.label || value || 'selectPlaceholder'}
+          customStyle={[
+            styles.selectText,
+            isRTL ? styles.rtlText : styles.ltrText,
+          ]}
         />
       </TouchableOpacity>
 
@@ -50,7 +53,10 @@ const CustomSelect = (props: CustomSelectType) => {
                 onPress={() => handleSelect(option)}>
                 <CustomText
                   text={option.label}
-                  customStyle={styles.optionText}
+                  customStyle={[
+                    styles.optionText,
+                    isRTL ? styles.rtlText : styles.ltrText,
+                  ]}
                 />
               </TouchableOpacity>
             ))}

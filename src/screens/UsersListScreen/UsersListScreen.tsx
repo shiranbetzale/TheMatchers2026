@@ -5,6 +5,7 @@ import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../../components/MainStackNavigation/MainStackNavigation.type';
 import api from '../../services/api';
+import CustomText from '../../components/CustomText/CustomText';
 
 interface User {
   _id: string;
@@ -108,26 +109,27 @@ const UsersListScreen = () => {
   return (
     <View style={styles.container}>
       <View style={styles.headerRow}>
-        <Text style={styles.title}>{t('usersList')}</Text>
+        <CustomText text="usersList" customStyle={styles.title} />
         <TouchableOpacity
           style={styles.addButton}
           onPress={() => navigation.navigate('RegisterUserScreen')}
         >
-          <Text style={styles.addButtonText}>+ {t('registerUser')}</Text>
+          <Text style={styles.addButtonText}>+ </Text>
+          <CustomText text="registerUser" customStyle={styles.addButtonText} />
         </TouchableOpacity>
       </View>
 
       <View style={styles.tableHeader}>
-        <Text style={[styles.text, styles.headerCell]}>{t('fullName')}</Text>
-        <Text style={[styles.text, styles.headerCell]}>{t('mobile')}</Text>
-        <Text style={[styles.text, styles.headerCell]}>{t('actions') || 'Actions'}</Text>
+        <CustomText text="fullName" customStyle={[styles.text, styles.headerCell]} />
+        <CustomText text="mobile" customStyle={[styles.text, styles.headerCell]} />
+        <CustomText text="actions" customStyle={[styles.text, styles.headerCell]} />
       </View>
 
       <FlatList
         data={users}
         keyExtractor={item => item._id}
         renderItem={renderItem}
-        ListEmptyComponent={<Text>{t('noUsersFound')}</Text>}
+        ListEmptyComponent={<CustomText text="noUsersFound" />}
       />
     </View>
   );

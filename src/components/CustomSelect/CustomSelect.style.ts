@@ -7,7 +7,7 @@ export const styles = StyleSheet.create({
   container: {
     alignItems: 'center',
     justifyContent: 'space-between',
-    gap: GeneralStyle.space,
+    gap: GeneralStyle.spacing.sm,
   },
   row: {
     flexDirection: 'row',
@@ -18,11 +18,12 @@ export const styles = StyleSheet.create({
   select: {
     minWidth: 180,
     borderWidth: 1,
-    borderColor: Colors.border,
-    borderRadius: 12,
-    backgroundColor: Colors.surface,
-    paddingHorizontal: GeneralStyle.space,
-    paddingVertical: GeneralStyle.space,
+    borderColor: Colors.borderSoft,
+    borderRadius: GeneralStyle.radius.md,
+    backgroundColor: Colors.surfaceElevated,
+    borderBottomColor: Colors.borderSoft,
+    paddingHorizontal: GeneralStyle.spacing.md,
+    paddingVertical: GeneralStyle.spacing.sm,
   },
   readOnlySelect: {
     borderWidth: 0,
@@ -30,28 +31,34 @@ export const styles = StyleSheet.create({
   },
   selectText: {
     ...FontsStyle.text,
-    textAlign: 'center',
+  },
+  rtlText: {
+    textAlign: 'right',
+    writingDirection: 'rtl',
+  },
+  ltrText: {
+    textAlign: 'left',
+    writingDirection: 'ltr',
   },
   overlay: {
     flex: 1,
     justifyContent: 'center',
-    paddingHorizontal: GeneralStyle.space * 2,
-    backgroundColor: 'rgba(0, 0, 0, 0.35)',
+    paddingHorizontal: GeneralStyle.spacing.lg,
+    backgroundColor: Colors.overlay,
   },
   optionsContainer: {
     overflow: 'hidden',
-    borderRadius: 12,
-    backgroundColor: Colors.white,
+    borderRadius: GeneralStyle.radius.md,
+    backgroundColor: Colors.ivory,
     ...Colors.Shadow,
   },
   option: {
-    paddingHorizontal: GeneralStyle.space * 1.5,
-    paddingVertical: GeneralStyle.space * 1.2,
+    paddingHorizontal: GeneralStyle.spacing.md,
+    paddingVertical: GeneralStyle.spacing.md,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
+    borderBottomColor: Colors.borderSoft,
   },
   optionText: {
     ...FontsStyle.text,
-    textAlign: 'center',
   },
 });

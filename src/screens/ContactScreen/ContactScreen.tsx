@@ -73,14 +73,14 @@ const ContactScreen = () => {
         <WhiteCard customStyle={styles.card}>
           <View style={styles.field}>
             <CustomInput
-              placeholder={t('fullName')}
+              placeholder="fullName"
               value={name}
               onChangeText={setName}
             />
           </View>
           <View style={styles.field}>
             <CustomInput
-              placeholder={t('email')}
+              placeholder="email"
               keyboardType="email-address"
               inputMode="text"
               value={email}
@@ -89,7 +89,7 @@ const ContactScreen = () => {
           </View>
           <View style={styles.field}>
             <CustomInput
-              placeholder={t('phoneNumber')}
+              placeholder="phoneNumber"
               keyboardType="numeric"
               inputMode="numeric"
               onlyDigits
@@ -100,7 +100,7 @@ const ContactScreen = () => {
           </View>
           <View style={styles.field}>
             <CustomInput
-              placeholder={t('contactMessage')}
+              placeholder="contactMessage"
               isMultiline
               value={message}
               onChangeText={setMessage}

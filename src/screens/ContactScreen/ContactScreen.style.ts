@@ -9,12 +9,12 @@ export const styles = StyleSheet.create({
   },
   title: {
     ...FontsStyle.title,
-    marginBottom: GeneralStyle.space,
+    marginBottom: GeneralStyle.spacing.sm,
   },
   subtitle: {
     ...FontsStyle.text,
     color: Colors.slate,
-    marginBottom: GeneralStyle.space * 2,
+    marginBottom: GeneralStyle.spacing.lg,
     textAlign: 'center',
   },
   card: {
@@ -22,6 +22,6 @@ export const styles = StyleSheet.create({
     maxWidth: 560,
   },
   field: {
-    marginBottom: GeneralStyle.space * 1.2,
+    marginBottom: GeneralStyle.spacing.sm,
   },
 });

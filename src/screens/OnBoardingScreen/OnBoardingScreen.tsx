@@ -1,7 +1,6 @@
 import React, { useRef, useState } from 'react';
 import {
   View,
-  Text,
   FlatList,
   Image,
   Dimensions,
@@ -14,7 +13,7 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../../components/MainStackNavigation/MainStackNavigation.type';
 import { styles } from './OnBoardingScreen.style';
 import { carousleData } from '../../data/carousleData';
-import { useLanguage } from '../../utils/LanguageProvider';
+import CustomText from '../../components/CustomText/CustomText';
 
 type NavigationProp = StackNavigationProp<
   RootStackParamList,
@@ -27,7 +26,6 @@ const OnBoardingScreen = () => {
   const navigation = useNavigation<NavigationProp>();
   const flatListRef = useRef<FlatList<any>>(null);
   const [currentIndex, setCurrentIndex] = useState<number>(0);
-  const { t } = useLanguage();
 
   const finishOnboarding = async () => {
     await AsyncStorage.setItem('hasSeenOnboarding', 'true');
@@ -81,9 +79,7 @@ const OnBoardingScreen = () => {
           <View style={[styles.slide, { width }]}>
             <View style={styles.slideCard}>
               <Image source={{ uri: item.image }} style={styles.image} />
-              <Text style={styles.title}>
-                {t(item.title)}
-              </Text>
+              <CustomText text={item.title} customStyle={styles.title} />
             </View>
           </View>
         )}
@@ -109,27 +105,22 @@ const OnBoardingScreen = () => {
             onPress={handlePrev}
             style={styles.prevButton}
           >
-            <Text style={styles.prevButtonText}>
-              {t('previous')}
-            </Text>
+            <CustomText text="previous" customStyle={styles.prevButtonText} />
           </TouchableOpacity>
         )}
 
         <TouchableOpacity onPress={handleSkip}>
-          <Text style={styles.skipText}>
-            {t('skip')}
-          </Text>
+          <CustomText text="skip" customStyle={styles.skipText} />
         </TouchableOpacity>
 
         <TouchableOpacity
           onPress={handleNext}
           style={styles.nextButton}
         >
-          <Text style={styles.nextButtonText}>
-            {currentIndex === carousleData.length - 1
-              ? t('start')
-              : t('next')}
-          </Text>
+          <CustomText
+            text={currentIndex === carousleData.length - 1 ? 'start' : 'next'}
+            customStyle={styles.nextButtonText}
+          />
         </TouchableOpacity>
       </View>
     </View>

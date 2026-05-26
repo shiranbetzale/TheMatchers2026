@@ -8,14 +8,26 @@ import { FontsStyle } from "../../utils/FontsStyle";
 
 type SingleCheckBoxProps = Option & {
   isRTL?: boolean;
+  isEditable?: boolean;
   onChange?: (option: Option, value: boolean) => void;
 };
 
 const CustomSingleCheckBox = (props: SingleCheckBoxProps) => {
-  const { id, isRTL = false, label, isSmallSize = false, onChange } = props;
+  const {
+    id,
+    isEditable = true,
+    isRTL = false,
+    label,
+    isSmallSize = false,
+    onChange,
+  } = props;
   const [isSelected, setSelection] = useState(false);
 
   const handleToggle = (next: boolean) => {
+    if (!isEditable) {
+      return;
+    }
+
     setSelection(next);
     onChange?.(props, next);
   };
@@ -29,6 +41,7 @@ const CustomSingleCheckBox = (props: SingleCheckBoxProps) => {
         // hideBox={true}
         boxType="square"
         value={isSelected}
+        disabled={!isEditable}
         onValueChange={handleToggle}
         style={isSmallSize ? styles.smallCheckbox : styles.checkbox}
         key={`checkBox_${id}`}

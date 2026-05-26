@@ -5,6 +5,7 @@ import { StackNavigationProp } from '@react-navigation/stack';
 
 import CustomButton from '../../components/CustomButton/CustomButton';
 import CustomInput from '../../components/CustomInput/CustomInput';
+import CustomText from '../../components/CustomText/CustomText';
 import WhiteCard from '../../components/WhiteCard/WhiteCard';
 import HomeScreen from '../HomeScreen/HomeScreen';
 import CustomRadioButton from '../../components/CustomRadioButton/CustomRadioButton';
@@ -71,61 +72,71 @@ const RegisterUserScreen = ({ navigation: _navigation }: Props) => {
 
   return (
     <HomeScreen>
-      <WhiteCard>
-        <View style={styles.space}>
-          <CustomInput
-            placeholder={t('fullName')}
-            value={fullName}
-            onChangeText={setFullName}
-          />
-        </View>
+      <View style={styles.container}>
+        <CustomText text="registerUser" customStyle={styles.title} />
+        <CustomText text="registerUserSubtitle" customStyle={styles.subtitle} />
 
-        <View style={styles.space}>
-          <CustomInput
-            placeholder={t('mobile')}
-            keyboardType="numeric"
-            inputMode="numeric"
-            onlyDigits
-            maxLength={10}
-            value={phone}
-            onChangeText={setPhone}
-          />
-        </View>
+        <WhiteCard customStyle={styles.card}>
+          <View style={styles.field}>
+            <CustomInput
+              placeholder="fullName"
+              value={fullName}
+              onChangeText={setFullName}
+            />
+          </View>
 
-        <View style={styles.space}>
-          <CustomInput
-            placeholder={t('email')}
-            keyboardType="email-address"
-            value={email}
-            onChangeText={setEmail}
-          />
-        </View>
+          <View style={styles.field}>
+            <CustomInput
+              placeholder="mobile"
+              keyboardType="numeric"
+              inputMode="numeric"
+              onlyDigits
+              maxLength={10}
+              value={phone}
+              onChangeText={setPhone}
+            />
+          </View>
 
-        <View style={styles.space}>
-          <CustomInput
-            placeholder={t('password')}
-            secureTextEntry
-            allowToggleSecure
-            value={password}
-            onChangeText={setPassword}
-          />
-        </View>
+          <View style={styles.field}>
+            <CustomInput
+              placeholder="email"
+              keyboardType="email-address"
+              value={email}
+              onChangeText={setEmail}
+            />
+          </View>
 
-        <View style={styles.space}>
-          <CustomRadioButton
-            text={t('gender')}
-              radiosArray={[
-                { id: 1, name: 'male', label: t('male') },
-                { id: 2, name: 'female', label: t('female') },
-              ]}
-            onSelect={option => {
-              if (option) setGender(option.name as 'male' | 'female');
-            }}
-          />
-        </View>
+          <View style={styles.field}>
+            <CustomInput
+              placeholder="password"
+              secureTextEntry
+              allowToggleSecure
+              value={password}
+              onChangeText={setPassword}
+            />
+          </View>
 
-        <CustomButton text={t('registerUser')} onPress={handleRegister} />
-      </WhiteCard>
+          <View style={[styles.field, styles.genderField]}>
+            <CustomRadioButton
+              text="gender"
+                radiosArray={[
+                  { id: 1, name: 'male', label: 'male' },
+                  { id: 2, name: 'female', label: 'female' },
+                ]}
+              onSelect={option => {
+                if (option) setGender(option.name as 'male' | 'female');
+              }}
+            />
+          </View>
+
+          <CustomButton
+            text="registerUser"
+            customStyle={styles.submitButton}
+            customTextStyle={styles.submitButtonText}
+            onPress={handleRegister}
+          />
+        </WhiteCard>
+      </View>
     </HomeScreen>
   );
 };

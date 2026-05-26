@@ -77,13 +77,13 @@ const RegisterScreen = ({ navigation: _navigation }: Props) => {
 
         <WhiteCard customStyle={styles.whiteCardContainer}>
           <CustomInput
-            placeholder={t('fullName')}
+            placeholder="fullName"
             value={fullName}
             onChangeText={setFullName}
           />
 
           <CustomInput
-            placeholder={t('mobile')}
+            placeholder="mobile"
             keyboardType="numeric"
             inputMode="numeric"
             onlyDigits
@@ -94,10 +94,10 @@ const RegisterScreen = ({ navigation: _navigation }: Props) => {
 
           <View style={styles.space}>
             <CustomRadioButton
-              text={t('gender')}
+              text="gender"
               radiosArray={[
-                { id: 1, name: 'male', label: t('male') },
-                { id: 2, name: 'female', label: t('female') },
+                { id: 1, name: 'male', label: 'male' },
+                { id: 2, name: 'female', label: 'female' },
               ]}
               onSelect={option => {
                 if (option) setGender(option.name as 'male' | 'female');
@@ -106,7 +106,7 @@ const RegisterScreen = ({ navigation: _navigation }: Props) => {
           </View>
 
           <View style={styles.space}>
-            <CustomButton text={t('save')} onPress={handleSave} />
+            <CustomButton text="save" onPress={handleSave} />
           </View>
         </WhiteCard>
       </HomeScreen>

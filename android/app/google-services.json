@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1008658155257",
+    "project_id": "thematchers-39ff5",
+    "storage_bucket": "thematchers-39ff5.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1008658155257:android:08a2a338fa47f8f85e8428",
+        "android_client_info": {
+          "package_name": "com.thematchers"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDrY2pnmLo4c8zho-gUNQewR_WFeCCmbUc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

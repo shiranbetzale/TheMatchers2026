@@ -1,6 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
-import MoreInfoSvg from '../../assets/images/moreInfo.svg';
+import DatePickerSvg from '../../assets/images/datePicker.svg';
+import EditSvg from '../../assets/images/edit.svg';
 import {FontsStyle} from '../../utils/FontsStyle';
 import CustomButton from '../CustomButton/CustomButton';
 import CustomText from '../CustomText/CustomText';
@@ -13,9 +14,10 @@ import {RootStackParamList} from '../MainStackNavigation/MainStackNavigation.typ
 import {useLanguage} from '../../utils/LanguageProvider';
 
 const SelectedCard = (props: SelectedCardType) => {
-  const {card, details} = props;
+  const {card, details, isShowMeetingButton = false, onMeetingPress} = props;
   const {isRTL} = useLanguage();
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
+  const shouldShowMeetingButton = isShowMeetingButton || Boolean(onMeetingPress);
 
   const handlePress = () => {
     navigation?.navigate('EditFormScreen', {card});
@@ -23,14 +25,15 @@ const SelectedCard = (props: SelectedCardType) => {
 
   return (
     <WhiteCard customStyle={[styles.infoContainer, isRTL ? styles.rtlRow : styles.ltrRow]}>
-      <View>
+      <View style={styles.detailsBlock}>
         {details.map((infoItem, index) => {
           return (
             <View style={[styles.info, isRTL ? styles.rtlRow : styles.ltrRow]} key={index}>
               <CustomText
-                text={`${infoItem.text}: `}
+                text={infoItem.text}
                 customStyle={FontsStyle.subTitle}
               />
+              <CustomText text=": " customStyle={FontsStyle.subTitle} />
               <CustomText
                 text={infoItem.info}
                 customStyle={FontsStyle.text}
@@ -39,8 +42,19 @@ const SelectedCard = (props: SelectedCardType) => {
           );
         })}
       </View>
-      <View>
-        <CustomButton onPress={() => handlePress()} icon={<MoreInfoSvg />} />
+      <View style={styles.actions}>
+        {shouldShowMeetingButton && (
+          <CustomButton
+            customStyle={styles.actionButton}
+            onPress={() => onMeetingPress?.()}
+            icon={<DatePickerSvg width={28} height={28} />}
+          />
+        )}
+        <CustomButton
+          customStyle={styles.actionButton}
+          onPress={() => handlePress()}
+          icon={<EditSvg width={28} height={28} />}
+        />
       </View>
     </WhiteCard>
   );

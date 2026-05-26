@@ -13,7 +13,7 @@ export const styles = StyleSheet.create({
     width: 20,
     height: 20,
     borderWidth: 1,
-    marginLeft: GeneralStyle.space,
+    marginLeft: GeneralStyle.spacing.sm,
   },
   baseContainer: {
     flexDirection: 'column',
@@ -27,13 +27,13 @@ export const styles = StyleSheet.create({
   checkboxContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: GeneralStyle.space,
-    gap: GeneralStyle.space,
+    marginTop: GeneralStyle.spacing.sm,
+    gap: GeneralStyle.spacing.sm,
   },
   checkbox: {
     alignSelf: 'center',
   },
   label: {
-    margin: GeneralStyle.space,
+    margin: GeneralStyle.spacing.sm,
   },
 });

@@ -2,6 +2,7 @@ const express = require('express');
 const Profile = require('../models/Profile');
 const Match = require('../models/Match');
 const { requireAuth } = require('../middleware/auth');
+const {notifyRelationshipStatus} = require('../services/pushNotifications');
 
 const router = express.Router();
 
@@ -14,7 +15,9 @@ async function loadProfiles(candidateId, matchWithId) {
 }
 
 function ensureAccess(user, profile) {
-  return user.role === 'admin' || profile.assignedMatchmaker.toString() === user.id;
+  return (
+    user.role === 'admin' || String(profile.assignedMatchmaker || '') === user.id
+  );
 }
 
 router.get('/', requireAuth(['admin', 'matchmaker']), async (req, res, next) => {
@@ -78,12 +81,13 @@ router.patch('/:id/status', requireAuth(['admin', 'matchmaker']), async (req, re
       throw error;
     }
 
-    if (req.user.role !== 'admin' && match.owner.toString() !== req.user.id) {
+    if (req.user.role !== 'admin' && String(match.owner || '') !== req.user.id) {
       const error = new Error('Not allowed to update this match');
       error.status = 403;
       throw error;
     }
 
+    const previousStatus = match.status;
     if (status) match.status = status;
     if (notes !== undefined) match.notes = notes;
     if (notified) {
@@ -92,6 +96,17 @@ router.patch('/:id/status', requireAuth(['admin', 'matchmaker']), async (req, re
     }
 
     await match.save();
+
+    if (
+      status &&
+      status !== previousStatus &&
+      (status === 'engaged' || status === 'married')
+    ) {
+      notifyRelationshipStatus(match, status).catch(error => {
+        console.warn('Failed to send relationship-status push notification', error);
+      });
+    }
+
     res.json({ match });
   } catch (error) {
     next(error);
@@ -118,7 +133,7 @@ router.get('/:id/share-link', requireAuth(['admin', 'matchmaker']), async (req, 
       throw error;
     }
 
-    if (req.user.role !== 'admin' && match.owner.toString() !== req.user.id) {
+    if (req.user.role !== 'admin' && String(match.owner || '') !== req.user.id) {
       const error = new Error('Not allowed to share this match');
       error.status = 403;
       throw error;

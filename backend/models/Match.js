@@ -1,20 +1,9 @@
-const mongoose = require('mongoose');
+const {createFirestoreModel} = require('./firestoreModel');
 
-const matchSchema = new mongoose.Schema(
-  {
-    candidate: { type: mongoose.Schema.Types.ObjectId, ref: 'Profile', required: true },
-    matchWith: { type: mongoose.Schema.Types.ObjectId, ref: 'Profile', required: true },
-    status: {
-      type: String,
-      enum: ['new', 'notified', 'contacted', 'declined', 'matched'],
-      default: 'new',
-    },
-    owner: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-    notes: { type: String, trim: true },
-    notified: { type: Boolean, default: false },
-    notifiedAt: { type: Date },
+module.exports = createFirestoreModel('matches', {
+  modelName: 'Match',
+  defaults: {
+    status: 'new',
+    notified: false,
   },
-  { timestamps: true },
-);
-
-module.exports = mongoose.model('Match', matchSchema);
+});

@@ -1,22 +1,15 @@
-const mongoose = require('mongoose');
+const {getFirestore} = require('./firebase');
 
-let isConnected = false;
-
-async function connectToDatabase(uri = process.env.MONGO_URI) {
-  if (!uri) {
-    throw new Error('MONGO_URI is not set');
-  }
-
-  if (isConnected) {
-    return mongoose.connection;
-  }
-
-  await mongoose.connect(uri, {
-    autoIndex: true,
-  });
-
-  isConnected = true;
-  return mongoose.connection;
+async function connectToDatabase() {
+  const db = getFirestore();
+  await db.collection('_health').doc('backend').set(
+    {
+      lastConnectedAt: new Date(),
+    },
+    {merge: true},
+  );
+  console.log('Connected to Firebase Firestore');
+  return db;
 }
 
-module.exports = { connectToDatabase };
+module.exports = {connectToDatabase};

@@ -8,4 +8,6 @@ type detail = {
 export type SelectedCardType = {
   card: MatchCardType;
   details: detail[];
+  onMeetingPress?: () => void;
+  isShowMeetingButton?: boolean;
 };

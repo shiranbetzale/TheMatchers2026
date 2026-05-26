@@ -1,6 +1,6 @@
-import React, {useState} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
-import {useNavigation} from '@react-navigation/native';
+import {RouteProp, useNavigation, useRoute} from '@react-navigation/native';
 import {StackNavigationProp} from '@react-navigation/stack';
 
 import CustomButton from '../../components/CustomButton/CustomButton';
@@ -11,26 +11,34 @@ import MatchCard from '../../components/MatchCard/MatchCard';
 import {MatchCardType} from '../../components/MatchCard/MatchCard.type';
 import FilterSvg from '../../assets/images/filter.svg';
 import OrderBySvg from '../../assets/images/orderBy.svg';
-import Colors from '../../utils/Colors';
 import HomeScreen from '../HomeScreen/HomeScreen';
 import {styles} from './AllCardsScreen.style';
+import CustomText from '../../components/CustomText/CustomText';
+import {FontsStyle} from '../../utils/FontsStyle';
 import {RootStackParamList} from '../../components/MainStackNavigation/MainStackNavigation.type';
+import {getSessionUser} from '../../services/session';
+import {isArchivedCard} from '../../utils/archiveCards';
 
 type NavigationProp = StackNavigationProp<RootStackParamList>;
+type AllCardsRouteProp = RouteProp<RootStackParamList, 'AllCardsScreen'>;
 
 const AllCardsScreen = () => {
+  const navigation = useNavigation<NavigationProp>();
+  const route = useRoute<AllCardsRouteProp>();
+  const onlyMine = route.params?.onlyMine === true;
   const [isShowFilter, setIsShowFilter] = useState(false);
   const [isShowOrderBy, setIsShowOrderBy] = useState(false);
-  const navigation = useNavigation<NavigationProp>();
+  const [sessionPhone, setSessionPhone] = useState('');
+  const [isAdmin, setIsAdmin] = useState(false);
 
   const allCardsArray: MatchCardType[] = [
     {
-      city: 'bnei Brak',
+      city: 'cityBneiBrak',
       matcherMail: 'matchmaker1@example.com',
       mail: 'candidate1@example.com',
       phone: '0521111111',
       matcherPhone: '0549450954',
-      matcherName: 'שירן בצלאל',
+      matcherName: 'matchmakerShiranBetzalel',
       name: 'David Levi',
       offered: true,
       met: false,
@@ -38,6 +46,8 @@ const AllCardsScreen = () => {
       age: 29,
       height: '1.78',
       status: 'single',
+      relationshipStatus: 'engaged',
+      partnerName: 'Miriam Cohen',
       numOfChildren: 0,
       isShowInfoButtons: true,
       isShowMeetingInfo: true,
@@ -51,7 +61,7 @@ const AllCardsScreen = () => {
       mail: 'candidate2@example.com',
       phone: '0522222222',
       matcherPhone: '0549450954',
-      matcherName: 'שירן בצלאל',
+      matcherName: 'matchmakerShiranBetzalel',
       name: 'Miriam Cohen',
       offered: false,
       met: false,
@@ -72,7 +82,7 @@ const AllCardsScreen = () => {
       mail: 'candidate3@example.com',
       phone: '0523333333',
       matcherPhone: '0549450954',
-      matcherName: 'שירן בצלאל',
+      matcherName: 'matchmakerShiranBetzalel',
       name: 'Yosef Friedman',
       offered: true,
       met: true,
@@ -93,7 +103,7 @@ const AllCardsScreen = () => {
       mail: 'candidate4@example.com',
       phone: '0524444444',
       matcherPhone: '0549450954',
-      matcherName: 'שירן בצלאל',
+      matcherName: 'matchmakerShiranBetzalel',
       name: 'Rachel Stern',
       offered: false,
       met: true,
@@ -109,6 +119,68 @@ const AllCardsScreen = () => {
       ],
     },
   ];
+
+  useEffect(() => {
+    const loadSession = async () => {
+      const sessionUser = await getSessionUser();
+      setSessionPhone(sessionUser?.phone ?? '');
+      setIsAdmin(sessionUser?.role === 'admin');
+    };
+
+    loadSession();
+  }, []);
+
+  useEffect(() => {
+    if (onlyMine) {
+      setIsShowOrderBy(false);
+      setIsShowFilter(false);
+    }
+  }, [onlyMine]);
+
+  const visibleCards = useMemo(() => {
+    if (!onlyMine || isAdmin) {
+      return allCardsArray.filter(card => !isArchivedCard(card));
+    }
+
+    const normalizedSessionPhone = sessionPhone.replace(/\D/g, '');
+
+    if (!normalizedSessionPhone) {
+      return [];
+    }
+
+    return allCardsArray.filter(
+      card =>
+        !isArchivedCard(card) &&
+        card.matcherPhone.replace(/\D/g, '') === normalizedSessionPhone,
+    );
+  }, [allCardsArray, isAdmin, onlyMine, sessionPhone]);
+
+  const matcherOptions = useMemo(() => {
+    const matcherNames = Array.from(
+      new Set(allCardsArray.map(card => card.matcherName).filter(Boolean)),
+    );
+
+    return matcherNames.map((matcherName, index) => ({
+      id: index + 1,
+      name: 'matcherName',
+      label: matcherName || '',
+    }));
+  }, [allCardsArray]);
+
+  const currentMatcherName = useMemo(() => {
+    if (!onlyMine) {
+      return undefined;
+    }
+
+    const normalizedSessionPhone = sessionPhone.replace(/\D/g, '');
+    const matchingCard = allCardsArray.find(
+      card =>
+        normalizedSessionPhone &&
+        card.matcherPhone.replace(/\D/g, '') === normalizedSessionPhone,
+    );
+
+    return matchingCard?.matcherName ?? visibleCards.find(card => card.matcherName)?.matcherName;
+  }, [allCardsArray, onlyMine, sessionPhone, visibleCards]);
 
   const toggleFilter = () => {
     setIsShowOrderBy(false);
@@ -129,6 +201,7 @@ const AllCardsScreen = () => {
     {comp: <FilterSvg />, onPress: toggleFilter},
     {comp: <OrderBySvg />, onPress: toggleOrderBy},
   ];
+  const isMenuOpen = isShowFilter || isShowOrderBy;
 
   return (
     <HomeScreen
@@ -136,26 +209,43 @@ const AllCardsScreen = () => {
         <View style={styles.pinChildrenContainer}>
           <CustomHeader headerBtns={headerBtns} />
           {isShowFilter && (
-            <CustomFilter onApply={closeMenus} onReset={closeMenus} />
+            <CustomFilter
+              isMyCards={onlyMine}
+              matcherName={currentMatcherName}
+              matcherOptions={matcherOptions}
+              onApply={closeMenus}
+              onReset={closeMenus}
+            />
           )}
           {isShowOrderBy && (
             <CustomOrderBy onApply={closeMenus} onReset={closeMenus} />
           )}
         </View>
       }>
-      {allCardsArray.map((matchItem, index) => {
-        const cardColor =
-          matchItem.gender === 'male' ? Colors.lightBlue : Colors.pink;
-
-        return (
-          <CustomButton
-            key={index}
-            onPress={() => navigation.navigate('MatchCardsScreen')}
-            customStyle={styles.matchCard(cardColor)}>
-            <MatchCard {...matchItem} isSlide={false} />
-          </CustomButton>
-        );
-      })}
+      {!isMenuOpen && (
+        <>
+          {visibleCards.length === 0 && (
+            <CustomText
+              text="noAssignedCards"
+              customStyle={FontsStyle.text}
+            />
+          )}
+          {visibleCards.map((matchItem, index) => {
+            return (
+              <CustomButton
+                key={index}
+                onPress={() => navigation.navigate('MatchCardsScreen')}
+                customStyle={styles.matchCard}>
+                <MatchCard
+                  {...matchItem}
+                  isSlide={false}
+                  isShowMeetingInfo={false}
+                />
+              </CustomButton>
+            );
+          })}
+        </>
+      )}
     </HomeScreen>
   );
 };

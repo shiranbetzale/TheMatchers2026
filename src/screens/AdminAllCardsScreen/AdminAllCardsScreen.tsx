@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 import {StackNavigationProp} from '@react-navigation/stack';
@@ -16,6 +16,7 @@ import Colors from '../../utils/Colors';
 import HomeScreen from '../HomeScreen/HomeScreen';
 import {RootStackParamList} from '../../components/MainStackNavigation/MainStackNavigation.type';
 import {useLanguage} from '../../utils/LanguageProvider';
+import {isArchivedCard} from '../../utils/archiveCards';
 import {styles} from './AdminAllCardsScreen.style';
 
 type NavigationProp = StackNavigationProp<RootStackParamList>;
@@ -28,12 +29,12 @@ const AdminAllCardsScreen = () => {
 
   const allCardsArray: MatchCardType[] = [
     {
-      city: 'bnei Brak',
+      city: 'cityBneiBrak',
       matcherMail: 'matchmaker1@example.com',
       mail: 'candidate1@example.com',
       phone: '0521111111',
       matcherPhone: '0549450954',
-      matcherName: 'שירן בצלאל',
+      matcherName: 'matchmakerShiranBetzalel',
       name: 'David Levi',
       offered: true,
       met: false,
@@ -41,6 +42,8 @@ const AdminAllCardsScreen = () => {
       age: 29,
       height: '1.78',
       status: 'single',
+      relationshipStatus: 'engaged',
+      partnerName: 'Miriam Cohen',
       numOfChildren: 0,
       isShowInfoButtons: true,
       isShowMeetingInfo: true,
@@ -54,7 +57,7 @@ const AdminAllCardsScreen = () => {
       mail: 'candidate2@example.com',
       phone: '0522222222',
       matcherPhone: '0549450954',
-      matcherName: 'שירן בצלאל',
+      matcherName: 'matchmakerShiranBetzalel',
       name: 'Miriam Cohen',
       offered: false,
       met: false,
@@ -75,7 +78,7 @@ const AdminAllCardsScreen = () => {
       mail: 'candidate3@example.com',
       phone: '0523333333',
       matcherPhone: '0549450954',
-      matcherName: 'שירן בצלאל',
+      matcherName: 'matchmakerShiranBetzalel',
       name: 'Yosef Friedman',
       offered: true,
       met: true,
@@ -96,7 +99,7 @@ const AdminAllCardsScreen = () => {
       mail: 'candidate4@example.com',
       phone: '0524444444',
       matcherPhone: '0549450954',
-      matcherName: 'שירן בצלאל',
+      matcherName: 'matchmakerShiranBetzalel',
       name: 'Rachel Stern',
       offered: false,
       met: true,
@@ -133,86 +136,110 @@ const AdminAllCardsScreen = () => {
     {comp: <OrderBySvg />, onPress: toggleOrderBy},
   ];
 
+  const matcherOptions = useMemo(() => {
+    const matcherNames = Array.from(
+      new Set(allCardsArray.map(card => card.matcherName).filter(Boolean)),
+    );
+
+    return matcherNames.map((matcherName, index) => ({
+      id: index + 1,
+      name: 'matcherName',
+      label: matcherName || '',
+    }));
+  }, [allCardsArray]);
+  const isMenuOpen = isShowFilter || isShowOrderBy;
+  const activeCards = allCardsArray.filter(card => !isArchivedCard(card));
+
   return (
     <HomeScreen
       pinChildren={
         <View style={styles.pinChildrenContainer}>
           <CustomHeader headerBtns={headerBtns} />
           {isShowFilter && (
-            <CustomFilter onApply={closeMenus} onReset={closeMenus} />
+            <CustomFilter
+              matcherOptions={matcherOptions}
+              onApply={closeMenus}
+              onReset={closeMenus}
+            />
           )}
           {isShowOrderBy && (
             <CustomOrderBy onApply={closeMenus} onReset={closeMenus} />
           )}
         </View>
       }>
-      {allCardsArray.map((matchItem, index) => {
-        const cardColor =
-          matchItem.gender === 'male' ? Colors.lightBlue : Colors.pink;
-
-        return (
-          <View
-            key={index}
-            style={[
-              styles.listCard(cardColor),
-              isRTL ? styles.rowReverse : styles.row,
-            ]}>
-            <View style={styles.avatarContainer}>
-              <CustomImage
-                customImgStyle={styles.avatar}
-                src={matchItem.images[0]}
-              />
-            </View>
-
+      {!isMenuOpen &&
+        activeCards.map((matchItem, index) => {
+          return (
             <View
+              key={index}
               style={[
-                styles.cardInfo,
-                isRTL ? styles.alignRight : styles.alignLeft,
+                styles.listCard,
+                isRTL ? styles.rowReverse : styles.row,
               ]}>
-              <CustomText text={matchItem.name} customStyle={styles.nameText} />
-              <CustomText
-                text={`${t('matchCard.age')}: ${matchItem.age} | ${t(
-                  'matchCard.height',
-                )}: ${matchItem.height}`}
-                customStyle={styles.metaText}
-              />
-              <CustomText
-                text={`${t('matchCard.status')}: ${t(matchItem.status)}${
-                  matchItem.numOfChildren ? ` + ${matchItem.numOfChildren}` : ''
-                }`}
-                customStyle={styles.metaText}
-              />
-              <CustomText
-                text={`${t('matchCard.cityShort')}: ${
-                  matchItem.city ? t(matchItem.city) : ''
-                }`}
-                customStyle={styles.metaText}
-              />
-              <CustomText
-                text={`${t('phoneNumber')}: ${matchItem.phone}`}
-                customStyle={styles.metaText}
-              />
-            </View>
+              <View style={styles.avatarContainer}>
+                <CustomImage
+                  customImgStyle={styles.avatar}
+                  src={matchItem.images[0]}
+                />
+              </View>
 
-            <View style={styles.actions}>
-              <CustomButton
-                text="view"
-                customStyle={styles.viewButton}
-                customTextStyle={styles.actionText}
-                onPress={() => navigation.navigate('MatchCardsScreen')}
-              />
-              <CustomButton
-                text="edit"
-                customStyle={styles.editButton}
-                customTextStyle={styles.actionText}
-                onPress={() =>
-                  navigation.navigate('EditFormScreen', {card: matchItem})
-                }
-              />
+              <View
+                style={[
+                  styles.cardInfo,
+                  isRTL ? styles.alignRight : styles.alignLeft,
+                ]}>
+                <CustomText text={matchItem.name} customStyle={styles.nameText} />
+                <View style={[styles.row, isRTL ? styles.rowReverse : styles.row]}>
+                  <CustomText text="cardAge" customStyle={styles.metaText} />
+                  <CustomText text=": " customStyle={styles.metaText} />
+                  <CustomText text={`${matchItem.age}`} customStyle={styles.metaText} />
+                  <CustomText text=" | " customStyle={styles.metaText} />
+                  <CustomText text="cardHeight" customStyle={styles.metaText} />
+                  <CustomText text=": " customStyle={styles.metaText} />
+                  <CustomText text={matchItem.height} customStyle={styles.metaText} />
+                </View>
+                <View style={[styles.row, isRTL ? styles.rowReverse : styles.row]}>
+                  <CustomText text="cardStatus" customStyle={styles.metaText} />
+                  <CustomText text=": " customStyle={styles.metaText} />
+                  <CustomText text={matchItem.status} customStyle={styles.metaText} />
+                  {matchItem.numOfChildren ? (
+                    <CustomText
+                      text={` + ${matchItem.numOfChildren}`}
+                      customStyle={styles.metaText}
+                    />
+                  ) : null}
+                </View>
+                <View style={[styles.row, isRTL ? styles.rowReverse : styles.row]}>
+                  <CustomText text="cardCityShort" customStyle={styles.metaText} />
+                  <CustomText text=": " customStyle={styles.metaText} />
+                  <CustomText text={matchItem.city || ''} customStyle={styles.metaText} />
+                </View>
+                <View style={[styles.row, isRTL ? styles.rowReverse : styles.row]}>
+                  <CustomText text="phoneNumber" customStyle={styles.metaText} />
+                  <CustomText text=": " customStyle={styles.metaText} />
+                  <CustomText text={matchItem.phone} customStyle={styles.metaText} />
+                </View>
+              </View>
+
+              <View style={styles.actions}>
+                <CustomButton
+                  text="view"
+                  customStyle={styles.viewButton}
+                  customTextStyle={styles.actionText}
+                  onPress={() => navigation.navigate('MatchCardsScreen')}
+                />
+                <CustomButton
+                  text="edit"
+                  customStyle={styles.editButton}
+                  customTextStyle={styles.actionText}
+                  onPress={() =>
+                    navigation.navigate('EditFormScreen', {card: matchItem})
+                  }
+                />
+              </View>
             </View>
-          </View>
-        );
-      })}
+          );
+        })}
     </HomeScreen>
   );
 };

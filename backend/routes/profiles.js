@@ -1,12 +1,15 @@
 const express = require('express');
 const Profile = require('../models/Profile');
 const { requireAuth } = require('../middleware/auth');
+const {notifyProfileCreated} = require('../services/pushNotifications');
 
 const router = express.Router();
 
 function canAccessProfile(user, profile) {
   if (!profile) return false;
-  return user.role === 'admin' || profile.assignedMatchmaker.toString() === user.id;
+  return (
+    user.role === 'admin' || String(profile.assignedMatchmaker || '') === user.id
+  );
 }
 
 router.get('/', requireAuth(['admin', 'matchmaker']), async (req, res, next) => {
@@ -32,6 +35,9 @@ router.post('/', requireAuth(['admin', 'matchmaker']), async (req, res, next) =>
       assignedMatchmaker: req.user.id,
     };
     const profile = await Profile.create(payload);
+    notifyProfileCreated(profile).catch(error => {
+      console.warn('Failed to send profile-created push notification', error);
+    });
     res.status(201).json({ profile });
   } catch (error) {
     next(error);

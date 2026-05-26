@@ -25,10 +25,12 @@ export type FormField = {
     | 'range'
     | 'input'
     | 'select'
+    | 'autocomplete'
     | 'datePicker'
     | 'switch'
     | 'radioButton';
   options?: Option[];
+  autocompleteSource?: 'israelCities';
   handlePress?: (option?: Option | boolean) => void;
   minRange?: number;
   maxRange?: number;

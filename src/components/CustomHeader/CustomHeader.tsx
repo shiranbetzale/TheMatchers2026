@@ -1,19 +1,33 @@
 import React from 'react';
 import { View } from 'react-native';
 import CustomButton from '../CustomButton/CustomButton';
+import CustomText from '../CustomText/CustomText';
 import { styles } from './CustomHeader.style';
 import { CustomHeaderType } from './CustomHeader.type';
 
 const CustomHeader = (props: CustomHeaderType) => {
-  const { headerBtns } = props;
+  const { headerBtns, title } = props;
 
   return (
     <View style={styles.header}>
-      {
-        headerBtns.map((item, index) => {
-          return <CustomButton key={index} onPress={item.onPress} icon={item.comp} />
-        })
-      }
+      <View style={styles.actions}>
+        {headerBtns.map((item, index) => {
+          return (
+            <CustomButton
+              key={index}
+              customStyle={styles.iconButton}
+              onPress={item.onPress}
+              icon={item.comp}
+            />
+          );
+        })}
+      </View>
+      {title && (
+        <View style={styles.titleContainer}>
+          <CustomText text={title} customStyle={styles.title} />
+        </View>
+      )}
+      <View style={styles.sidePlaceholder} />
     </View>
   );
 };

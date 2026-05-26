@@ -4,6 +4,7 @@ import Colors from '../../utils/Colors';
 import CustomText from '../CustomText/CustomText';
 import {styles} from './CustomSwitch.style';
 import {CustomSwitchType} from './CustomSwitch.type';
+import {useLanguage} from '../../utils/LanguageProvider';
 
 const CustomSwitch = (props: CustomSwitchType) => {
   const {
@@ -13,6 +14,7 @@ const CustomSwitch = (props: CustomSwitchType) => {
     value,
     handleToggle = () => {},
   } = props;
+  const {isRTL} = useLanguage();
   const [isEnabled, setIsEnabled] = useState(
     value === true || value === 'true',
   );
@@ -31,11 +33,25 @@ const CustomSwitch = (props: CustomSwitchType) => {
   };
 
   return (
-    <View style={!isSmallSize && styles.container}>
+    <View
+      style={[
+        !isSmallSize && styles.container,
+        !isSmallSize && (isRTL ? styles.rowReverse : styles.row),
+      ]}>
       <View style={!isSmallSize && styles.switchText}>
-        <CustomText text={text} customStyle={styles.text} />
+        <CustomText
+          text={text}
+          customStyle={[
+            styles.text,
+            isRTL ? styles.textRight : styles.textLeft,
+          ]}
+        />
       </View>
-      <View style={isSmallSize ? styles.smallSwitch : styles.switch}>
+      <View
+        style={[
+          isSmallSize ? styles.smallSwitch : styles.switch,
+          isRTL ? styles.alignEnd : styles.alignStart,
+        ]}>
         <Switch
           trackColor={{false: '#c8d0dc', true: Colors.color1}}
           thumbColor={isEnabled ? Colors.darkGreen : Colors.white}

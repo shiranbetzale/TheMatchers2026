@@ -2,7 +2,6 @@ import React from 'react';
 import {View} from 'react-native';
 import BackSvg from '../../assets/images/back.svg';
 import MenuSvg from '../../assets/images/menu.svg';
-import {FontsStyle} from '../../utils/FontsStyle';
 import CustomButton from '../CustomButton/CustomButton';
 import CustomText from '../CustomText/CustomText';
 import {styles} from './CustomMenu.style';
@@ -31,16 +30,23 @@ const CustomMenu = (props: CustomMenuType) => {
 
   return (
     <View style={[styles.container, isRTL ? styles.rowReverse : styles.row]}>
-      <View style={[styles.menuTxtContainer, isRTL ? styles.rowReverse : styles.row]}>
+      <View style={styles.topAccent} />
+      <View
+        style={[
+          styles.menuTitleContainer,
+          isRTL ? styles.rowReverse : styles.row,
+        ]}>
         <CustomButton
+          customStyle={styles.iconButton}
           onPress={() => onPressMenu()}
           icon={<MenuSvg width={24} height={24} />}
         />
-        <CustomText text={title} customStyle={FontsStyle.menuTitle} />
+        <CustomText text={title} customStyle={styles.title} />
       </View>
-      <View>
+      <View style={styles.sideSlot}>
         {!isBackHidden && (
           <CustomButton
+            customStyle={styles.iconButton}
             onPress={() => navigation.goBack()}
             icon={<BackSvg width={24} height={24} />}
           />

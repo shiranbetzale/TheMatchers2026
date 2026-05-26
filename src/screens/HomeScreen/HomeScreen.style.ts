@@ -1,8 +1,8 @@
-import { Dimensions, StyleSheet } from 'react-native';
+import {Dimensions, StyleSheet} from 'react-native';
 import GeneralStyle from '../../utils/GeneralStyle';
 import Colors from '../../utils/Colors';
 
-const { width } = Dimensions.get('window');
+const {width, height} = Dimensions.get('window');
 
 export const styles = StyleSheet.create({
    container: {
@@ -14,16 +14,17 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
     height: Dimensions.get('screen').height - 75,
     width: Dimensions.get('window').width,
-    paddingBottom: GeneralStyle.space * 2,
+    paddingBottom: GeneralStyle.spacing.sm * 2,
   },
   svContainer: {
     width: '100%',
-    padding: GeneralStyle.space,
+    padding: GeneralStyle.spacing.sm,
   },
   pinChildren: {
     width: '100%',
+    zIndex: 10,
+    backgroundColor: Colors.ivory,
   },
-
   bgContainer: {
     position: 'absolute',
     top: 0,
@@ -32,53 +33,94 @@ export const styles = StyleSheet.create({
     left: 0,
     zIndex: 0,
     overflow: 'hidden',
+    backgroundColor: Colors.appBg,
   },
   bgShapeOne: {
     position: 'absolute',
-    width: width * 0.95,
-    height: width * 0.95,
-    borderRadius: width,
-    backgroundColor: '#071E3D12',
-    top: -width * 0.58,
-    left: -width * 0.28,
+    width: '100%',
+    height: 128,
+    backgroundColor: Colors.surfaceElevated,
+    top: 0,
+    left: 0,
     zIndex: 0,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.borderSoft,
   },
   bgShapeTwo: {
     position: 'absolute',
-    width: width * 1.1,
-    height: width * 1.1,
-    borderRadius: width,
-    backgroundColor: Colors.softBlue,
-    bottom: -width * 0.5,
-    right: -width * 0.2,
+    width: width * 1.35,
+    height: 76,
+    backgroundColor: Colors.goldWash,
+    top: 94,
+    right: -width * 0.18,
     zIndex: 0,
+    opacity: 0.9,
+    transform: [{rotate: '-9deg'}],
   },
   bgShapeThree: {
     position: 'absolute',
-    width: width * 0.7,
-    height: width * 0.7,
-    borderRadius: width,
-    borderWidth: 1,
-    borderColor: '#B88A3555',
-    top: width * 0.15,
-    right: -width * 0.3,
+    width: width * 0.82,
+    height: height * 0.72,
+    backgroundColor: Colors.navyTint,
+    top: 178,
+    right: -width * 0.34,
     zIndex: 0,
+    opacity: 0.28,
+    borderLeftWidth: 1,
+    borderColor: Colors.borderSoft,
+    transform: [{rotate: '7deg'}],
   },
-  // pinChildren: {
-  //   position: 'absolute',
-  //   width: '100%',
-  //   zIndex: 10,
-  //   top: 0,
-  // },
+  bgShapeFour: {
+    position: 'absolute',
+    width: width * 0.94,
+    height: 1,
+    backgroundColor: Colors.premiumLine,
+    top: 176,
+    alignSelf: 'center',
+    opacity: 0.36,
+  },
+  bgShapeFive: {
+    position: 'absolute',
+    width: width * 1.2,
+    height: 54,
+    backgroundColor: Colors.surfaceElevated,
+    top: height * 0.58,
+    left: -width * 0.12,
+    opacity: 0.58,
+    transform: [{rotate: '-6deg'}],
+  },
+  bgShapeSix: {
+    position: 'absolute',
+    width: width * 0.72,
+    height: height * 0.46,
+    borderWidth: 1,
+    borderColor: Colors.line,
+    top: height * 0.3,
+    left: -width * 0.38,
+    opacity: 0.8,
+    transform: [{rotate: '10deg'}],
+  },
+
   scrollContainer: {
     flex: 1,
     backgroundColor: 'transparent',
     zIndex: 1,
   },
   scrollContent: {
-    paddingTop: 48,
-    paddingHorizontal: 18,
-    paddingBottom: 28,
+    paddingTop: GeneralStyle.spacing.md,
+    paddingHorizontal: GeneralStyle.spacing.md,
+    paddingBottom: GeneralStyle.spacing.xl,
+  },
+  staticContainer: {
+    flex: 1,
+    backgroundColor: 'transparent',
+    zIndex: 1,
+  },
+  staticContent: {
+    flex: 1,
+    paddingTop: GeneralStyle.spacing.md,
+    paddingHorizontal: GeneralStyle.spacing.md,
+    paddingBottom: GeneralStyle.spacing.xl,
   },
 
 });

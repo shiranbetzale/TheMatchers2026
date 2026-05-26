@@ -1,58 +1,82 @@
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {useMemo} from 'react';
 import matchFormArray from '../../utils/MatchFormFields';
 import CustomCollapse from '../../components/CustomCollapse/CustomCollapse';
 import {groupBy} from '../../utils/generalFunction';
 import {CollapseSingleType} from '../../components/CustomCollapse/CustomCollapse.type';
-import {Condition, Option} from '../../utils/FormFields.type';
+import {Option} from '../../utils/FormFields.type';
+import {WizardStepComponentProps} from '../../components/Wizard/Wizard.type';
+import {
+  getVisibleOptions,
+  getVisibleFields,
+  isSectionComplete,
+} from '../../utils/formCompletion';
 
-const Step2Screen = () => {
-  const [matchFormArrayFiltered, setMatchFormArrayFiltered] = useState<
-    CollapseSingleType[]
-  >([]);
+const Step2Screen = (props: WizardStepComponentProps) => {
+  const {values, onChange} = props;
 
-  // קיבוץ ראשוני לפי collapseTitle
   const matchFormArrayBeforeFiltered: CollapseSingleType[] = useMemo(
     () => groupBy(matchFormArray, 'collapseTitle'),
     [],
   );
 
-  // טעינה ראשונית
-  useEffect(() => {
-    setMatchFormArrayFiltered([...matchFormArrayBeforeFiltered]);
-  }, [matchFormArrayBeforeFiltered]);
+  const matchFormArrayFiltered = useMemo(
+    () =>
+      matchFormArrayBeforeFiltered.map(section => ({
+        ...section,
+        data: getVisibleFields(section.data, values, matchFormArray),
+      })),
+    [matchFormArrayBeforeFiltered, values],
+  );
 
-  // לחיצה על אופציה – סינון דינמי
-  const handlePress = (option?: Option) => {
-    const newArray: CollapseSingleType[] =
-      matchFormArrayBeforeFiltered.map(
-        (section: CollapseSingleType) => {
-          const filteredData = section.data?.filter(field => {
-            // אם יש תנאים – בדיקה
-            if (field?.condition?.length) {
-              return field.condition.some((condition: Condition) =>
-                condition.fieldId === option?.name &&
-                condition.value === String(option?.id),
-              );
-            }
+  const lockedSectionTitles = useMemo(() => {
+    const lockedTitles: string[] = [];
+    let canOpenNextSection = true;
 
-            // אם אין תנאים – תמיד מוצג
-            return true;
-          });
+    matchFormArrayFiltered.forEach(section => {
+      if (!canOpenNextSection) {
+        lockedTitles.push(section.title);
+        return;
+      }
 
-          return {
-            ...section,
-            data: filteredData,
-          };
-        },
+      canOpenNextSection = isSectionComplete(
+        section.data,
+        values,
+        matchFormArray,
       );
+    });
 
-    setMatchFormArrayFiltered(newArray);
+    return lockedTitles;
+  }, [matchFormArrayFiltered, values]);
+
+  const handlePress = (option?: Option) => {
+    if (option?.name) {
+      onChange(option.name, option.label);
+      onChange(`${option.name}OptionId`, String(option.id));
+    }
   };
 
   return (
     <CustomCollapse
-      sections={matchFormArrayFiltered}
-      handlePress={handlePress}
+      sections={matchFormArrayFiltered.map(section => ({
+        ...section,
+        data: section.data.map(field => ({
+          ...field,
+          options: getVisibleOptions(field, values, matchFormArray),
+          value: values[field.id] ?? '',
+          onChangeText: (value: string) => onChange(field.id, value),
+        })),
+      }))}
+      handlePress={(option?: Option | boolean, fieldId?: string) => {
+        if (typeof option === 'boolean' && fieldId) {
+          onChange(fieldId, String(option));
+        }
+
+        if (option && typeof option !== 'boolean') {
+          handlePress(option);
+        }
+      }}
+      lockedSectionTitles={lockedSectionTitles}
+      autoExpandUnlockedSection
     />
   );
 };

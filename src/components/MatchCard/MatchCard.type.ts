@@ -8,6 +8,10 @@ export type MatchCardType = {
   gender: string;
   offered?: boolean;
   met?: boolean;
+  meetingStatus?: 'available' | 'busy';
+  meetingDate?: string;
+  meetingTime?: string;
+  meetingLocation?: string;
   isShowInfoButtons?: boolean;
   isShowMeetingInfo?: boolean;
   isSlide?: boolean;
@@ -17,5 +21,9 @@ export type MatchCardType = {
   matcherMail?: string;
   matcherName?: string;
   isShowMoreInfo?: boolean;
+  isImagePreviewEnabled?: boolean;
+  relationshipStatus?: 'engaged' | 'married';
+  partnerName?: string;
+  partnerImage?: string;
   city?: string;
 };

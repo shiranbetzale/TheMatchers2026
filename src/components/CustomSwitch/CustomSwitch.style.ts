@@ -5,18 +5,34 @@ export const styles = StyleSheet.create({
   container: {
     flex: 1,
     alignItems: "center",
-    flexDirection: "row-reverse",
     justifyContent: "space-between",
+  },
+  row: {
+    flexDirection: "row",
+  },
+  rowReverse: {
+    flexDirection: "row-reverse",
+  },
+  alignStart: {
+    alignItems: "flex-start",
+  },
+  alignEnd: {
+    alignItems: "flex-end",
   },
   switchText: {
     width: "80%"
   },
   smallSwitch: {
-    alignItems: "flex-end",
-    marginTop: GeneralStyle.space / 2
+    marginTop: GeneralStyle.spacing.sm / 2
   },
   text: {
-    marginLeft: GeneralStyle.space
+    marginHorizontal: GeneralStyle.spacing.sm
+  },
+  textLeft: {
+    textAlign: "left",
+  },
+  textRight: {
+    textAlign: "right",
   },
   switch: {
     width: "20%"

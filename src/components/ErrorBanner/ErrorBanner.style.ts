@@ -5,35 +5,55 @@ import GeneralStyle from '../../utils/GeneralStyle';
 
 export const styles = StyleSheet.create({
   container: {
-    flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: GeneralStyle.space / 1.2,
-    paddingHorizontal: GeneralStyle.space,
-    borderRadius: 10,
-    ...Colors.Shadow,
+    gap: GeneralStyle.spacing.sm,
+    paddingVertical: GeneralStyle.spacing.sm,
+    paddingHorizontal: GeneralStyle.spacing.md,
+    borderRadius: GeneralStyle.radius.md,
+    borderWidth: 1,
   },
   error: {
-    backgroundColor: '#FFECE8',
-    borderColor: '#D64545',
-    borderWidth: 1,
+    backgroundColor: Colors.dangerSoft,
+    borderColor: '#E4AAA2',
   },
   warning: {
-    backgroundColor: '#FFF7E0',
-    borderColor: '#D19B2C',
-    borderWidth: 1,
+    backgroundColor: Colors.champagne,
+    borderColor: Colors.color1Light,
   },
   info: {
-    backgroundColor: '#E8F0FF',
-    borderColor: Colors.darkGreen,
+    backgroundColor: Colors.surface,
+    borderColor: Colors.borderSoft,
+  },
+  row: {
+    flexDirection: 'row',
+  },
+  rowReverse: {
+    flexDirection: 'row-reverse',
+  },
+  iconBadge: {
+    width: 28,
+    height: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: GeneralStyle.radius.md,
+    backgroundColor: Colors.goldSoft,
     borderWidth: 1,
+    borderColor: Colors.color1Light,
   },
   icon: {
-    fontSize: 16,
-    marginRight: GeneralStyle.space / 2,
+    fontSize: 14,
   },
   text: {
     ...FontsStyle.text,
     flex: 1,
-    color: Colors.black,
+    color: Colors.darkGreen,
+  },
+  rtlText: {
+    textAlign: 'right',
+    writingDirection: 'rtl',
+  },
+  ltrText: {
+    textAlign: 'left',
+    writingDirection: 'ltr',
   },
 });

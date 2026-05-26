@@ -20,7 +20,7 @@ const CustomInput = (props: CustomInputType) => {
     value, // הערך מגיע מהורה
     onChangeText = () => {},
   } = props;
-  const {isRTL} = useLanguage();
+  const {isRTL, t} = useLanguage();
   const [isSecure, setIsSecure] = useState(secureTextEntry);
   const showToggle = allowToggleSecure && secureTextEntry;
   const toggleText = useMemo(
@@ -60,7 +60,7 @@ const CustomInput = (props: CustomInputType) => {
         multiline={isMultiline}
         editable={isEditable}
         maxLength={maxLength}
-        placeholder={placeholder}
+        placeholder={t(String(placeholder))}
         textAlign={isRTL ? 'right' : 'left'}
       />
       {showToggle && (

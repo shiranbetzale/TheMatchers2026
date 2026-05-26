@@ -11,22 +11,22 @@ export const FontsStyle = StyleSheet.create({
   text: {
     color: Colors.black,
     fontFamily: fontMap.light,
-    fontSize: 15,
+    fontSize: 16,
   },
   title: {
     fontFamily: fontMap.bold,
     color: Colors.darkGreen,
-    fontSize: 42,
+    fontSize: 40,
     textAlign: 'center',
   },
   menuTitle: {
     fontFamily: fontMap.bold,
-    fontSize: 24,
+    fontSize: 23,
     color: Colors.surface,
   },
   wizardTitle: {
-    fontFamily: fontMap.medium,
-    color: Colors.color1,
+    fontFamily: fontMap.bold,
+    color: Colors.darkGreen,
     fontSize: 24,
   },
   textDecoration: {

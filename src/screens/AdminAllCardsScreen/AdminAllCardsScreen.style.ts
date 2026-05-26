@@ -6,20 +6,21 @@ export const styles = {
   pinChildrenContainer: {
     backgroundColor: Colors.surface,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
+    borderBottomColor: Colors.borderSoft,
   },
-  listCard: (color: string) => ({
+  listCard: {
     alignItems: 'center',
-    gap: GeneralStyle.space,
-    padding: GeneralStyle.space * 1.2,
-    marginBottom: GeneralStyle.space,
+    gap: GeneralStyle.spacing.sm,
+    padding: GeneralStyle.spacing.md,
+    marginBottom: GeneralStyle.spacing.sm,
     borderWidth: 1,
-    borderLeftWidth: 5,
-    borderColor: color,
-    borderRadius: 18,
-    backgroundColor: Colors.surface,
+    borderLeftWidth: 4,
+    borderLeftColor: Colors.color1,
+    borderColor: Colors.borderSoft,
+    borderRadius: GeneralStyle.radius.sm,
+    backgroundColor: Colors.ivory,
     ...Colors.Shadow,
-  }),
+  },
   row: {
     flexDirection: 'row' as const,
   },
@@ -38,7 +39,7 @@ export const styles = {
     borderRadius: 32,
     overflow: 'hidden' as const,
     borderWidth: 2,
-    borderColor: Colors.border,
+    borderColor: Colors.borderSoft,
   },
   avatar: {
     width: '100%' as const,
@@ -46,7 +47,7 @@ export const styles = {
   },
   cardInfo: {
     flex: 1,
-    gap: GeneralStyle.space / 2,
+    gap: GeneralStyle.spacing.xs,
   },
   nameText: {
     ...FontsStyle.subTitle,
@@ -59,16 +60,16 @@ export const styles = {
   },
   actions: {
     width: 82,
-    gap: GeneralStyle.space / 2,
+    gap: GeneralStyle.spacing.xs,
   },
   viewButton: {
-    paddingVertical: GeneralStyle.space * 0.65,
-    paddingHorizontal: GeneralStyle.space,
+    paddingVertical: GeneralStyle.spacing.xs,
+    paddingHorizontal: GeneralStyle.spacing.sm,
     backgroundColor: Colors.darkGreen,
   },
   editButton: {
-    paddingVertical: GeneralStyle.space * 0.65,
-    paddingHorizontal: GeneralStyle.space,
+    paddingVertical: GeneralStyle.spacing.xs,
+    paddingHorizontal: GeneralStyle.spacing.sm,
     backgroundColor: Colors.color1,
   },
   actionText: {

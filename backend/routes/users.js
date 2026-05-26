@@ -68,7 +68,7 @@ router.post('/register-user', async (req, res, next) => {
 
 router.get('/all', requireAuth(['admin']), async (_req, res, next) => {
   try {
-    const users = await User.find({}, '-passwordHash').sort({ createdAt: -1 });
+    const users = await User.find({}).select('-passwordHash').sort({ createdAt: -1 });
     res.json({ users });
   } catch (error) {
     next(error);

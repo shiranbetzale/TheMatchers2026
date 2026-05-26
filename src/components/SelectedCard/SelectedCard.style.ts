@@ -6,22 +6,34 @@ import GeneralStyle from '../../utils/GeneralStyle';
 export const styles = StyleSheet.create({
     container: {
         alignItems: "center",
-        opacity: 0.9
+        opacity: 1
     },
     imgContainer: {
-        borderColor: Colors.black,
-        width: 100,
-        height: 100,
-        borderRadius: 50,
+        borderColor: Colors.borderSoft,
+        borderWidth: 2,
+        width: 94,
+        height: 94,
+        borderRadius: 47,
         alignItems: "center",
-        marginTop: GeneralStyle.space,
+        marginTop: GeneralStyle.spacing.sm,
         overflow: 'hidden',
     },
     infoContainer: {
-        width: "80%",
+        width: "100%",
         alignItems: "center",
-        marginVertical: GeneralStyle.space,
-        justifyContent: "space-between"
+        marginTop: GeneralStyle.spacing.xs,
+        paddingVertical: GeneralStyle.spacing.sm,
+        paddingHorizontal: GeneralStyle.spacing.md,
+        justifyContent: "space-between",
+        borderWidth: 1,
+        borderColor: Colors.borderSoft,
+        borderTopWidth: 1,
+        borderLeftWidth: 0,
+        borderBottomWidth: 1,
+        borderBottomColor: Colors.borderSoft,
+        backgroundColor: Colors.champagne,
+        shadowOpacity: 0,
+        elevation: 0,
     },
     rtlRow: {
         flexDirection: "row-reverse",
@@ -35,6 +47,11 @@ export const styles = StyleSheet.create({
     },
     info: {
         alignItems: "center",
+        marginBottom: 0,
+    },
+    detailsBlock: {
+        flex: 1,
+        alignItems: 'flex-end',
     },
     boy: {
         backgroundColor: Colors.lightBlue
@@ -45,5 +62,25 @@ export const styles = StyleSheet.create({
     txt: {
         ...FontsStyle.menuTitle,
         color: Colors.darkGreen,
-    }
+    },
+    actions: {
+        flexDirection: 'row-reverse',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: GeneralStyle.spacing.xs,
+        flexShrink: 0,
+        paddingHorizontal: GeneralStyle.spacing.xs,
+    },
+    actionButton: {
+        width: 40,
+        height: 40,
+        minHeight: 40,
+        paddingHorizontal: 0,
+        paddingVertical: 0,
+        backgroundColor: Colors.surfaceElevated,
+        borderColor: Colors.borderSoft,
+        borderRadius: GeneralStyle.radius.sm,
+        shadowOpacity: 0,
+        elevation: 0,
+    },
 });

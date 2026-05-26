@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import {styles} from './CustomDatePicker.style';
 import {CustomDatePickerType} from './CustomDatePicker.type';
@@ -7,9 +7,11 @@ import CustomText from '../CustomText/CustomText';
 import CustomButton from '../CustomButton/CustomButton';
 import DatePickerSvg from '../../assets/images/datePicker.svg';
 import {FontsStyle} from '../../utils/FontsStyle';
+import {useLanguage} from '../../utils/LanguageProvider';
 
 const CustomDatePicker = (props: CustomDatePickerType) => {
-  const {text, value, maxDate, onChangeDate} = props;
+  const {text, value, maxDate, isEditable = true, onChangeDate} = props;
+  const {language} = useLanguage();
   const [date, setDate] = useState<Date | undefined>();
   const [open, setOpen] = useState<boolean>(false);
   const valueDate = value ? new Date(value) : undefined;
@@ -18,26 +20,48 @@ const CustomDatePicker = (props: CustomDatePickerType) => {
     (valueDate && !Number.isNaN(valueDate.getTime()) ? valueDate : undefined);
   const pickerDate = selectedDate || maxDate || new Date();
 
+  useEffect(() => {
+    if (!isEditable && open) {
+      setOpen(false);
+    }
+  }, [isEditable, open]);
+
+  const openPicker = () => {
+    if (!isEditable) {
+      return;
+    }
+
+    setOpen(true);
+  };
+
   return (
     <View style={styles.container}>
       <CustomText text={text} />
-      <View style={styles.dateContainer}>
+      <View
+        pointerEvents={isEditable ? 'auto' : 'none'}
+        style={styles.dateContainer}
+      >
         <CustomText
-          text={selectedDate ? selectedDate.toLocaleDateString('he-IL') : ''}
+          text={selectedDate ? selectedDate.toLocaleDateString(language === 'he' ? 'he-IL' : 'en-US') : ''}
           customStyle={FontsStyle.text}
         />
         <CustomButton
           customStyle={styles.datePickerBtn}
           icon={<DatePickerSvg />}
-          onPress={() => setOpen(true)}
+          isDisabled={!isEditable}
+          onPress={openPicker}
         />
         <DatePicker
           modal
-          open={open}
+          open={isEditable && open}
           date={pickerDate}
           mode="date"
           onConfirm={nextDate => {
             setOpen(false);
+            if (!isEditable) {
+              return;
+            }
+
             setDate(nextDate);
             onChangeDate?.(nextDate);
           }}

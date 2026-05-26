@@ -3,241 +3,241 @@ import { FormField } from "./FormFields.type";
 const matchFormArray: FormField[] = [
   {
     id: "matchRangeAges",
-    text: "טווח גילאים",
+    text: "ageRange",
     fieldType: "range",
     minRange: 18,
     maxRange: 90,
     step: 1,
-    collapseTitle: "פרטים כלליים"
+    collapseTitle: "generalDetails"
   },
   {
     id: "matchCountOfChildren",
-    text: "עד כמה ילדים",
+    text: "maxChildren",
     fieldType: "range",
     minRange: 0,
     maxRange: 10,
     step: 1,
-    collapseTitle: "פרטים כלליים"
+    collapseTitle: "generalDetails"
   },
   {
     id: "matchRangeHeights",
-    text: "טווח גבהים",
+    text: "heightRange",
     fieldType: "range",
     minRange: 120,
     maxRange: 200,
     step: 1,
-    collapseTitle: "פרטים כלליים"
+    collapseTitle: "generalDetails"
   },
   {
     id: "matchArea",
-    text: "אזור מגורים של הבן/ת הזוג",
+    text: "partnerResidentialArea",
     fieldType: "checkbox",
     handlePress: () => console.log(),
     options: [
-      { id: 1, name: "matchArea", label: "מרכז והסביבה" },
-      { id: 2, name: "matchArea", label: "דרום והסביבה" },
-      { id: 3, name: "matchArea", label: "צפון והסביבה" },
-      { id: 4, name: "matchArea", label: "ירושלים והסביבה" },
-      { id: 5, name: "matchArea", label: "השפלה והסביבה" }
+      { id: 1, name: "matchArea", label: "centralArea" },
+      { id: 2, name: "matchArea", label: "southernArea" },
+      { id: 3, name: "matchArea", label: "northernArea" },
+      { id: 4, name: "matchArea", label: "jerusalemArea" },
+      { id: 5, name: "matchArea", label: "shfelaArea" }
     ],
-    collapseTitle: "פרטים כלליים"
+    collapseTitle: "generalDetails"
   },
   {
     id: "matchTypeOfPhone",
-    text: "סוג נייד",
+    text: "phoneTypeLabel",
     fieldType: "checkbox",
     handlePress: () => console.log(),
     options: [
-      { id: 1, name: "matchTypeOfPhone", label: "כשר" },
-      { id: 2, name: "matchTypeOfPhone", label: "מוגן" },
-      { id: 3, name: "matchTypeOfPhone", label: "לא מוגן" }
+      { id: 1, name: "matchTypeOfPhone", label: "kosherPhone" },
+      { id: 2, name: "matchTypeOfPhone", label: "protectedPhone" },
+      { id: 3, name: "matchTypeOfPhone", label: "unprotectedPhone" }
     ],
-    collapseTitle: "פרטים כלליים"
+    collapseTitle: "generalDetails"
   },
   {
     id: "matchStatus",
-    text: "סטטוס",
+    text: "status",
     fieldType: "checkbox",
     handlePress: () => console.log(),
     options: [
-      { id: 1, name: "matchStatus", label: "רווק" },
-      { id: 2, name: "matchStatus", label: "אלמן" },
-      { id: 3, name: "matchStatus", label: "גרוש" },
-      { id: 4, name: "matchStatus", label: "אלמן +" },
-      { id: 5, name: "matchStatus", label: "גרוש +" }
+      { id: 1, name: "matchStatus", label: "single" },
+      { id: 2, name: "matchStatus", label: "widower" },
+      { id: 3, name: "matchStatus", label: "divorced" },
+      { id: 4, name: "matchStatus", label: "widowerWithChildren" },
+      { id: 5, name: "matchStatus", label: "divorcedWithChildren" }
     ],
-    collapseTitle: "פרטים כלליים"
+    collapseTitle: "generalDetails"
   },
   {
     id: "matchHashkafa",
-    text: "השקפה",
+    text: "worldview",
     fieldType: "checkbox",
     handlePress: () => console.log(),
     options: [
-      { id: 1, name: "matchHashkafa", label: "דתי" },
-      { id: 2, name: "matchHashkafa", label: "חרדי" },
-      { id: 3, name: "matchHashkafa", label: "חרדי מודרני" },
-      { id: 4, name: "matchHashkafa", label: "חוזר בתשובה" }
+      { id: 1, name: "matchHashkafa", label: "religious" },
+      { id: 2, name: "matchHashkafa", label: "haredi" },
+      { id: 3, name: "matchHashkafa", label: "modernHaredi" },
+      { id: 4, name: "matchHashkafa", label: "baalTeshuva" }
     ],
-    collapseTitle: "סגנון"
+    collapseTitle: "styleSection"
   },
   {
     id: "matchIsWantSmoker",
-    text: "מוכן/ה לשמוע על מישהו/י שמעשן?",
+    text: "openToSmokerQuestion",
     fieldType: "switch",
-    collapseTitle: "פרטים כלליים"
+    collapseTitle: "generalDetails"
   },
   {
     id: "matchIsWantCohen",
-    text: "מוכן/ה לשמוע על כהן?",
+    text: "openToCohenQuestion",
     fieldType: "switch",
-    collapseTitle: "פרטים כלליים"
+    collapseTitle: "generalDetails"
   },
   {
     id: "matchIsGer",
-    text: "מוכן/ה לשמוע על גר/ת צדק?",
+    text: "openToConvertQuestion",
     fieldType: "switch",
-    collapseTitle: "פרטים כלליים"
+    collapseTitle: "generalDetails"
   },
   {
     id: "matchIsHozerBitshuva",
-    text: "מוכן/ה לשמוע על חוזר/ת בתשובה?",
+    text: "openToBaalTeshuvaQuestion",
     fieldType: "switch",
-    collapseTitle: "פרטים כלליים"
+    collapseTitle: "generalDetails"
   },
   {
     id: "matchIsVaccinatedCorona",
-    text: "מוכן/ה לשמוע על מחוסן קורונה?",
+    text: "openToCovidVaccinatedQuestion",
     fieldType: "switch",
-    collapseTitle: "פרטים כלליים"
+    collapseTitle: "generalDetails"
   },
   {
     id: "matchIsWantNationalService",
-    text: "מוכן/ה לשמוע על מישהי שעשתה שירות לאומי?",
+    text: "openToNationalServiceQuestion",
     fieldType: "switch",
-    collapseTitle: "פרטים כלליים"
+    collapseTitle: "generalDetails"
   },
   {
     id: "matchIsWantArmy",
-    text: "מוכן/ה לשמוע על מישהו/י ששירת/ה בצבא?",
+    text: "openToArmyServiceQuestion",
     fieldType: "switch",
-    collapseTitle: "פרטים כלליים"
+    collapseTitle: "generalDetails"
   },
   {
     id: "matchIsDrivingLicense",
-    text: "מוכן/ה לשמוע על מישהו/י עם רישיון?",
+    text: "openToDrivingLicenseQuestion",
     fieldType: "switch",
-    collapseTitle: "פרטים כלליים"
+    collapseTitle: "generalDetails"
   },
   {
     id: "matchWhatWorks",
-    text: "עיסוק",
+    text: "occupation",
     fieldType: "checkbox",
     handlePress: () => console.log(),
     options: [
-      { id: 1, name: "matchWhatWorks", label: "בחור ישיבה" },
-      { id: 2, name: "matchWhatWorks", label: "אברך" },
-      { id: 3, name: "matchWhatWorks", label: "עובד" },
-      { id: 4, name: "matchWhatWorks", label: "סטודנט - לימודים אקדמיים" },
-      { id: 5, name: "matchWhatWorks", label: "חצי עובד חצי לומד - אקדמאי" },
-      { id: 6, name: "matchWhatWorks", label: "חצי עובד חצי לומד" }
+      { id: 1, name: "matchWhatWorks", label: "yeshivaStudent" },
+      { id: 2, name: "matchWhatWorks", label: "kollelStudent" },
+      { id: 3, name: "matchWhatWorks", label: "working" },
+      { id: 4, name: "matchWhatWorks", label: "academicStudent" },
+      { id: 5, name: "matchWhatWorks", label: "workingAndStudyingAcademic" },
+      { id: 6, name: "matchWhatWorks", label: "workingAndLearning" }
     ],
-    collapseTitle: "עיסוק והשכלה"
+    collapseTitle: "workAndEducation"
   },
   {
     id: "matchEducation",
-    text: "השכלה",
+    text: "education",
     fieldType: "checkbox",
     handlePress: () => console.log(),
     options: [
-      { id: 1, name: "matchEducation", label: "תואר" },
-      { id: 2, name: "matchEducation", label: "הנדסאי" },
-      { id: 3, name: "matchEducation", label: "בגרות" },
-      { id: 4, name: "matchEducation", label: "ישיבה" }
+      { id: 1, name: "matchEducation", label: "degree" },
+      { id: 2, name: "matchEducation", label: "practicalEngineer" },
+      { id: 3, name: "matchEducation", label: "matriculation" },
+      { id: 4, name: "matchEducation", label: "yeshivaEducation" }
     ],
-    collapseTitle: "עיסוק והשכלה"
+    collapseTitle: "workAndEducation"
   },
   {
     id: "matchBodyStructure",
-    text: "מבנה גוף",
+    text: "bodyType",
     fieldType: "checkbox",
     handlePress: () => console.log(),
     options: [
-      { id: 1, name: "matchBodyStructure", label: "רזה" },
-      { id: 2, name: "matchBodyStructure", label: "בריא" },
-      { id: 3, name: "matchBodyStructure", label: "מלא" }
+      { id: 1, name: "matchBodyStructure", label: "slim" },
+      { id: 2, name: "matchBodyStructure", label: "averageBody" },
+      { id: 3, name: "matchBodyStructure", label: "fullFigured" }
     ],
-    collapseTitle: "מראה חיצוני"
+    collapseTitle: "appearance"
   },
   {
     id: "matchSkinColor",
-    text: "צבע עור",
+    text: "skinTone",
     fieldType: "select",
     handlePress: () => console.log(),
     options: [
-      { id: 1, name: "matchSkinColor", label: "בהיר" },
-      { id: 2, name: "matchSkinColor", label: "כהה" }
+      { id: 1, name: "matchSkinColor", label: "lightSkin" },
+      { id: 2, name: "matchSkinColor", label: "darkSkin" }
     ],
-    collapseTitle: "מראה חיצוני"
+    collapseTitle: "appearance"
   },
   {
     id: "matchBeardType",
-    text: "סוג זקן",
+    text: "beardType",
     fieldType: "checkbox",
     handlePress: () => console.log(),
     options: [
-      { id: 1, name: "matchBeardType", label: "זקן - שלא נגעו בו" },
-      { id: 2, name: "matchBeardType", label: "זקן - מסודר" },
-      { id: 3, name: "matchBeardType", label: "זיפים" },
-      { id: 4, name: "matchBeardType", label: "מגולח" }
+      { id: 1, name: "matchBeardType", label: "naturalBeard" },
+      { id: 2, name: "matchBeardType", label: "trimmedBeard" },
+      { id: 3, name: "matchBeardType", label: "stubble" },
+      { id: 4, name: "matchBeardType", label: "cleanShaven" }
     ],
-    collapseTitle: "מראה חיצוני"
+    collapseTitle: "appearance"
   },
   {
     id: "matchClothes",
-    text: "לבוש",
+    text: "dressStyle",
     fieldType: "checkbox",
     handlePress: () => console.log(),
     options: [
-      { id: 1, name: "matchClothes", label: "שחור לבן" },
-      { id: 2, name: "matchClothes", label: "צבעוני" },
-      { id: 3, name: "matchClothes", label: "צבעוני ובשבת שחור לבן" }
+      { id: 1, name: "matchClothes", label: "blackWhiteDress" },
+      { id: 2, name: "matchClothes", label: "colorfulDress" },
+      { id: 3, name: "matchClothes", label: "colorfulWeekdayBlackWhiteShabbat" }
     ],
-    collapseTitle: "מראה חיצוני"
+    collapseTitle: "appearance"
   },
   {
     id: "matchZerem",
-    text: "זרם",
+    text: "community",
     fieldType: "select",
     handlePress: () => console.log(),
     options: [
-      { id: 1, name: "matchZerem", label: "חסיד" },
-      { id: 2, name: "matchZerem", label: "ליטאי" },
-      { id: 3, name: "matchZerem", label: "ספרדי" }
+      { id: 1, name: "matchZerem", label: "hasidic" },
+      { id: 2, name: "matchZerem", label: "litvish" },
+      { id: 3, name: "matchZerem", label: "sephardic" }
     ],
-    collapseTitle: "פרטים נוספים"
+    collapseTitle: "additionalDetails"
   },
   {
     id: "matchHasidut",
-    text: "זרם חסידות?",
+    text: "hasidicGroupQuestion",
     keyboardTypeOption: "default",
     fieldType: "input",
-    collapseTitle: "פרטים נוספים"
+    collapseTitle: "additionalDetails"
   },
   {
     id: "matchTribe",
-    text: "עדיפות לעדה מסויימת?",
+    text: "preferredEthnicCommunityQuestion",
     keyboardTypeOption: "default",
     fieldType: "input",
-    collapseTitle: "פרטים נוספים"
+    collapseTitle: "additionalDetails"
   },
   {
     id: "matchImportantInfo",
-    text: "מה חשוב לי בבן/ת הזוג שלי?",
+    text: "importantInPartnerQuestion",
     keyboardTypeOption: "default",
     fieldType: "input",
     isMultiline: true,
-    collapseTitle: "פרטים נוספים"
+    collapseTitle: "additionalDetails"
   }
 ];
 

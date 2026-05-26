@@ -17,6 +17,7 @@ const invitationsRouter = require('./routes/invitations');
 const profilesRouter = require('./routes/profiles');
 const matchesRouter = require('./routes/matches');
 const contactRouter = require('./routes/contact');
+const notificationsRouter = require('./routes/notifications');
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -37,6 +38,7 @@ app.use('/api/profiles', profilesRouter);
 app.use('/api/matches', matchesRouter);
 app.use('/api/users', usersRouter);
 app.use('/api/contact', contactRouter);
+app.use('/api/notifications', notificationsRouter);
 
 app.use((req, res) => {
   res.status(404).json({ error: 'not_found', path: req.originalUrl });

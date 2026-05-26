@@ -1,58 +1,94 @@
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {useMemo} from 'react';
 import CustomCollapse from '../../components/CustomCollapse/CustomCollapse';
 import {CollapseSingleType} from '../../components/CustomCollapse/CustomCollapse.type';
+import {WizardStepComponentProps} from '../../components/Wizard/Wizard.type';
 import detailsFormArray from '../../utils/DetailsFormFields';
-import {Condition, Option} from '../../utils/FormFields.type';
-import {groupBy} from '../../utils/generalFunction';
+import {Option} from '../../utils/FormFields.type';
+import {
+  getVisibleOptions,
+  getVisibleFields,
+  isSectionComplete,
+} from '../../utils/formCompletion';
+import {calculateAge, formatHebrewDate, groupBy} from '../../utils/generalFunction';
 
-const Step1Screen = () => {
-  const [detailsFormArrayFiltered, setDetailsFormArrayFiltered] = useState<
-    CollapseSingleType[]
-  >([]);
+const Step1Screen = (props: WizardStepComponentProps) => {
+  const {values, onChange, onChangeMany} = props;
 
-  // קיבוץ הנתונים לפי collapseTitle
   const detailsFormArrayBeforeFiltered: CollapseSingleType[] = useMemo(
     () => groupBy(detailsFormArray, 'collapseTitle'),
     [],
   );
 
-  // טעינה ראשונית
-  useEffect(() => {
-    setDetailsFormArrayFiltered([...detailsFormArrayBeforeFiltered]);
-  }, [detailsFormArrayBeforeFiltered]);
+  const detailsFormArrayFiltered = useMemo(
+    () =>
+      detailsFormArrayBeforeFiltered.map(section => ({
+        ...section,
+        data: getVisibleFields(section.data, values, detailsFormArray),
+      })),
+    [detailsFormArrayBeforeFiltered, values],
+  );
 
-  // לחיצה על אופציה (סינון דינמי של השדות)
-  const handlePress = (option?: Option) => {
-    const newArray: CollapseSingleType[] =
-      detailsFormArrayBeforeFiltered.map(
-        (section: CollapseSingleType) => {
-          const filteredData = section.data?.filter(field => {
-            // אם יש תנאים – בודקים התאמה
-            if (field?.condition?.length) {
-              return field.condition.some((condition: Condition) =>
-                condition.fieldId === option?.name &&
-                condition.value === String(option?.id),
-              );
-            }
+  const lockedSectionTitles = useMemo(() => {
+    const lockedTitles: string[] = [];
+    let canOpenNextSection = true;
 
-            // אם אין תנאים – תמיד מוצג
-            return true;
-          });
+    detailsFormArrayFiltered.forEach(section => {
+      if (!canOpenNextSection) {
+        lockedTitles.push(section.title);
+        return;
+      }
 
-          return {
-            ...section,
-            data: filteredData,
-          };
-        },
+      canOpenNextSection = isSectionComplete(
+        section.data,
+        values,
+        detailsFormArray,
       );
+    });
 
-    setDetailsFormArrayFiltered(newArray);
+    return lockedTitles;
+  }, [detailsFormArrayFiltered, values]);
+
+  const handlePress = (option?: Option) => {
+    if (option?.name) {
+      onChange(option.name, option.label);
+      onChange(`${option.name}OptionId`, String(option.id));
+    }
   };
 
   return (
     <CustomCollapse
-      sections={detailsFormArrayFiltered}
-      handlePress={handlePress}
+      sections={detailsFormArrayFiltered.map(section => ({
+        ...section,
+        data: section.data.map(field => ({
+          ...field,
+          options: getVisibleOptions(field, values, detailsFormArray),
+          value: values[field.id] ?? '',
+          onChangeText: (value: string) => onChange(field.id, value),
+          onChangeDate: (date: Date) => {
+            if (field.id === 'birthDate') {
+              onChangeMany({
+                birthDate: date.toISOString(),
+                birthDateHe: formatHebrewDate(date),
+                age: String(calculateAge(date)),
+              });
+              return;
+            }
+
+            onChange(field.id, date.toISOString());
+          },
+        })),
+      }))}
+      handlePress={(option?: Option | boolean, fieldId?: string) => {
+        if (typeof option === 'boolean' && fieldId) {
+          onChange(fieldId, String(option));
+        }
+
+        if (option && typeof option !== 'boolean') {
+          handlePress(option);
+        }
+      }}
+      lockedSectionTitles={lockedSectionTitles}
+      autoExpandUnlockedSection
     />
   );
 };

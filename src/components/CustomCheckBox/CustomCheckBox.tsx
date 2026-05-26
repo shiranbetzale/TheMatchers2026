@@ -7,7 +7,7 @@ import CustomSingleCheckBox from "./CustomSingleCheckBox";
 import {useLanguage} from "../../utils/LanguageProvider";
 
 const CustomCheckBox = (props: CustomCheckBoxType) => {
-  const { text, options, isSmallSize = false, onChange } = props;
+  const { text, options, isEditable = true, isSmallSize = false, onChange } = props;
   const {isRTL} = useLanguage();
 
   return (
@@ -18,7 +18,10 @@ const CustomCheckBox = (props: CustomCheckBoxType) => {
         isRTL ? styles.alignRtl : styles.alignLtr,
       ]}>
       <CustomText text={text} />
-      <View style={[styles.cbContainer, isRTL ? styles.alignRtl : styles.alignLtr]}>
+      <View
+        pointerEvents={isEditable ? 'auto' : 'none'}
+        style={[styles.cbContainer, isRTL ? styles.alignRtl : styles.alignLtr]}
+      >
         {
           options.map((option, index) => {
             return <View key={option.id ?? index} style={styles.checkboxContainer}>
@@ -26,6 +29,7 @@ const CustomCheckBox = (props: CustomCheckBoxType) => {
                 {...option}
                 isSmallSize={isSmallSize}
                 isRTL={isRTL}
+                isEditable={isEditable}
                 onChange={onChange}
               />
             </View>

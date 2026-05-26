@@ -2,19 +2,22 @@ import Colors from '../../utils/Colors';
 import GeneralStyle from '../../utils/GeneralStyle';
 
 export const styles = {
-  matchCard: (color: string) => ({
+  matchCard: {
     padding: 0,
-    marginBottom: GeneralStyle.space * 1.2,
-    borderWidth: 1,
-    borderLeftWidth: 5,
-    borderRadius: 18,
-    backgroundColor: Colors.surface,
-    borderColor: color,
-    ...Colors.Shadow,
-  }),
+    paddingHorizontal: 0,
+    paddingVertical: 0,
+    marginBottom: GeneralStyle.spacing.sm,
+    borderWidth: 0,
+    borderRadius: 0,
+    backgroundColor: Colors.transparent,
+    shadowOpacity: 0,
+    shadowRadius: 0,
+    shadowOffset: {width: 0, height: 0},
+    elevation: 0,
+  },
   pinChildrenContainer: {
     backgroundColor: Colors.surface,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
+    borderBottomColor: Colors.borderSoft,
   },
 };

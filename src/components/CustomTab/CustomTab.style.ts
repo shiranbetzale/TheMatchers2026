@@ -5,10 +5,12 @@ import GeneralStyle from "../../utils/GeneralStyle";
 export const styles = StyleSheet.create({
   tabContainer: {
     width: "100%",
-    marginBottom: GeneralStyle.space,
-    borderBottomWidth: 1,
-    paddingBottom: GeneralStyle.space / 2,
-    borderBottomColor: Colors.border,
+    marginBottom: GeneralStyle.spacing.sm,
+    padding: GeneralStyle.spacing.xs,
+    borderWidth: 1,
+    borderColor: Colors.borderSoft,
+    borderRadius: GeneralStyle.radius.md,
+    backgroundColor: Colors.ivory,
   },
   tabsRow: {
     alignItems: "center",
@@ -26,30 +28,31 @@ export const styles = StyleSheet.create({
     flexDirection: "row-reverse",
   },
   tab: {
-    paddingVertical: GeneralStyle.space * 0.9,
-    paddingHorizontal: GeneralStyle.space * 2,
-    backgroundColor: Colors.surface,
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: Colors.border,
+    paddingVertical: GeneralStyle.spacing.sm,
+    paddingHorizontal: GeneralStyle.spacing.lg,
+    backgroundColor: Colors.transparent,
+    borderRadius: GeneralStyle.radius.sm,
+    borderWidth: 0,
     margin: 1,
+    shadowOpacity: 0,
+    elevation: 0,
   },
   activeTabTxt: {
     color: Colors.white
   },
   activeTab: {
     backgroundColor: Colors.darkGreen,
-    borderColor: Colors.color1,
+    borderColor: Colors.darkGreen,
   },
   tabBorder: {
     flexDirection: "row",
     alignItems: "center",
   },
   separator: {
-    width: 2,
+    width: 1,
     height: 48,
-    backgroundColor: Colors.color1,
-    marginHorizontal: GeneralStyle.space * 2,
+    backgroundColor: Colors.line,
+    marginHorizontal: GeneralStyle.spacing.md,
   },
   tabText: {
     color: Colors.darkGreen,

@@ -9,15 +9,15 @@ export const styles = StyleSheet.create({
     justifyContent: "center",
   },
   smallRange: {
-    marginRight: GeneralStyle.space,
-    marginBottom: GeneralStyle.space / 2
+    marginRight: GeneralStyle.spacing.sm,
+    marginBottom: GeneralStyle.spacing.sm / 2
   },
   rangeContainer: {
     flexDirection: "row",
     alignItems: 'center',
     justifyContent: "center",
     width: "100%",
-    marginTop: GeneralStyle.space
+    marginTop: GeneralStyle.spacing.sm
   },
   range: {
     alignItems: 'center',
@@ -31,18 +31,21 @@ export const styles = StyleSheet.create({
     bottom: -8,
   },
   left: {
-    left: - GeneralStyle.space,
+    left: - GeneralStyle.spacing.sm,
   },
   right: {
     right: 0
   },
   markerStyle: {
-    backgroundColor: Colors.color1,
+    backgroundColor: Colors.surfaceElevated,
+    borderWidth: 2,
+    borderColor: Colors.color1,
   },
   pressedMarkerStyle: {
-    backgroundColor: Colors.color1
+    backgroundColor: Colors.goldSoft,
+    borderColor: Colors.goldDark,
   },
   selectedStyle: {
-    backgroundColor: Colors.black
+    backgroundColor: Colors.darkGreen
   }
 });
