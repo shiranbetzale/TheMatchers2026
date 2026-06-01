@@ -1,17 +1,17 @@
-import { KeyboardTypeOptions } from 'react-native';
+import {KeyboardTypeOptions, TextInputProps} from 'react-native';
 
 export type CustomInputType = {
+  maxLength?: number;
+  isSmallSize?: boolean;
   placeholder: string;
-  value?: string | number; // ← הוספנו את הערך כאן
   keyboardType?: KeyboardTypeOptions;
-  inputMode?: 'numeric' | 'text';
+  inputMode?: TextInputProps['inputMode'];
   onlyDigits?: boolean;
   secureTextEntry?: boolean;
   allowToggleSecure?: boolean;
   isMultiline?: boolean;
   isEditable?: boolean;
-  defaultValue?: string | number;
-  isSmallSize?: boolean;
-  maxLength?: number;
-  onChangeText?: (input: any) => void;
+  value?: string | number;
+  onChangeText?: (text: string) => void;
+  autoCapitalize?: TextInputProps['autoCapitalize'];
 };

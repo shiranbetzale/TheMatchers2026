@@ -1,244 +1,245 @@
-import { FormField } from "./FormFields.type";
+import {FormField} from './FormFields.type';
 
 const matchFormArray: FormField[] = [
   {
-    id: "matchRangeAges",
-    text: "ageRange",
-    fieldType: "range",
+    id: 'matchRangeAges',
+    text: 'ageRange',
+    fieldType: 'range',
     minRange: 18,
     maxRange: 90,
     step: 1,
-    collapseTitle: "generalDetails"
+    collapseTitle: 'generalDetails',
   },
   {
-    id: "matchCountOfChildren",
-    text: "maxChildren",
-    fieldType: "range",
+    id: 'matchCountOfChildren',
+    text: 'maxChildren',
+    fieldType: 'range',
     minRange: 0,
     maxRange: 10,
     step: 1,
-    collapseTitle: "generalDetails"
+    collapseTitle: 'generalDetails',
   },
   {
-    id: "matchRangeHeights",
-    text: "heightRange",
-    fieldType: "range",
+    id: 'matchRangeHeights',
+    text: 'heightRange',
+    fieldType: 'range',
     minRange: 120,
     maxRange: 200,
     step: 1,
-    collapseTitle: "generalDetails"
+    collapseTitle: 'generalDetails',
   },
   {
-    id: "matchArea",
-    text: "partnerResidentialArea",
-    fieldType: "checkbox",
+    id: 'matchArea',
+    text: 'partnerResidentialArea',
+    fieldType: 'checkbox',
     handlePress: () => console.log(),
     options: [
-      { id: 1, name: "matchArea", label: "centralArea" },
-      { id: 2, name: "matchArea", label: "southernArea" },
-      { id: 3, name: "matchArea", label: "northernArea" },
-      { id: 4, name: "matchArea", label: "jerusalemArea" },
-      { id: 5, name: "matchArea", label: "shfelaArea" }
+      {id: 1, name: 'matchArea', label: 'centralArea'},
+      {id: 2, name: 'matchArea', label: 'southernArea'},
+      {id: 3, name: 'matchArea', label: 'northernArea'},
+      {id: 4, name: 'matchArea', label: 'jerusalemArea'},
+      {id: 5, name: 'matchArea', label: 'shfelaArea'},
     ],
-    collapseTitle: "generalDetails"
+    collapseTitle: 'generalDetails',
   },
   {
-    id: "matchTypeOfPhone",
-    text: "phoneTypeLabel",
-    fieldType: "checkbox",
+    id: 'matchTypeOfPhone',
+    text: 'phoneTypeLabel',
+    fieldType: 'checkbox',
     handlePress: () => console.log(),
     options: [
-      { id: 1, name: "matchTypeOfPhone", label: "kosherPhone" },
-      { id: 2, name: "matchTypeOfPhone", label: "protectedPhone" },
-      { id: 3, name: "matchTypeOfPhone", label: "unprotectedPhone" }
+      {id: 1, name: 'matchTypeOfPhone', label: 'kosherPhone'},
+      {id: 2, name: 'matchTypeOfPhone', label: 'protectedPhone'},
+      {id: 3, name: 'matchTypeOfPhone', label: 'unprotectedPhone'},
     ],
-    collapseTitle: "generalDetails"
+    collapseTitle: 'generalDetails',
   },
   {
-    id: "matchStatus",
-    text: "status",
-    fieldType: "checkbox",
+    id: 'matchStatus',
+    text: 'status',
+    fieldType: 'checkbox',
     handlePress: () => console.log(),
     options: [
-      { id: 1, name: "matchStatus", label: "single" },
-      { id: 2, name: "matchStatus", label: "widower" },
-      { id: 3, name: "matchStatus", label: "divorced" },
-      { id: 4, name: "matchStatus", label: "widowerWithChildren" },
-      { id: 5, name: "matchStatus", label: "divorcedWithChildren" }
+      {id: 1, name: 'matchStatus', label: 'single'},
+      {id: 2, name: 'matchStatus', label: 'widower'},
+      {id: 3, name: 'matchStatus', label: 'divorced'},
+      {id: 4, name: 'matchStatus', label: 'widowerWithChildren'},
+      {id: 5, name: 'matchStatus', label: 'divorcedWithChildren'},
     ],
-    collapseTitle: "generalDetails"
+    collapseTitle: 'generalDetails',
   },
   {
-    id: "matchHashkafa",
-    text: "worldview",
-    fieldType: "checkbox",
+    id: 'matchHashkafa',
+    text: 'worldview',
+    fieldType: 'checkbox',
     handlePress: () => console.log(),
     options: [
-      { id: 1, name: "matchHashkafa", label: "religious" },
-      { id: 2, name: "matchHashkafa", label: "haredi" },
-      { id: 3, name: "matchHashkafa", label: "modernHaredi" },
-      { id: 4, name: "matchHashkafa", label: "baalTeshuva" }
+      {id: 1, name: 'matchHashkafa', label: 'religious'},
+      {id: 2, name: 'matchHashkafa', label: 'haredi'},
+      {id: 3, name: 'matchHashkafa', label: 'modernHaredi'},
+      {id: 4, name: 'matchHashkafa', label: 'baalTeshuva'},
     ],
-    collapseTitle: "styleSection"
+    collapseTitle: 'styleSection',
   },
   {
-    id: "matchIsWantSmoker",
-    text: "openToSmokerQuestion",
-    fieldType: "switch",
-    collapseTitle: "generalDetails"
+    id: 'matchIsWantSmoker',
+    text: 'openToSmokerQuestion',
+    fieldType: 'switch',
+    collapseTitle: 'generalDetails',
   },
   {
-    id: "matchIsWantCohen",
-    text: "openToCohenQuestion",
-    fieldType: "switch",
-    collapseTitle: "generalDetails"
+    id: 'matchIsWantCohen',
+    text: 'openToCohenQuestion',
+    fieldType: 'switch',
+    collapseTitle: 'generalDetails',
   },
   {
-    id: "matchIsGer",
-    text: "openToConvertQuestion",
-    fieldType: "switch",
-    collapseTitle: "generalDetails"
+    id: 'matchIsGer',
+    text: 'openToConvertQuestion',
+    fieldType: 'switch',
+    collapseTitle: 'generalDetails',
   },
   {
-    id: "matchIsHozerBitshuva",
-    text: "openToBaalTeshuvaQuestion",
-    fieldType: "switch",
-    collapseTitle: "generalDetails"
+    id: 'matchIsHozerBitshuva',
+    text: 'openToBaalTeshuvaQuestion',
+    fieldType: 'switch',
+    collapseTitle: 'generalDetails',
   },
   {
-    id: "matchIsVaccinatedCorona",
-    text: "openToCovidVaccinatedQuestion",
-    fieldType: "switch",
-    collapseTitle: "generalDetails"
+    id: 'matchIsVaccinatedCorona',
+    text: 'openToCovidVaccinatedQuestion',
+    fieldType: 'switch',
+    collapseTitle: 'generalDetails',
   },
   {
-    id: "matchIsWantNationalService",
-    text: "openToNationalServiceQuestion",
-    fieldType: "switch",
-    collapseTitle: "generalDetails"
+    id: 'matchIsWantNationalService',
+    text: 'openToNationalServiceQuestion',
+    fieldType: 'switch',
+    collapseTitle: 'generalDetails',
   },
   {
-    id: "matchIsWantArmy",
-    text: "openToArmyServiceQuestion",
-    fieldType: "switch",
-    collapseTitle: "generalDetails"
+    id: 'matchIsWantArmy',
+    text: 'openToArmyServiceQuestion',
+    fieldType: 'switch',
+    collapseTitle: 'generalDetails',
   },
   {
-    id: "matchIsDrivingLicense",
-    text: "openToDrivingLicenseQuestion",
-    fieldType: "switch",
-    collapseTitle: "generalDetails"
+    id: 'matchIsDrivingLicense',
+    text: 'openToDrivingLicenseQuestion',
+    fieldType: 'switch',
+    collapseTitle: 'generalDetails',
   },
   {
-    id: "matchWhatWorks",
-    text: "occupation",
-    fieldType: "checkbox",
+    id: 'matchWhatWorks',
+    text: 'occupation',
+    fieldType: 'checkbox',
     handlePress: () => console.log(),
     options: [
-      { id: 1, name: "matchWhatWorks", label: "yeshivaStudent" },
-      { id: 2, name: "matchWhatWorks", label: "kollelStudent" },
-      { id: 3, name: "matchWhatWorks", label: "working" },
-      { id: 4, name: "matchWhatWorks", label: "academicStudent" },
-      { id: 5, name: "matchWhatWorks", label: "workingAndStudyingAcademic" },
-      { id: 6, name: "matchWhatWorks", label: "workingAndLearning" }
+      {id: 1, name: 'matchWhatWorks', label: 'yeshivaStudent'},
+      {id: 2, name: 'matchWhatWorks', label: 'kollelStudent'},
+      {id: 3, name: 'matchWhatWorks', label: 'working'},
+      {id: 4, name: 'matchWhatWorks', label: 'academicStudent'},
+      {id: 5, name: 'matchWhatWorks', label: 'workingAndStudyingAcademic'},
+      {id: 6, name: 'matchWhatWorks', label: 'workingAndLearning'},
     ],
-    collapseTitle: "workAndEducation"
+    collapseTitle: 'workAndEducation',
   },
   {
-    id: "matchEducation",
-    text: "education",
-    fieldType: "checkbox",
+    id: 'matchEducation',
+    text: 'education',
+    fieldType: 'checkbox',
     handlePress: () => console.log(),
     options: [
-      { id: 1, name: "matchEducation", label: "degree" },
-      { id: 2, name: "matchEducation", label: "practicalEngineer" },
-      { id: 3, name: "matchEducation", label: "matriculation" },
-      { id: 4, name: "matchEducation", label: "yeshivaEducation" }
+      {id: 1, name: 'matchEducation', label: 'degree'},
+      {id: 2, name: 'matchEducation', label: 'practicalEngineer'},
+      {id: 3, name: 'matchEducation', label: 'matriculation'},
+      {id: 4, name: 'matchEducation', label: 'yeshivaEducation'},
     ],
-    collapseTitle: "workAndEducation"
+    collapseTitle: 'workAndEducation',
   },
   {
-    id: "matchBodyStructure",
-    text: "bodyType",
-    fieldType: "checkbox",
+    id: 'matchBodyStructure',
+    text: 'bodyType',
+    fieldType: 'checkbox',
     handlePress: () => console.log(),
     options: [
-      { id: 1, name: "matchBodyStructure", label: "slim" },
-      { id: 2, name: "matchBodyStructure", label: "averageBody" },
-      { id: 3, name: "matchBodyStructure", label: "fullFigured" }
+      {id: 1, name: 'matchBodyStructure', label: 'slim'},
+      {id: 2, name: 'matchBodyStructure', label: 'averageBody'},
+      {id: 3, name: 'matchBodyStructure', label: 'fullFigured'},
     ],
-    collapseTitle: "appearance"
+    collapseTitle: 'appearance',
   },
   {
-    id: "matchSkinColor",
-    text: "skinTone",
-    fieldType: "select",
+    id: 'matchSkinColor',
+    text: 'skinTone',
+    fieldType: 'select',
     handlePress: () => console.log(),
     options: [
-      { id: 1, name: "matchSkinColor", label: "lightSkin" },
-      { id: 2, name: "matchSkinColor", label: "darkSkin" }
+      {id: 1, name: 'matchSkinColor', label: 'lightSkin'},
+      {id: 2, name: 'matchSkinColor', label: 'darkSkin'},
+      {id: 3, name: 'matchSkinColor', label: 'noMatter'},
     ],
-    collapseTitle: "appearance"
+    collapseTitle: 'appearance',
   },
   {
-    id: "matchBeardType",
-    text: "beardType",
-    fieldType: "checkbox",
+    id: 'matchBeardType',
+    text: 'beardType',
+    fieldType: 'checkbox',
     handlePress: () => console.log(),
     options: [
-      { id: 1, name: "matchBeardType", label: "naturalBeard" },
-      { id: 2, name: "matchBeardType", label: "trimmedBeard" },
-      { id: 3, name: "matchBeardType", label: "stubble" },
-      { id: 4, name: "matchBeardType", label: "cleanShaven" }
+      {id: 1, name: 'matchBeardType', label: 'naturalBeard'},
+      {id: 2, name: 'matchBeardType', label: 'trimmedBeard'},
+      {id: 3, name: 'matchBeardType', label: 'stubble'},
+      {id: 4, name: 'matchBeardType', label: 'cleanShaven'},
     ],
-    collapseTitle: "appearance"
+    collapseTitle: 'appearance',
   },
   {
-    id: "matchClothes",
-    text: "dressStyle",
-    fieldType: "checkbox",
+    id: 'matchClothes',
+    text: 'dressStyle',
+    fieldType: 'checkbox',
     handlePress: () => console.log(),
     options: [
-      { id: 1, name: "matchClothes", label: "blackWhiteDress" },
-      { id: 2, name: "matchClothes", label: "colorfulDress" },
-      { id: 3, name: "matchClothes", label: "colorfulWeekdayBlackWhiteShabbat" }
+      {id: 1, name: 'matchClothes', label: 'blackWhiteDress'},
+      {id: 2, name: 'matchClothes', label: 'colorfulDress'},
+      {id: 3, name: 'matchClothes', label: 'colorfulWeekdayBlackWhiteShabbat'},
     ],
-    collapseTitle: "appearance"
+    collapseTitle: 'appearance',
   },
   {
-    id: "matchZerem",
-    text: "community",
-    fieldType: "select",
+    id: 'matchZerem',
+    text: 'community',
+    fieldType: 'select',
     handlePress: () => console.log(),
     options: [
-      { id: 1, name: "matchZerem", label: "hasidic" },
-      { id: 2, name: "matchZerem", label: "litvish" },
-      { id: 3, name: "matchZerem", label: "sephardic" }
+      {id: 1, name: 'matchZerem', label: 'hasidic'},
+      {id: 2, name: 'matchZerem', label: 'litvish'},
+      {id: 3, name: 'matchZerem', label: 'sephardic'},
     ],
-    collapseTitle: "additionalDetails"
+    collapseTitle: 'additionalDetails',
   },
   {
-    id: "matchHasidut",
-    text: "hasidicGroupQuestion",
-    keyboardTypeOption: "default",
-    fieldType: "input",
-    collapseTitle: "additionalDetails"
+    id: 'matchHasidut',
+    text: 'hasidicGroupQuestion',
+    keyboardTypeOption: 'default',
+    fieldType: 'input',
+    collapseTitle: 'additionalDetails',
   },
   {
-    id: "matchTribe",
-    text: "preferredEthnicCommunityQuestion",
-    keyboardTypeOption: "default",
-    fieldType: "input",
-    collapseTitle: "additionalDetails"
+    id: 'matchTribe',
+    text: 'preferredEthnicCommunityQuestion',
+    keyboardTypeOption: 'default',
+    fieldType: 'input',
+    collapseTitle: 'additionalDetails',
   },
   {
-    id: "matchImportantInfo",
-    text: "importantInPartnerQuestion",
-    keyboardTypeOption: "default",
-    fieldType: "input",
+    id: 'matchImportantInfo',
+    text: 'importantInPartnerQuestion',
+    keyboardTypeOption: 'default',
+    fieldType: 'input',
     isMultiline: true,
-    collapseTitle: "additionalDetails"
-  }
+    collapseTitle: 'additionalDetails',
+  },
 ];
 
 export default matchFormArray;

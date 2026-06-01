@@ -109,6 +109,14 @@ const sheet = StyleSheet.create({
     borderRadius: GeneralStyle.radius.md,
     backgroundColor: Colors.ivory,
   },
+  fieldGroup: {
+    gap: 6,
+  },
+  fieldLabel: {
+    ...FontsStyle.subTitle,
+    color: Colors.darkGreen,
+    fontSize: 16,
+  },
   meetingStatusRow: {
     gap: GeneralStyle.spacing.sm,
   },
@@ -179,6 +187,9 @@ const sheet = StyleSheet.create({
     minHeight: 44,
     color: Colors.darkGreen,
     paddingVertical: 0,
+  },
+  selectFieldContainer: {
+    width: '100%',
   },
   invalidMeetingField: {
     borderColor: '#DFA097',

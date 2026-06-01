@@ -1,4 +1,4 @@
-import React, {useMemo, useState} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import {TextInput, View, TouchableOpacity, Text} from 'react-native';
 import CustomText from '../CustomText/CustomText';
 import {styles} from './CustomInput.style';
@@ -8,6 +8,7 @@ import {useLanguage} from '../../utils/LanguageProvider';
 const CustomInput = (props: CustomInputType) => {
   const {
     maxLength,
+    autoCapitalize,
     isSmallSize = false,
     placeholder,
     keyboardType = 'default',
@@ -27,7 +28,9 @@ const CustomInput = (props: CustomInputType) => {
     () => (isRTL ? (isSecure ? '👁️' : '👁️‍🗨️') : isSecure ? '👁️' : '👁️‍🗨️'),
     [isSecure, isRTL],
   );
-
+  useEffect(() => {
+    setIsSecure(secureTextEntry);
+  }, [secureTextEntry]);
   return (
     <View
       style={[
@@ -48,6 +51,7 @@ const CustomInput = (props: CustomInputType) => {
         />
       </View>
       <TextInput
+        placeholderTextColor="#A8ADB7"
         style={[
           isSmallSize ? styles.smallInput : styles.input,
           isMultiline && styles.textArea,
@@ -59,6 +63,7 @@ const CustomInput = (props: CustomInputType) => {
           const next = onlyDigits ? text.replace(/\D+/g, '') : text;
           onChangeText(next);
         }}
+        autoCapitalize={autoCapitalize}
         value={value?.toString() || ''}
         keyboardType={keyboardType}
         inputMode={inputMode}

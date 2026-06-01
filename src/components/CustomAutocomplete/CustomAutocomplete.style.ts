@@ -106,4 +106,12 @@ export const styles = StyleSheet.create({
     textAlign: 'left',
     writingDirection: 'ltr',
   },
+  emptyItem: {
+    paddingHorizontal: GeneralStyle.spacing.md,
+    paddingVertical: GeneralStyle.spacing.md,
+  },
+  emptyText: {
+    ...FontsStyle.text,
+    color: Colors.slate,
+  },
 });

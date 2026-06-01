@@ -24,21 +24,23 @@ interface Props {
   navigation: NavigationProp;
 }
 
-const RegisterScreen = ({ navigation: _navigation }: Props) => {
+const RegisterScreen = ({ navigation }: Props) => {
   const [fullName, setFullName] = useState<string>('');
   const [phone, setPhone] = useState<string>('');
+  const [email, setEmail] = useState<string>('');
+  const [password, setPassword] = useState<string>('');
   const [gender, setGender] = useState<'male' | 'female'>('female');
 
   const { t } = useLanguage();
 
   const handleSave = async () => {
-    if (!fullName.trim() || !phone.trim()) {
-      Alert.alert(t('error'), t('errorRequiredFields'));
+    if (!fullName.trim() || !phone.trim() || !email.trim() || !password.trim()) {
+      console.log(t('error'), t('errorRequiredFields'));
       return;
     }
 
     if (!/^\d{9,10}$/.test(phone)) {
-      Alert.alert(t('error'), t('invalidPhone'));
+      console.log(t('error'), t('invalidPhone'));
       return;
     }
 
@@ -46,23 +48,25 @@ const RegisterScreen = ({ navigation: _navigation }: Props) => {
       await api.post('/api/users/register', {
         fullName,
         phone,
+        email,
+        password,
         gender,
       });
 
       Alert.alert(t('success'), t('matchmakerRegistered'));
-      // navigation.navigate('Login');
+      navigation.navigate('UsersList');
     } catch (err) {
       const error = err as AxiosError<any>;
 
       if (error.response) {
-        Alert.alert(
+        console.log(
           t('error'),
           error.response.data?.message || t('errorServer'),
         );
       } else if (error.request) {
-        Alert.alert(t('error'), t('errorNoResponse'));
+        console.log(t('error'), t('errorNoResponse'));
       } else {
-        Alert.alert(t('error'), error.message || t('errorGeneric'));
+        console.log(t('error'), error.message || t('errorGeneric'));
       }
     }
   };
@@ -92,9 +96,25 @@ const RegisterScreen = ({ navigation: _navigation }: Props) => {
             onChangeText={setPhone}
           />
 
+          <CustomInput
+            placeholder="email"
+            keyboardType="email-address"
+            value={email}
+            onChangeText={setEmail}
+          />
+
+          <CustomInput
+            placeholder="password"
+            secureTextEntry
+            allowToggleSecure
+            value={password}
+            onChangeText={setPassword}
+          />
+
           <View style={styles.space}>
             <CustomRadioButton
               text="gender"
+              value={gender}
               radiosArray={[
                 { id: 1, name: 'male', label: 'male' },
                 { id: 2, name: 'female', label: 'female' },

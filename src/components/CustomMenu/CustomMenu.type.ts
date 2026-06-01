@@ -1,5 +1,5 @@
 export type CustomMenuType = {
     onPressMenu: () => void;
-    title: string;
+    title?: string;
     isBackHidden?: boolean;
 };

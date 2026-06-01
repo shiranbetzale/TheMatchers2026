@@ -45,6 +45,26 @@ export const styles = StyleSheet.create({
         gap: GeneralStyle.spacing.sm,
         minWidth: 0,
     },
+    brandGroup: {
+        alignItems: "center",
+        gap: 10,
+        flexShrink: 1,
+    },
+    brandLogo: {
+        width: 34,
+        height: 34,
+        borderRadius: 17,
+        borderWidth: 1,
+        borderColor: Colors.border,
+        alignItems: "center",
+        justifyContent: "center",
+        backgroundColor: Colors.surface,
+    },
+    brandLogoText: {
+        ...FontsStyle.subTitle,
+        color: Colors.goldDark,
+        fontSize: 16,
+    },
     row: {
         flexDirection: "row",
     },
@@ -63,8 +83,8 @@ export const styles = StyleSheet.create({
     title: {
         ...FontsStyle.menuTitle,
         color: Colors.darkGreen,
-        fontSize: 24,
-        textAlign: "right",
+        fontSize: 30,
+        textAlign: "center",
         flexShrink: 1,
     },
 });

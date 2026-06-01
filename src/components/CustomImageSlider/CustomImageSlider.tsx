@@ -1,16 +1,19 @@
-import React, { useState } from 'react';
-import { Image, SafeAreaView, ScrollView, Text, View } from 'react-native';
-import { styles } from './CustomImageSlider.style';
-import { CustomImageSliderType } from './CustomImageSlider.type';
+import React, {useState} from 'react';
+import {Image, SafeAreaView, ScrollView, Text, View} from 'react-native';
+import {styles} from './CustomImageSlider.style';
+import {CustomImageSliderType} from './CustomImageSlider.type';
 
 const CustomImageSlider = (props: CustomImageSliderType) => {
-  const { images = [] } = props;
+  const {images = []} = props;
+  const normalizedImages = images.filter(
+    image => typeof image === 'string' && image.trim().length > 0,
+  );
   const width = 100;
   const height = 100;
   const [active, setActive] = useState(0);
 
-  const onScrollChange = ({ nativeEvent }: any) => {
-    const slide = Math.ceil(
+  const onScrollChange = ({nativeEvent}: any) => {
+    const slide = Math.round(
       nativeEvent.contentOffset.x / nativeEvent.layoutMeasurement.width,
     );
     if (slide !== active) {
@@ -25,17 +28,18 @@ const CustomImageSlider = (props: CustomImageSliderType) => {
         horizontal
         onScroll={onScrollChange}
         showsHorizontalScrollIndicator={false}
-        style={{ width, height }}>
-        {images.map((image, index) => (
+        style={{width, height}}>
+        {normalizedImages.map((image, index) => (
           <Image
-            key={index}
-            source={{ uri: image }}
+            key={`${image}_${index}`}
+            source={{uri: image}}
             style={[styles.slideImage, {width, height}]}
+            onError={() => {}}
           />
         ))}
       </ScrollView>
       <View style={styles.pagination}>
-        {images.map((i, k) => (
+        {normalizedImages.map((i, k) => (
           <Text key={k} style={k === active ? styles.activeDot : styles.dot}>
             •
           </Text>

@@ -1,5 +1,4 @@
-import React, {useEffect, useState} from 'react';
-import {styles} from './DrawerNavigation.style';
+import React, {useCallback, useEffect, useState} from 'react';
 import {
   createDrawerNavigator,
   DrawerContentComponentProps,
@@ -7,25 +6,31 @@ import {
   DrawerHeaderProps,
   DrawerNavigationOptions,
 } from '@react-navigation/drawer';
+import {CommonActions, useFocusEffect} from '@react-navigation/native';
 import {Text, TouchableOpacity, View} from 'react-native';
-import CustomMenu from '../CustomMenu/CustomMenu';
-import CustomText from '../CustomText/CustomText';
-import {FontsStyle} from '../../utils/FontsStyle';
-import {CommonActions} from '@react-navigation/native';
-import {getHeaderTitle} from '@react-navigation/elements';
-import {drawerData} from '../../data/drawerData';
-import {DrawerNavigationType} from './DrawerNavigation.type';
-import {useLanguage} from '../../utils/LanguageProvider';
-import MainScreen from '../../screens/MainScreen/MainScreen';
-import {UserRole, clearSession, getSessionRole} from '../../services/session';
-import MenuIcon from '../../assets/images/menu.svg';
-import CardsIcon from '../../assets/images/cards.svg';
+
+import ArchiveIcon from '../../assets/images/orderBy.svg';
 import CalendarIcon from '../../assets/images/datePicker.svg';
+import CardsIcon from '../../assets/images/cards.svg';
 import ContactIcon from '../../assets/images/phone.svg';
 import EditIcon from '../../assets/images/edit.svg';
-import UserAddIcon from '../../assets/images/userAdd.svg';
-import ArchiveIcon from '../../assets/images/orderBy.svg';
 import LogoutIcon from '../../assets/images/logout.svg';
+import MenuIcon from '../../assets/images/menu.svg';
+import UserAddIcon from '../../assets/images/userAdd.svg';
+
+import {drawerData} from '../../data/drawerData';
+import {
+  UserRole,
+  clearSession,
+  getSessionRole,
+  getSessionUser,
+} from '../../services/session';
+import {useLanguage} from '../../utils/LanguageProvider';
+import {FontsStyle} from '../../utils/FontsStyle';
+import CustomMenu from '../CustomMenu/CustomMenu';
+import CustomText from '../CustomText/CustomText';
+import {DrawerNavigationType} from './DrawerNavigation.type';
+import {styles} from './DrawerNavigation.style';
 
 const Drawer = createDrawerNavigator();
 const iconProps = {width: 18, height: 18};
@@ -35,8 +40,7 @@ const getDrawerIcon = (routeName: string) => {
     case 'Wizard':
       return <EditIcon {...iconProps} />;
     case 'AllCardsScreen':
-    case 'AdminAllCardsScreen':
-    case 'MatchmakerCardsScreen':
+    case 'MyCardsScreen':
     case 'MatchCardsScreen':
       return <CardsIcon {...iconProps} />;
     case 'ArchiveScreen':
@@ -47,6 +51,7 @@ const getDrawerIcon = (routeName: string) => {
       return <ContactIcon {...iconProps} />;
     case 'EditFormScreen':
       return <EditIcon {...iconProps} />;
+    case 'UsersList':
     case 'RegisterUserScreen':
       return <UserAddIcon {...iconProps} />;
     case 'HomeScreen':
@@ -56,30 +61,33 @@ const getDrawerIcon = (routeName: string) => {
   }
 };
 
-const DrawerHeader = ({navigation, route, options}: DrawerHeaderProps) => {
-  const title = getHeaderTitle(options, route.name);
-
-  return (
-    <CustomMenu
-      title={title}
-      isBackHidden={route.name === 'MainScreen'}
-      onPressMenu={() => navigation.toggleDrawer()}
-    />
-  );
-};
+const DrawerHeader = ({navigation, route}: DrawerHeaderProps) => (
+  <CustomMenu
+    isBackHidden={route.name === 'MainScreen'}
+    onPressMenu={() => navigation.toggleDrawer()}
+  />
+);
 
 const CustomDrawerContent = (props: DrawerContentComponentProps) => {
   const {descriptors, navigation, state} = props;
   const {isRTL} = useLanguage();
+
+  const [profileName, setProfileName] = useState('');
+
   const visibleRoutes = state.routes.filter(route => {
     const descriptor = descriptors[route.key];
     const drawerItemStyle = descriptor?.options?.drawerItemStyle as
       | {display?: string}
       | undefined;
+
     return drawerItemStyle?.display !== 'none';
   });
+
+  const drawerRoutes = visibleRoutes.length > 0 ? visibleRoutes : state.routes;
+
   const logout = async () => {
     await clearSession();
+
     navigation.dispatch(
       CommonActions.reset({
         index: 0,
@@ -87,6 +95,25 @@ const CustomDrawerContent = (props: DrawerContentComponentProps) => {
       }),
     );
   };
+
+  useFocusEffect(
+    useCallback(() => {
+      let mounted = true;
+
+      getSessionUser().then(user => {
+        if (mounted && user?.name) {
+          setProfileName(user.name);
+        }
+      });
+
+      return () => {
+        mounted = false;
+      };
+    }, []),
+  );
+
+  const profileInitial =
+    profileName.trim().charAt(0).toUpperCase() || (isRTL ? 'ש' : 'S');
 
   return (
     <DrawerContentScrollView
@@ -97,25 +124,32 @@ const CustomDrawerContent = (props: DrawerContentComponentProps) => {
         <View style={styles.drawerLogo}>
           <Text style={styles.drawerLogoText}>TM</Text>
         </View>
-        <Text style={styles.drawerBrand}>TheMatchers</Text>
-        <CustomText text="mainHeroSubtitle" customStyle={styles.drawerSubtitle} />
+
+        <Text style={styles.drawerBrand}>The Matchers</Text>
+
+        <CustomText
+          text="mainHeroSubtitle"
+          customStyle={styles.drawerSubtitle}
+        />
       </View>
 
       <View style={styles.drawerProfileCard}>
         <View style={styles.profileAvatar}>
-          <Text style={styles.profileAvatarText}>{isRTL ? 'ש' : 'S'}</Text>
+          <Text style={styles.profileAvatarText}>{profileInitial}</Text>
         </View>
+
         <View style={styles.profileTextBlock}>
+          <Text style={styles.profileName}>{profileName}</Text>
+
           <CustomText
-            text="matchmakerShiranBetzalel"
-            customStyle={styles.profileName}
+            text="activeMatchmaker"
+            customStyle={styles.profileRole}
           />
-          <CustomText text="activeMatchmaker" customStyle={styles.profileRole} />
         </View>
       </View>
 
       <View style={styles.drawerSection}>
-        {visibleRoutes.map(route => {
+        {drawerRoutes.map(route => {
           const descriptor = descriptors[route.key];
           const labelKey = String(descriptor?.options?.title || route.name);
           const isFocused = state.routes[state.index]?.key === route.key;
@@ -124,7 +158,14 @@ const CustomDrawerContent = (props: DrawerContentComponentProps) => {
             <TouchableOpacity
               key={route.key}
               activeOpacity={0.84}
-              onPress={() => navigation.navigate(route.name)}
+              onPress={() => {
+                if (route.name === 'Wizard') {
+                  navigation.navigate('Wizard', {resetToken: Date.now()});
+                  return;
+                }
+
+                navigation.navigate(route.name);
+              }}
               style={[
                 styles.drawerItem,
                 isRTL ? styles.drawerItemRtl : styles.drawerItemLtr,
@@ -137,6 +178,7 @@ const CustomDrawerContent = (props: DrawerContentComponentProps) => {
                 ]}>
                 {getDrawerIcon(route.name)}
               </View>
+
               <CustomText
                 text={labelKey}
                 customStyle={[
@@ -157,10 +199,8 @@ const CustomDrawerContent = (props: DrawerContentComponentProps) => {
         <View style={styles.logoutIcon}>
           <LogoutIcon width={20} height={20} />
         </View>
-        <CustomText
-          text="logout"
-          customStyle={styles.logoutText}
-        />
+
+        <CustomText text="logout" customStyle={styles.logoutText} />
       </TouchableOpacity>
     </DrawerContentScrollView>
   );
@@ -169,11 +209,37 @@ const CustomDrawerContent = (props: DrawerContentComponentProps) => {
 const DrawerNavigation = (props: DrawerNavigationType) => {
   const {initialRoute} = props;
   const {isRTL} = useLanguage();
-  const [userRole, setUserRole] = useState<UserRole | null>(null);
 
-  useEffect(() => {
-    getSessionRole().then(setUserRole);
+  const [userRole, setUserRole] = useState<UserRole | null>(null);
+  const [roleResolved, setRoleResolved] = useState(false);
+
+  const loadRole = useCallback(() => {
+    let mounted = true;
+
+    getSessionRole()
+      .then(role => {
+        if (mounted) {
+          setUserRole(role);
+        }
+      })
+      .catch(() => {
+        if (mounted) {
+          setUserRole(null);
+        }
+      })
+      .finally(() => {
+        if (mounted) {
+          setRoleResolved(true);
+        }
+      });
+
+    return () => {
+      mounted = false;
+    };
   }, []);
+
+  useEffect(loadRole, [loadRole]);
+  useFocusEffect(loadRole);
 
   const screenOptionsProps: DrawerNavigationOptions = {
     headerStyle: styles.headerStyle,
@@ -187,29 +253,35 @@ const DrawerNavigation = (props: DrawerNavigationType) => {
 
   return (
     <Drawer.Navigator
+      key={`drawer-${roleResolved ? (userRole ?? 'unknown') : 'pending'}`}
       initialRouteName={initialRoute}
       backBehavior="history"
       screenOptions={screenOptionsProps}
       drawerContent={drawerProps => <CustomDrawerContent {...drawerProps} />}>
-      {drawerData.map((stackItem, index) => {
+      {drawerData.map(stackItem => {
         const isAuthScreen =
           stackItem.name === 'Login' || stackItem.name === 'OnBoarding';
+
         const isRoleBlocked =
-          (stackItem.adminOnly && userRole !== 'admin') ||
-          (stackItem.allowedRoles &&
-            (!userRole || !stackItem.allowedRoles.includes(userRole)));
+          !isAuthScreen &&
+          roleResolved &&
+          stackItem.allowedRoles &&
+          userRole &&
+          !stackItem.allowedRoles.includes(userRole);
 
         return (
           <Drawer.Screen
-            key={index}
+            key={stackItem.name}
+            initialParams={stackItem.initialParams}
             name={stackItem.name}
-            component={isRoleBlocked ? MainScreen : stackItem.component}
+            component={stackItem.component}
             options={{
               title: stackItem.title || stackItem.name,
               headerShown: stackItem.isHeaderShown,
-              drawerItemStyle: isAuthScreen || isRoleBlocked
-                ? {display: 'none'}
-                : undefined,
+              drawerItemStyle:
+                isAuthScreen || isRoleBlocked || stackItem.hideInDrawer
+                  ? {display: 'none'}
+                  : undefined,
             }}
           />
         );

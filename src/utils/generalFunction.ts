@@ -1,5 +1,9 @@
 import qs from 'qs';
-import { Linking } from 'react-native';
+import {Linking} from 'react-native';
+import {MatchCardType} from '../components/MatchCard/MatchCard.type';
+
+const DEFAULT_PROFILE_IMAGE =
+  'https://www.shutterstock.com/image-photo/cartoon-3d-icon-thai-tuk-600w-2251713231.jpg';
 
 const HEBREW_NUMERAL_LETTERS = [
   {value: 400, letter: 'ת'},
@@ -73,7 +77,7 @@ const getHebrewMonthName = (year: number, month: number) => {
   return HEBREW_MONTHS[month] ?? '';
 };
 
-const isHebrewLeapYear = (year: number) => ((7 * year + 1) % 19) < 7;
+const isHebrewLeapYear = (year: number) => (7 * year + 1) % 19 < 7;
 
 const getHebrewCalendarElapsedDays = (year: number) => {
   const monthsElapsed =
@@ -86,8 +90,7 @@ const getHebrewCalendarElapsedDays = (year: number) => {
     12 * monthsElapsed +
     793 * Math.floor(monthsElapsed / 1080) +
     Math.floor(partsElapsed / 1080);
-  let day =
-    1 + 29 * monthsElapsed + Math.floor(hoursElapsed / 24);
+  let day = 1 + 29 * monthsElapsed + Math.floor(hoursElapsed / 24);
   const parts = 1080 * (hoursElapsed % 24) + (partsElapsed % 1080);
 
   if (
@@ -106,8 +109,7 @@ const getHebrewCalendarElapsedDays = (year: number) => {
 };
 
 const getHebrewYearDays = (year: number) =>
-  getHebrewCalendarElapsedDays(year + 1) -
-  getHebrewCalendarElapsedDays(year);
+  getHebrewCalendarElapsedDays(year + 1) - getHebrewCalendarElapsedDays(year);
 
 const hasLongHeshvan = (year: number) => getHebrewYearDays(year) % 10 === 5;
 
@@ -189,8 +191,7 @@ const hebrewToJulianDay = (year: number, month: number, day: number) => {
 
 const getHebrewDateParts = (date: Date) => {
   const julianDay = gregorianToJulianDay(date);
-  let year =
-    Math.floor(((julianDay - HEBREW_EPOCH) * 98496) / 35975351) + 1;
+  let year = Math.floor(((julianDay - HEBREW_EPOCH) * 98496) / 35975351) + 1;
 
   while (julianDay >= hebrewToJulianDay(year + 1, 7, 1)) {
     year += 1;
@@ -244,8 +245,10 @@ export const getDateBefore = (years: number) => {
 export const groupBy = (array: any[], key: string) => {
   return array.reduce((result: any[], item: any) => {
     const collapseTitle = item[key];
-    const { ...rest } = item;
-    const existingGroup = result.find((group: any) => group.title === collapseTitle);
+    const {...rest} = item;
+    const existingGroup = result.find(
+      (group: any) => group.title === collapseTitle,
+    );
 
     if (existingGroup) {
       existingGroup.data.push(rest);
@@ -259,7 +262,7 @@ export const groupBy = (array: any[], key: string) => {
   }, []);
 };
 
-export const sendEmail = async (to = "", subject = "", body = "") => {
+export const sendEmail = async (to = '', subject = '', body = '') => {
   let url = `mailto:${to}`;
 
   const query = qs.stringify({
@@ -283,4 +286,117 @@ export const sendEmail = async (to = "", subject = "", body = "") => {
     console.warn('Unable to open email client:', error);
     return false;
   }
+};
+
+const getRelationshipStatus = (profile: any) =>
+  profile.relationshipStatus ||
+  (profile.archivedReason === 'married'
+    ? 'married'
+    : profile.archivedReason === 'engaged'
+      ? 'engaged'
+      : 'single');
+
+export const normalizeImages = (images: unknown): string[] => {
+  if (!Array.isArray(images)) {
+    return [];
+  }
+
+  return images
+    .map(image => {
+      if (typeof image === 'string') {
+        return image;
+      }
+
+      if (image && typeof image === 'object' && 'uri' in image) {
+        return String((image as {uri?: string}).uri || '');
+      }
+
+      return '';
+    })
+    .filter(Boolean);
+};
+
+export const formatTimePart = (value: number) => String(value).padStart(2, '0');
+
+export const normalizeMeetingTime = (value?: string | number) => {
+  if (value === undefined || value === null || value === '') {
+    return undefined;
+  }
+
+  const text = String(value).trim();
+
+  if (/^\d{1,2}$/.test(text)) {
+    const hours = Number(text);
+
+    if (hours > 23) {
+      return undefined;
+    }
+
+    return `${formatTimePart(hours)}:00`;
+  }
+
+  const match = text.match(/^(\d{1,2}):(\d{1,2})$/);
+
+  if (!match) {
+    return undefined;
+  }
+
+  const hours = Number(match[1]);
+  const minutes = Number(match[2]);
+
+  if (hours > 23 || minutes > 59) {
+    return undefined;
+  }
+
+  return `${formatTimePart(hours)}:${formatTimePart(minutes)}`;
+};
+
+export const mapProfileToCard = (profile: any): MatchCardType => {
+  const relationshipStatus = getRelationshipStatus(profile);
+  const normalizedImages = normalizeImages(profile.images);
+
+  return {
+    profileId: String(profile._id || profile.id || ''),
+    createdAt: profile.createdAt ? String(profile.createdAt) : undefined,
+    name: profile.fullName || '—',
+    age: Number(profile.age) || 0,
+    height: String(profile.hight || profile.height || ''),
+    status: String(profile.status || 'single'),
+    images: normalizedImages.length
+      ? normalizedImages
+      : [DEFAULT_PROFILE_IMAGE],
+    numOfChildren: Number(profile.countOfChildren) || 0,
+    gender: String(profile.gender || 'female'),
+    phone: String(profile.phone || ''),
+    matcherPhone: String(profile.matcherPhone || ''),
+    matcherMail: profile.matcherMail,
+    matcherName: profile.matcherName,
+    mail: profile.mail,
+    city: profile.city,
+    relationshipStatus,
+    partnerProfileId: profile.partnerProfileId
+      ? String(profile.partnerProfileId)
+      : undefined,
+    partnerName: profile.partnerName,
+    partnerOutsideApp: Boolean(profile.partnerOutsideApp),
+    assignedMatchmaker: profile.assignedMatchmaker
+      ? String(profile.assignedMatchmaker)
+      : undefined,
+    offered: false,
+    met: false,
+    isShowInfoButtons: false,
+    isShowMeetingInfo: false,
+    collaborationMatchmaker: profile.collaborationMatchmaker
+      ? String(profile.collaborationMatchmaker)
+      : undefined,
+    meetingStatus:
+      profile.meetingStatus === 'busy' || profile.meetingStatus === 'available'
+        ? profile.meetingStatus
+        : 'available',
+    meetingDate: profile.meetingDate ? String(profile.meetingDate) : undefined,
+    meetingTime: normalizeMeetingTime(profile.meetingTime),
+    meetingLocation: profile.meetingLocation
+      ? String(profile.meetingLocation)
+      : undefined,
+  };
 };

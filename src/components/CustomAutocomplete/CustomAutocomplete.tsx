@@ -111,24 +111,38 @@ const CustomAutocomplete = (props: CustomAutocompleteType) => {
         <View
           style={[
             styles.suggestionsPanel,
-            isSmallSize ? styles.smallSuggestionsPanel : styles.wideSuggestionsPanel,
+            isSmallSize
+              ? styles.smallSuggestionsPanel
+              : styles.wideSuggestionsPanel,
             isRTL ? styles.suggestionsRtl : styles.suggestionsLtr,
           ]}>
-          {filteredOptions.slice(0, 6).map(option => (
-            <TouchableOpacity
-              key={`${option.name}_${option.id}`}
-              activeOpacity={0.82}
-              onPress={() => handleSelect(option)}
-              style={styles.suggestionItem}>
+          {filteredOptions.length > 0 ? (
+            filteredOptions.slice(0, 6).map(option => (
+              <TouchableOpacity
+                key={`${option.name}_${option.id}`}
+                activeOpacity={0.82}
+                onPress={() => handleSelect(option)}
+                style={styles.suggestionItem}>
+                <CustomText
+                  text={option.label}
+                  customStyle={[
+                    styles.suggestionText,
+                    isRTL ? styles.textRight : styles.textLeft,
+                  ]}
+                />
+              </TouchableOpacity>
+            ))
+          ) : (
+            <View style={styles.emptyItem}>
               <CustomText
-                text={option.label}
+                text="אין תוצאות"
                 customStyle={[
-                  styles.suggestionText,
+                  styles.emptyText,
                   isRTL ? styles.textRight : styles.textLeft,
                 ]}
               />
-            </TouchableOpacity>
-          ))}
+            </View>
+          )}
         </View>
       )}
     </View>

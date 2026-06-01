@@ -4,6 +4,22 @@ import {FontsStyle} from '../../utils/FontsStyle';
 import GeneralStyle from '../../utils/GeneralStyle';
 
 export const styles = StyleSheet.create({
+  pinChildrenContainer: {
+    width: '100%',
+  },
+
+  restoreButton: {
+    marginTop: 12,
+    alignSelf: 'center',
+    paddingHorizontal: 18,
+    paddingVertical: 10,
+    borderRadius: 24,
+  },
+
+  restoreButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+  },
   container: {
     gap: GeneralStyle.spacing.md,
   },
@@ -53,20 +69,48 @@ export const styles = StyleSheet.create({
     marginBottom: GeneralStyle.spacing.sm,
   },
   relationshipBar: {
-    flexDirection: 'row-reverse',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    alignItems: 'stretch',
+    justifyContent: 'flex-start',
+    gap: GeneralStyle.spacing.sm,
     paddingHorizontal: GeneralStyle.spacing.md,
     paddingVertical: GeneralStyle.spacing.sm,
     borderWidth: 1,
     borderColor: Colors.borderSoft,
     borderRadius: GeneralStyle.radius.md,
     backgroundColor: Colors.ivory,
+    overflow: 'hidden',
+  },
+  relationshipBarRtl: {
+    flexDirection: 'column',
+  },
+  relationshipBarLtr: {
+    flexDirection: 'column',
+  },
+  relationshipTextBlock: {
+    gap: 4,
+  },
+  badgesRow: {
+    alignItems: 'center',
+    gap: GeneralStyle.spacing.xs,
+    flexShrink: 0,
+  },
+  badgesRowRtl: {
+    flexDirection: 'row-reverse',
+  },
+  badgesRowLtr: {
+    flexDirection: 'row',
   },
   relationshipText: {
     ...FontsStyle.textDecoration,
     color: Colors.darkGreen,
+    fontSize: 18,
+    width: '100%',
+  },
+  textRtl: {
     textAlign: 'right',
+  },
+  textLtr: {
+    textAlign: 'left',
   },
   relationshipBadge: {
     ...FontsStyle.text,
@@ -78,6 +122,18 @@ export const styles = StyleSheet.create({
     borderColor: Colors.color1Light,
     borderRadius: 999,
     backgroundColor: Colors.goldWash,
+    overflow: 'hidden',
+  },
+  externalPartnerBadge: {
+    ...FontsStyle.text,
+    color: Colors.slate,
+    textAlign: 'center',
+    paddingHorizontal: GeneralStyle.spacing.sm,
+    paddingVertical: GeneralStyle.spacing.xs,
+    borderWidth: 1,
+    borderColor: Colors.borderSoft,
+    borderRadius: 999,
+    backgroundColor: Colors.surfaceElevated,
     overflow: 'hidden',
   },
   emptyCard: {

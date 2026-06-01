@@ -62,17 +62,31 @@ export const styles = StyleSheet.create({
     borderTopColor: Colors.color1,
   },
   meetingTopRow: {
-    flexDirection: 'row-reverse',
     alignItems: 'flex-start',
     gap: GeneralStyle.spacing.sm,
+  },
+  meetingTopRowRtl: {
+    flexDirection: 'row',
+  },
+  meetingTopRowLtr: {
+    flexDirection: 'row-reverse',
+  },
+  editMeetingButton: {
+    width: 40,
+    height: 40,
+    borderRadius: GeneralStyle.radius.sm,
+    borderWidth: 1,
+    borderColor: Colors.borderSoft,
+    backgroundColor: Colors.surfaceElevated,
   },
   meetingMain: {
     flex: 1,
     gap: 2,
   },
   timeBadge: {
-    minWidth: 64,
+    minWidth: 125,
     alignItems: 'center',
+    justifyContent: 'center',
     paddingHorizontal: GeneralStyle.spacing.sm,
     paddingVertical: GeneralStyle.spacing.xs,
     borderRadius: GeneralStyle.radius.sm,
@@ -80,11 +94,19 @@ export const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.premiumLine,
   },
+  timeLabel: {
+    ...FontsStyle.subTitle,
+    color: Colors.ivory,
+    fontSize: 12,
+    textAlign: 'center',
+    marginBottom: 2,
+  },
   timeText: {
     ...FontsStyle.textDecoration,
     color: Colors.white,
-    fontSize: 15,
+    fontSize: 18,
     textAlign: 'center',
+    writingDirection: 'ltr',
   },
   meetingName: {
     ...FontsStyle.subTitle,
@@ -101,6 +123,18 @@ export const styles = StyleSheet.create({
     ...FontsStyle.text,
     color: Colors.darkGreen,
     textAlign: 'right',
+  },
+  detailLabel: {
+    ...FontsStyle.subTitle,
+    color: Colors.darkGreen,
+    textAlign: 'right',
+    fontSize: 16,
+  },
+  detailValue: {
+    ...FontsStyle.text,
+    color: Colors.darkGreen,
+    textAlign: 'right',
+    fontSize: 16,
   },
   detailRow: {
     flexDirection: 'row-reverse',

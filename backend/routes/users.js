@@ -1,20 +1,57 @@
 const express = require('express');
-const User = require('../models/User');
 const multer = require('multer');
-const { requireAuth } = require('../middleware/auth');
+
+const User = require('../models/User');
+const {requireAuth} = require('../middleware/auth');
+
 let xlsx;
+
 try {
-  // Optional dependency; used only for import route
   xlsx = require('xlsx');
 } catch (err) {
   xlsx = null;
 }
 
 const router = express.Router();
+
+const allowedRoles = ['admin', 'matchmaker', 'user'];
+
 const upload = multer({
   storage: multer.memoryStorage(),
-  limits: { fileSize: 5 * 1024 * 1024 },
+  limits: {fileSize: 5 * 1024 * 1024},
 });
+
+function normalizePhone(value) {
+  return String(value || '').replace(/\D/g, '');
+}
+
+function normalizeEmail(value) {
+  return String(value || '')
+    .trim()
+    .toLowerCase();
+}
+
+function normalizeGender(value) {
+  const normalized = String(value || '')
+    .trim()
+    .toLowerCase();
+
+  if (normalized === 'male' || normalized === 'זכר') {
+    return 'male';
+  }
+
+  if (normalized === 'female' || normalized === 'נקבה') {
+    return 'female';
+  }
+
+  return undefined;
+}
+
+function createHttpError(message, status) {
+  const error = new Error(message);
+  error.status = status;
+  return error;
+}
 
 function handleDuplicateKey(error) {
   if (error?.code === 11000) {
@@ -24,23 +61,55 @@ function handleDuplicateKey(error) {
     err.status = 409;
     return err;
   }
+
   return error;
+}
+
+function sanitizeUser(user) {
+  return {
+    id: user.id || user._id,
+    fullName: user.fullName,
+    phone: user.phone,
+    email: user.email,
+    role: user.role,
+    gender: user.gender,
+    isActive: user.isActive,
+    createdAt: user.createdAt,
+    updatedAt: user.updatedAt,
+  };
+}
+
+function requireUserFields({fullName, phone, email, password}) {
+  if (!fullName || !phone || !email || !password) {
+    throw createHttpError(
+      'fullName, phone, email, and password are required',
+      400,
+    );
+  }
 }
 
 router.post('/register', requireAuth(['admin']), async (req, res, next) => {
   try {
-    const { fullName, phone } = req.body;
+    const {fullName, phone, email, password, gender} = req.body;
 
-    if (!fullName || !phone) {
-      const error = new Error('fullName and phone are required');
-      error.status = 400;
-      throw error;
-    }
+    requireUserFields({fullName, phone, email, password});
 
-    const user = new User({ fullName, phone, role: 'matchmaker' });
+    const user = new User({
+      fullName: String(fullName).trim(),
+      phone: normalizePhone(phone),
+      email: normalizeEmail(email),
+      gender: normalizeGender(gender),
+      role: 'matchmaker',
+      isActive: true,
+    });
+
+    user.setPassword(password);
+
     await user.save();
 
-    res.status(201).json({ user });
+    res.status(201).json({
+      user: sanitizeUser(user),
+    });
   } catch (error) {
     next(handleDuplicateKey(error));
   }
@@ -48,19 +117,26 @@ router.post('/register', requireAuth(['admin']), async (req, res, next) => {
 
 router.post('/register-user', async (req, res, next) => {
   try {
-    const { fullName, phone, email, password } = req.body;
+    const {fullName, phone, email, password, gender} = req.body;
 
-    if (!fullName || !phone || !email || !password) {
-      const error = new Error('fullName, phone, email, and password are required');
-      error.status = 400;
-      throw error;
-    }
+    requireUserFields({fullName, phone, email, password});
 
-    const user = new User({ fullName, phone, email, role: 'user' });
+    const user = new User({
+      fullName: String(fullName).trim(),
+      phone: normalizePhone(phone),
+      email: normalizeEmail(email),
+      gender: normalizeGender(gender),
+      role: 'user',
+      isActive: true,
+    });
+
     user.setPassword(password);
+
     await user.save();
 
-    res.status(201).json({ user });
+    res.status(201).json({
+      user: sanitizeUser(user),
+    });
   } catch (error) {
     next(handleDuplicateKey(error));
   }
@@ -68,8 +144,18 @@ router.post('/register-user', async (req, res, next) => {
 
 router.get('/all', requireAuth(['admin']), async (_req, res, next) => {
   try {
-    const users = await User.find({}).select('-passwordHash').sort({ createdAt: -1 });
-    res.json({ users });
+    const users = await User.find({});
+
+    const sortedUsers = [...users].sort((a, b) => {
+      const aTime = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+      const bTime = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+
+      return bTime - aTime;
+    });
+
+    res.json({
+      users: sortedUsers.map(sanitizeUser),
+    });
   } catch (error) {
     next(error);
   }
@@ -77,24 +163,56 @@ router.get('/all', requireAuth(['admin']), async (_req, res, next) => {
 
 router.put('/update/:id', requireAuth(['admin']), async (req, res, next) => {
   try {
-    const { id } = req.params;
-    const { fullName, phone, email, password } = req.body;
+    const {id} = req.params;
+    const {fullName, phone, email, password, role, gender, isActive} = req.body;
 
     const user = await User.findById(id);
+
     if (!user) {
-      const error = new Error('User not found');
-      error.status = 404;
-      throw error;
+      throw createHttpError('User not found', 404);
     }
 
-    if (fullName) user.fullName = fullName;
-    if (phone) user.phone = phone;
-    if (email) user.email = email;
-    if (password) user.setPassword(password);
+    if (fullName) {
+      user.fullName = String(fullName).trim();
+    }
+
+    if (phone) {
+      user.phone = normalizePhone(phone);
+    }
+
+    if (email) {
+      user.email = normalizeEmail(email);
+    }
+
+    if (role) {
+      if (!allowedRoles.includes(role)) {
+        throw createHttpError('Invalid role', 400);
+      }
+
+      user.role = role;
+    }
+
+    if (Object.prototype.hasOwnProperty.call(req.body, 'gender')) {
+      const normalizedGender = normalizeGender(gender);
+
+      if (normalizedGender) {
+        user.gender = normalizedGender;
+      }
+    }
+
+    if (Object.prototype.hasOwnProperty.call(req.body, 'isActive')) {
+      user.isActive = Boolean(isActive);
+    }
+
+    if (password) {
+      user.setPassword(password);
+    }
 
     await user.save();
 
-    res.json({ user });
+    res.json({
+      user: sanitizeUser(user),
+    });
   } catch (error) {
     next(handleDuplicateKey(error));
   }
@@ -102,80 +220,111 @@ router.put('/update/:id', requireAuth(['admin']), async (req, res, next) => {
 
 router.delete('/delete/:id', requireAuth(['admin']), async (req, res, next) => {
   try {
-    const { id } = req.params;
+    const {id} = req.params;
     const deleted = await User.findByIdAndDelete(id);
 
     if (!deleted) {
-      const error = new Error('User not found');
-      error.status = 404;
-      throw error;
+      throw createHttpError('User not found', 404);
     }
 
-    res.json({ message: 'User deleted', id });
+    res.json({
+      message: 'User deleted',
+      id,
+    });
   } catch (error) {
     next(error);
   }
 });
 
-router.post('/import', requireAuth(['admin']), upload.single('file'), async (req, res, next) => {
-  try {
-    if (!xlsx) {
-      const error = new Error('xlsx module not installed');
-      error.status = 500;
-      throw error;
-    }
-
-    if (!req.file) {
-      const error = new Error('file is required');
-      error.status = 400;
-      throw error;
-    }
-
-    const workbook = xlsx.read(req.file.buffer, { type: 'buffer' });
-    const firstSheetName = workbook.SheetNames[0];
-    const sheet = workbook.Sheets[firstSheetName];
-    const rows = xlsx.utils.sheet_to_json(sheet, { defval: '' });
-
-    let created = 0;
-    let updated = 0;
-    let skipped = 0;
-
-    for (const row of rows) {
-      const fullName = row.fullName || row.FullName || row.name || row.Name;
-      const phone = (row.phone || row.Phone || '').toString().trim();
-      const email = (row.email || row.Email || '').toString().trim();
-      const role = (row.role || row.Role || 'matchmaker').toLowerCase();
-      const gender = row.gender || row.Gender;
-
-      if (!fullName || !phone) {
-        skipped += 1;
-        continue;
+router.post(
+  '/import',
+  requireAuth(['admin']),
+  upload.single('file'),
+  async (req, res, next) => {
+    try {
+      if (!xlsx) {
+        throw createHttpError('xlsx module not installed', 500);
       }
 
-      const existing = await User.findOne({ phone });
-      if (existing) {
-        existing.fullName = fullName;
-        if (email) existing.email = email;
-        if (role) existing.role = role;
-        if (gender) existing.gender = gender;
-        await existing.save();
-        updated += 1;
-      } else {
-        await User.create({
-          fullName,
-          phone,
-          email,
-          role,
-          gender,
-        });
-        created += 1;
+      if (!req.file) {
+        throw createHttpError('file is required', 400);
       }
-    }
 
-    res.json({ summary: { created, updated, skipped, total: rows.length } });
-  } catch (error) {
-    next(error);
-  }
-});
+      const workbook = xlsx.read(req.file.buffer, {type: 'buffer'});
+      const firstSheetName = workbook.SheetNames[0];
+      const sheet = workbook.Sheets[firstSheetName];
+      const rows = xlsx.utils.sheet_to_json(sheet, {defval: ''});
+
+      let created = 0;
+      let updated = 0;
+      let skipped = 0;
+
+      for (const row of rows) {
+        const fullName = row.fullName || row.FullName || row.name || row.Name;
+        const phone = normalizePhone(row.phone || row.Phone);
+        const email = normalizeEmail(row.email || row.Email);
+        const role = String(row.role || row.Role || 'matchmaker')
+          .trim()
+          .toLowerCase();
+        const gender = normalizeGender(row.gender || row.Gender);
+
+        if (!fullName || !phone) {
+          skipped += 1;
+          continue;
+        }
+
+        if (!allowedRoles.includes(role)) {
+          skipped += 1;
+          continue;
+        }
+
+        const existingUsers = await User.find({});
+        const existing = existingUsers.find(
+          item => normalizePhone(item.phone) === phone,
+        );
+
+        if (existing) {
+          existing.fullName = String(fullName).trim();
+
+          if (email) {
+            existing.email = email;
+          }
+
+          existing.role = role;
+
+          if (gender) {
+            existing.gender = gender;
+          }
+
+          await existing.save();
+          updated += 1;
+        } else {
+          const user = new User({
+            fullName: String(fullName).trim(),
+            phone,
+            email,
+            role,
+            gender,
+            isActive: true,
+          });
+
+          await user.save();
+          created += 1;
+        }
+      }
+
+      res.json({
+        summary: {
+          created,
+          updated,
+          skipped,
+          total: rows.length,
+        },
+      });
+    } catch (error) {
+      next(error);
+    }
+  },
+);
 
 module.exports = router;

@@ -1,18 +1,30 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { Alert, Platform, SafeAreaView, StatusBar, StyleSheet, View, Animated } from 'react-native';
+import React, {useEffect, useRef, useState} from 'react';
+import {
+  Alert,
+  Platform,
+  SafeAreaView,
+  StatusBar,
+  StyleSheet,
+  View,
+  Animated,
+} from 'react-native';
 import 'react-native-gesture-handler';
-import { NavigationContainer } from '@react-navigation/native';
+import {NavigationContainer} from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import BootSplash from 'react-native-bootsplash';
 import DrawerNavigation from './src/components/DrawerNavigation/DrawerNavigation';
-import { LanguageProvider, useLanguage } from './src/utils/LanguageProvider';
+import {LanguageProvider, useLanguage} from './src/utils/LanguageProvider';
 import {isSessionValid} from './src/services/session';
 import {
   handleForegroundPushNotifications,
   registerForPushNotifications,
+  setupBackgroundPushNotifications,
 } from './src/services/pushNotifications';
+import {LoadingProvider} from './src/utils/LoadingProvider';
+import GlobalLoader from './src/utils/GlobalLoader';
 
 type Route = 'Login' | 'MainScreen' | 'OnBoarding';
+setupBackgroundPushNotifications();
 
 const AppContent = () => {
   const [initialRoute, setInitialRoute] = useState<Route | null>(null);
@@ -39,7 +51,7 @@ const AppContent = () => {
         console.warn('Error loading onboarding state:', e);
         setInitialRoute('Login');
       } finally {
-        BootSplash.hide({ fade: true });
+        BootSplash.hide({fade: true});
       }
     };
     init();
@@ -98,13 +110,13 @@ const AppContent = () => {
         {
           opacity: fadeAnim,
         },
-      ]}
-    >
-      <SafeAreaView
-        style={styles.safeArea}
-      >
+      ]}>
+      <SafeAreaView style={styles.safeArea}>
         <NavigationContainer>
-          <DrawerNavigation key={isRTL ? 'rtl' : 'ltr'} initialRoute={initialRoute} />
+          <DrawerNavigation
+            key={isRTL ? 'rtl' : 'ltr'}
+            initialRoute={initialRoute}
+          />
         </NavigationContainer>
       </SafeAreaView>
     </Animated.View>
@@ -113,7 +125,10 @@ const AppContent = () => {
 
 const App = () => (
   <LanguageProvider>
-    <AppContent />
+    <LoadingProvider>
+      <AppContent />
+      <GlobalLoader />
+    </LoadingProvider>
   </LanguageProvider>
 );
 

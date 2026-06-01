@@ -15,9 +15,10 @@ async function sendDemoPush() {
   await connectToDatabase();
 
   const query = platform === 'all' ? {} : {platform};
-  const devices = await DeviceToken.find(query).select('token platform');
-  const tokens = devices.map(device => device.token);
+  const devices = await DeviceToken.find(query);
 
+  const tokens = devices.map(device => device.token).filter(Boolean);
+  
   if (!tokens.length) {
     console.log(`No ${platform} device tokens found`);
     return;
@@ -40,10 +41,22 @@ async function sendDemoPush() {
   console.log(
     `Demo push sent to ${tokens.length} ${platform} token(s). success=${response.successCount}, failure=${response.failureCount}`,
   );
+
+  if (response.failureCount > 0 && response.responses) {
+    response.responses.forEach((result, index) => {
+      if (!result.success) {
+        console.log('Push failure detail', {
+          platform: devices[index]?.platform,
+          token: tokens[index]?.slice(0, 16),
+          code: result.error?.code,
+          message: result.error?.message,
+        });
+      }
+    });
+  }
 }
 
-sendDemoPush()
-  .catch(error => {
-    console.error('Failed to send demo push', error);
-    process.exitCode = 1;
-  });
+sendDemoPush().catch(error => {
+  console.error('Failed to send demo push', error);
+  process.exitCode = 1;
+});

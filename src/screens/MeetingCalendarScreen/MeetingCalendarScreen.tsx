@@ -1,63 +1,24 @@
 import React, {useEffect, useMemo, useState} from 'react';
-import {View} from 'react-native';
-import {RouteProp, useRoute} from '@react-navigation/native';
+import {Text, View} from 'react-native';
+import {useFocusEffect, useNavigation} from '@react-navigation/native';
+import {StackNavigationProp} from '@react-navigation/stack';
 
+import CustomButton from '../../components/CustomButton/CustomButton';
 import CustomText from '../../components/CustomText/CustomText';
-import {RootStackParamList} from '../../components/MainStackNavigation/MainStackNavigation.type';
 import {MatchCardType} from '../../components/MatchCard/MatchCard.type';
 import WhiteCard from '../../components/WhiteCard/WhiteCard';
 import HomeScreen from '../HomeScreen/HomeScreen';
 import {styles} from './MeetingCalendarScreen.style';
 import {SessionUser, getSessionUser} from '../../services/session';
-import {formatHebrewDate} from '../../utils/generalFunction';
+import {
+  formatHebrewDate,
+  mapProfileToCard,
+  normalizeMeetingTime,
+} from '../../utils/generalFunction';
 import {useLanguage} from '../../utils/LanguageProvider';
-
-type MeetingCalendarRouteProp = RouteProp<
-  RootStackParamList,
-  'MeetingCalendarScreen'
->;
-
-const defaultMeetings: MatchCardType[] = [
-  {
-    name: 'XXX',
-    age: 32,
-    height: '1.57',
-    status: 'widower',
-    numOfChildren: 5,
-    gender: 'female',
-    city: 'cityBneiBrak',
-    phone: '0549450954',
-    matcherPhone: '0549450954',
-    matcherName: 'matchmakerShiranBetzalel',
-    meetingStatus: 'busy',
-    meetingDate: new Date('2026-08-31T09:30:00').toISOString(),
-    meetingTime: '09:30',
-    meetingLocation: 'meetingLocationVizhnitzHotelBneiBrak',
-    partnerName: 'YYY',
-    images: [
-      'https://www.shutterstock.com/image-photo/cartoon-3d-icon-thai-tuk-600w-2251713231.jpg',
-    ],
-  },
-  {
-    name: 'David Levi',
-    age: 29,
-    height: '1.78',
-    status: 'single',
-    numOfChildren: 0,
-    gender: 'male',
-    city: 'cityJerusalem',
-    phone: '0521111111',
-    matcherPhone: '0549450954',
-    matcherName: 'matchmakerShiranBetzalel',
-    meetingDate: new Date('2026-08-31T20:15:00').toISOString(),
-    meetingTime: '20:15',
-    meetingLocation: 'meetingLocationRamadaLobbyJerusalem',
-    partnerName: 'Miriam Cohen',
-    images: [
-      'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=500&auto=format&fit=crop&q=80',
-    ],
-  },
-];
+import api from '../../services/api';
+import {RootStackParamList} from '../../components/MainStackNavigation/MainStackNavigation.type';
+import EditSvg from '../../assets/images/edit.svg';
 
 const formatGregorianShortDate = (date: Date, locale: string) =>
   date.toLocaleDateString(locale, {
@@ -102,18 +63,52 @@ const getMeetingDayKey = (value: string) => {
 };
 
 const MeetingCalendarScreen = () => {
-  const route = useRoute<MeetingCalendarRouteProp>();
+  const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
   const {language, t, isRTL} = useLanguage();
-  const meetings = route.params?.meetings ?? defaultMeetings;
   const [sessionUser, setSessionUser] = useState<SessionUser | null>(null);
+  const [meetings, setMeetings] = useState<MatchCardType[]>([]);
 
   useEffect(() => {
     getSessionUser().then(setSessionUser);
   }, []);
 
+  const fetchMeetings = React.useCallback(async () => {
+    try {
+      const response = await api.get('/api/profiles');
+
+      const profiles = Array.isArray(response.data?.profiles)
+        ? response.data.profiles
+        : [];
+      console.log(
+        'CALENDAR DEBUG:',
+        profiles.map((profile: any) => ({
+          name: profile.fullName,
+          meetingStatus: profile.meetingStatus,
+          meetingDate: profile.meetingDate,
+          meetingTime: profile.meetingTime,
+          normalizedMeetingTime: normalizeMeetingTime(profile.meetingTime),
+          matcherPhone: profile.matcherPhone,
+        })),
+      );
+      setMeetings(profiles.map(mapProfileToCard));
+    } catch (error) {
+      console.log('CALENDAR FETCH ERROR:', error);
+      setMeetings([]);
+    }
+  }, []);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      console.log('MEETING CALENDAR FOCUSED');
+
+      fetchMeetings();
+    }, [fetchMeetings]),
+  );
+
   const scheduledMeetings = useMemo(
     () =>
       meetings
+        .filter(meeting => meeting.meetingStatus === 'busy')
         .filter(meeting => {
           const sessionPhone = sessionUser?.phone.replace(/\D/g, '') ?? '';
           const matcherPhone = meeting.matcherPhone.replace(/\D/g, '');
@@ -124,14 +119,39 @@ const MeetingCalendarScreen = () => {
           }
 
           if (sessionUser?.role === 'matchmaker') {
-            return matcherPhone === sessionPhone;
+            return (
+              matcherPhone === sessionPhone ||
+              meeting.assignedMatchmaker === sessionUser?.id
+            );
+          }
+
+          if (sessionUser?.role === 'admin') {
+            return true;
           }
 
           return candidatePhone === sessionPhone;
         })
-        .filter((meeting): meeting is MatchCardType & {meetingDate: string} =>
-          Boolean(meeting.meetingDate),
+        .filter(
+          (
+            meeting,
+          ): meeting is MatchCardType & {
+            meetingDate: string;
+          } => Boolean(meeting.meetingDate),
         )
+        .filter(meeting => {
+          const meetingDate = new Date(meeting.meetingDate);
+
+          if (Number.isNaN(meetingDate.getTime())) {
+            return false;
+          }
+
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+
+          meetingDate.setHours(0, 0, 0, 0);
+
+          return meetingDate >= today;
+        })
         .sort(
           (meetingA, meetingB) =>
             new Date(meetingA.meetingDate).getTime() -
@@ -143,7 +163,11 @@ const MeetingCalendarScreen = () => {
   const meetingsByDate = useMemo(
     () =>
       scheduledMeetings.reduce<
-        {dateKey: string; dateValue: string; meetings: typeof scheduledMeetings}[]
+        {
+          dateKey: string;
+          dateValue: string;
+          meetings: typeof scheduledMeetings;
+        }[]
       >((groups, meeting) => {
         const dateKey = getMeetingDayKey(meeting.meetingDate);
         const existingGroup = groups.find(group => group.dateKey === dateKey);
@@ -180,7 +204,10 @@ const MeetingCalendarScreen = () => {
               text={`${scheduledMeetings.length}`}
               customStyle={styles.summaryValue}
             />
-            <CustomText text="meetingsInCalendar" customStyle={styles.summaryLabel} />
+            <CustomText
+              text="meetingsInCalendar"
+              customStyle={styles.summaryLabel}
+            />
           </View>
         </View>
 
@@ -188,20 +215,33 @@ const MeetingCalendarScreen = () => {
           meetingsByDate.map(group => (
             <View key={group.dateKey} style={styles.dayGroup}>
               <CustomText
-                text={formatMeetingDayTitle(group.dateValue, language, 'notSet')}
+                text={formatMeetingDayTitle(
+                  group.dateValue,
+                  language,
+                  'notSet',
+                )}
                 customStyle={styles.dayTitle}
               />
-              {group.meetings.map((meeting, index) => (
+              {group.meetings.map(meeting => (
                 <WhiteCard
-                  key={`${meeting.name}_${index}`}
+                  key={`${meeting.profileId}_${meeting.meetingDate}`}
                   customStyle={styles.meetingCard}>
-                  <View style={styles.meetingTopRow}>
-                    <View style={styles.timeBadge}>
-                      <CustomText
-                        text={meeting.meetingTime || 'notSet'}
-                        customStyle={styles.timeText}
-                      />
-                    </View>
+                  <View
+                    style={[
+                      styles.meetingTopRow,
+                      isRTL ? styles.meetingTopRowRtl : styles.meetingTopRowLtr,
+                    ]}>
+                    <CustomButton
+                      customStyle={styles.editMeetingButton}
+                      icon={<EditSvg width={18} height={18} />}
+                      onPress={() =>
+                        navigation.navigate('MatchCardsScreen', {
+                          card: meeting,
+                          openMeetingModal: true,
+                        })
+                      }
+                    />
+
                     <View style={styles.meetingMain}>
                       <CustomText
                         text={
@@ -212,29 +252,28 @@ const MeetingCalendarScreen = () => {
                         customStyle={styles.meetingName}
                       />
                       <View style={styles.detailRow}>
-                        <CustomText text="meetingLocation" customStyle={styles.detailText} />
-                        <CustomText text=": " customStyle={styles.detailText} />
+                        <CustomText
+                          text="meetingLocation"
+                          customStyle={styles.detailLabel}
+                        />
+                        <CustomText
+                          text=": "
+                          customStyle={styles.detailLabel}
+                        />
                         <CustomText
                           text={meeting.meetingLocation || 'notSet'}
-                          customStyle={styles.detailText}
+                          customStyle={styles.detailValue}
                         />
                       </View>
-                      <View style={styles.detailRow}>
-                        <CustomText text="cardCityShort" customStyle={styles.detailText} />
-                        <CustomText text=": " customStyle={styles.detailText} />
-                        <CustomText
-                          text={meeting.city || 'notSpecified'}
-                          customStyle={styles.detailText}
-                        />
-                      </View>
-                      <View style={styles.detailRow}>
-                        <CustomText text="cardMatchmaker" customStyle={styles.detailText} />
-                        <CustomText text=": " customStyle={styles.detailText} />
-                        <CustomText
-                          text={meeting.matcherName || meeting.matcherPhone}
-                          customStyle={styles.detailText}
-                        />
-                      </View>
+                    </View>
+                    <View style={styles.timeBadge}>
+                      <CustomText
+                        text="meetingTime"
+                        customStyle={styles.timeLabel}
+                      />
+                      <Text style={styles.timeText}>
+                        {meeting.meetingTime || t('notSet')}
+                      </Text>
                     </View>
                   </View>
                 </WhiteCard>
@@ -243,7 +282,10 @@ const MeetingCalendarScreen = () => {
           ))
         ) : (
           <WhiteCard customStyle={styles.emptyCard}>
-            <CustomText text="noMeetingsInCalendar" customStyle={styles.emptyTitle} />
+            <CustomText
+              text="noMeetingsInCalendar"
+              customStyle={styles.emptyTitle}
+            />
             <CustomText
               text="meetingCalendarEmptyText"
               customStyle={styles.emptyText}

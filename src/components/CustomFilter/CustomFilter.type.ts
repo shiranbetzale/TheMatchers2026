@@ -1,7 +1,16 @@
+export type CardsFilterValues = {
+  name?: string;
+  city?: string;
+  gender?: 'male' | 'female' | '';
+  matcherName?: string;
+  isMyCards?: boolean;
+};
+
 export type CustomFilterType = {
+  values?: CardsFilterValues;
   isMyCards?: boolean;
   matcherName?: string;
   matcherOptions?: {id: number; name: string; label: string}[];
-  onApply?: () => void;
+  onApply?: (values: CardsFilterValues) => void;
   onReset?: () => void;
 };

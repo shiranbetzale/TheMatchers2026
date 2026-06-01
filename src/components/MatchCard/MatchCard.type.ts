@@ -1,4 +1,6 @@
 export type MatchCardType = {
+  profileId?: string;
+  createdAt?: string;
   name: string;
   age: number;
   height: string;
@@ -18,12 +20,16 @@ export type MatchCardType = {
   mail?: string;
   phone: string;
   matcherPhone: string;
+  assignedMatchmaker?: string;
   matcherMail?: string;
   matcherName?: string;
   isShowMoreInfo?: boolean;
   isImagePreviewEnabled?: boolean;
   relationshipStatus?: 'engaged' | 'married';
   partnerName?: string;
+  partnerProfileId?: string;
+  collaborationMatchmaker?: string;
   partnerImage?: string;
+  partnerOutsideApp?: boolean;
   city?: string;
 };

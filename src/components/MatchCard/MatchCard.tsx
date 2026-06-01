@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useMemo, useState} from 'react';
 import {Linking, Pressable, Share, View} from 'react-native';
 import PhoneSvg from '../../assets/images/phone.svg';
 import WhatsappSvg from '../../assets/images/whatsapp.svg';
@@ -42,60 +42,77 @@ const MatchCard = (props: MatchCardType) => {
   } = props;
   const [previewImage, setPreviewImage] = useState<string | null>(null);
 
-  const details = [
-    {
-      text: 'cardAgeAndHeight',
-      info: `${height} ,${age}`,
-      isShow: true,
-    },
-    {
-      text: 'cardStatus',
-      info: `${status ? t(status) : ''}${
-        numOfChildren > 0 ? ' + ' + numOfChildren : ''
-      }`,
-      isShow: false,
-    },
-    {
-      text: 'cardCity',
-      info: city || '',
-      isShow: true,
-    },
-    {
-      text: 'cardMatchmaker',
-      info: matcherName || matcherPhone,
-      isShow: true,
-    },
-    {
-      text: 'cardWorldview',
-      info: 'cardHaredi',
-      isShow: isShowMoreInfo,
-    },
-    {
-      text: 'cardMet',
-      info: met ? 'yes' : 'no',
-      isShow: isShowMeetingInfo,
-    },
-    {
-      text: 'cardOffered',
-      info: offered ? 'yes' : 'no',
-      isShow: isShowMeetingInfo,
-    },
-    {
-      text: 'cardMeetingStatus',
-      info:
-        meetingStatus === 'busy'
-          ? 'busy'
-          : meetingStatus === 'available'
-            ? 'available'
-            : 'notSet',
-      isShow: isShowMeetingInfo,
-    },
-    // {
-    //   text: "האם נפגשו",
-    //   info: met ? "כן" : "לא",
-    //   isShow: isShowMeetingInfo,
-    // }
-  ];
+  const details = useMemo(
+    () => [
+      {
+        text: 'cardAge',
+        info: `${age}`,
+        isShow: true,
+      },
+      {
+        text: 'cardHeight',
+        info: `${height}`,
+        isShow: true,
+      },
+      {
+        text: 'cardStatus',
+        info: `${status ? t(status) : ''}${
+          numOfChildren > 0 ? numOfChildren : ''
+        }`,
+        isShow: false,
+      },
+      {
+        text: 'cardCity',
+        info: city || '',
+        isShow: true,
+      },
+      {
+        text: 'cardMatchmaker',
+        info: matcherName || matcherPhone,
+        isShow: true,
+      },
+      {
+        text: 'cardWorldview',
+        info: 'cardHaredi',
+        isShow: isShowMoreInfo,
+      },
+      {
+        text: 'cardMet',
+        info: met ? 'yes' : 'no',
+        isShow: isShowMeetingInfo,
+      },
+      {
+        text: 'cardOffered',
+        info: offered ? 'yes' : 'no',
+        isShow: isShowMeetingInfo,
+      },
+      {
+        text: 'cardMeetingStatus',
+        info:
+          meetingStatus === 'busy'
+            ? 'busy'
+            : meetingStatus === 'available'
+              ? 'available'
+              : 'notSet',
+        isShow: isShowMeetingInfo,
+      },
+    ],
+    [
+      age,
+      height,
+      city,
+      matcherName,
+      matcherPhone,
+      status,
+      numOfChildren,
+      isShowMoreInfo,
+      met,
+      offered,
+      meetingStatus,
+      isShowMeetingInfo,
+      t,
+    ],
+  );
 
   const profileMessage = [
     `${t('cardName')}: ${name}`,
@@ -191,11 +208,7 @@ const MatchCard = (props: MatchCardType) => {
 
   return (
     <WhiteCard customStyle={styles.container}>
-      <View
-        style={[
-          styles.content,
-          isRTL ? styles.rtlRow : styles.ltrRow,
-        ]}>
+      <View style={[styles.content, isRTL ? styles.rtlRow : styles.ltrRow]}>
         <Pressable
           disabled={!isImagePreviewEnabled}
           onPress={openImagePreview}
@@ -206,7 +219,7 @@ const MatchCard = (props: MatchCardType) => {
           {images?.length > 1 && isSlide ? (
             <CustomImageSlider images={images} />
           ) : (
-            <CustomImage customImgStyle={styles.img} src={images[0]} />
+            <CustomImage customImgStyle={styles.img} src={images?.[0]} />
           )}
         </Pressable>
         <View style={styles.detailsContainer}>
@@ -229,7 +242,7 @@ const MatchCard = (props: MatchCardType) => {
               ]}>
               <CustomText
                 text={`${status ? t(status) : ''}${
-                  numOfChildren > 0 ? ' + ' + numOfChildren : ''
+                  numOfChildren > 0 ? numOfChildren : ''
                 }`}
                 customStyle={styles.statusPillText}
               />
@@ -273,7 +286,8 @@ const MatchCard = (props: MatchCardType) => {
         </View>
       </View>
       {isShowInfoButtons && (
-        <View style={[styles.infoButtons, isRTL ? styles.rtlRow : styles.ltrRow]}>
+        <View
+          style={[styles.infoButtons, isRTL ? styles.rtlRow : styles.ltrRow]}>
           <View style={styles.actionItem}>
             <CustomButton onPress={handleShare} customStyle={styles.icon}>
               <ShareSvg width={18} height={18} />
@@ -287,7 +301,9 @@ const MatchCard = (props: MatchCardType) => {
             <CustomText text="whatsapp" customStyle={styles.actionLabel} />
           </View>
           <View style={styles.actionItem}>
-            <CustomButton onPress={handleCandidateCall} customStyle={styles.icon}>
+            <CustomButton
+              onPress={handleCandidateCall}
+              customStyle={styles.icon}>
               <PhoneSvg width={18} height={18} />
             </CustomButton>
             <CustomText text="candidate" customStyle={styles.actionLabel} />
@@ -296,10 +312,15 @@ const MatchCard = (props: MatchCardType) => {
             <CustomButton onPress={handleMatcherCall} customStyle={styles.icon}>
               <PhoneSvg width={18} height={18} />
             </CustomButton>
-            <CustomText text="cardMatchmaker" customStyle={styles.actionLabel} />
+            <CustomText
+              text="cardMatchmaker"
+              customStyle={styles.actionLabel}
+            />
           </View>
           <View style={styles.actionItem}>
-            <CustomButton onPress={handleSendEmail} customStyle={styles.mailIcon}>
+            <CustomButton
+              onPress={handleSendEmail}
+              customStyle={styles.mailIcon}>
               <EmailSvg width={18} height={18} />
             </CustomButton>
             <CustomText text="email" customStyle={styles.actionLabel} />
@@ -307,7 +328,7 @@ const MatchCard = (props: MatchCardType) => {
         </View>
       )}
       <ImagePreviewModal
-        images={images}
+        images={images || []}
         visible={Boolean(previewImage)}
         onClose={() => setPreviewImage(null)}
       />

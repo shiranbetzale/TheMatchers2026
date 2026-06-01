@@ -1,123 +1,338 @@
-import React, {useMemo} from 'react';
+import React, {useMemo, useState} from 'react';
 import {View} from 'react-native';
+import {useFocusEffect} from '@react-navigation/native';
+
 import MatchCard from '../../components/MatchCard/MatchCard';
 import {MatchCardType} from '../../components/MatchCard/MatchCard.type';
 import CustomText from '../../components/CustomText/CustomText';
+import CustomButton from '../../components/CustomButton/CustomButton';
 import WhiteCard from '../../components/WhiteCard/WhiteCard';
 import HomeScreen from '../HomeScreen/HomeScreen';
-import {isArchivedCard} from '../../utils/archiveCards';
-import {styles} from './ArchiveScreen.style';
+import CustomHeader from '../../components/CustomHeader/CustomHeader';
+import CustomFilter from '../../components/CustomFilter/CustomFilter';
+import CustomOrderBy from '../../components/CustomOrderBy/CustomOrderBy';
 
-const archiveCards: MatchCardType[] = [
-  {
-    city: 'cityBneiBrak',
-    matcherMail: 'matchmaker1@example.com',
-    mail: 'candidate1@example.com',
-    phone: '0521111111',
-    matcherPhone: '0549450954',
-    matcherName: 'matchmakerShiranBetzalel',
-    name: 'David Levi',
-    offered: true,
-    met: true,
-    gender: 'male',
-    age: 29,
-    height: '1.78',
-    status: 'single',
-    relationshipStatus: 'engaged',
-    partnerName: 'Miriam Cohen',
-    numOfChildren: 0,
-    images: [
-      'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=500&auto=format&fit=crop&q=80',
-    ],
-  },
-  {
-    city: 'jerusalem',
-    matcherMail: 'matchmaker2@example.com',
-    mail: 'candidate2@example.com',
-    phone: '0522222222',
-    matcherPhone: '0549450954',
-    matcherName: 'matchmakerShiranBetzalel',
-    name: 'Miriam Cohen',
-    offered: true,
-    met: true,
-    gender: 'female',
-    age: 27,
-    height: '1.66',
-    status: 'single',
-    relationshipStatus: 'married',
-    partnerName: 'David Levi',
-    numOfChildren: 0,
-    images: [
-      'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=500&auto=format&fit=crop&q=80',
-    ],
-  },
-];
+import {CardsFilterValues} from '../../components/CustomFilter/CustomFilter.type';
+import {CardsSortValue} from '../../components/CustomOrderBy/CustomOrderBy.type';
+
+import FilterSvg from '../../assets/images/filter.svg';
+import OrderBySvg from '../../assets/images/orderBy.svg';
+
+import {styles} from './ArchiveScreen.style';
+import api from '../../services/api';
+import {useLanguage} from '../../utils/LanguageProvider';
+import {mapProfileToCard} from '../../utils/generalFunction';
 
 const ArchiveScreen = () => {
-  const archivedCards = useMemo(
-    () => archiveCards.filter(isArchivedCard),
-    [],
+  const {isRTL} = useLanguage();
+
+  const [archivedCards, setArchivedCards] = useState<MatchCardType[]>([]);
+  const [isShowFilter, setIsShowFilter] = useState(false);
+  const [isShowOrderBy, setIsShowOrderBy] = useState(false);
+  const [filterValues, setFilterValues] = useState<CardsFilterValues>({});
+  const [sortValue, setSortValue] = useState<CardsSortValue>('');
+
+  const fetchArchivedProfiles = React.useCallback(async () => {
+    try {
+      const response = await api.get('/api/profiles', {
+        params: {status: 'archived'},
+      });
+
+      const profiles = Array.isArray(response.data?.profiles)
+        ? response.data.profiles
+        : [];
+
+      setArchivedCards(profiles.map(mapProfileToCard));
+    } catch {
+      setArchivedCards([]);
+    }
+  }, []);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      setIsShowFilter(false);
+      setIsShowOrderBy(false);
+      fetchArchivedProfiles();
+    }, [fetchArchivedProfiles]),
   );
-  const engagedCount = archivedCards.filter(
-    card => card.relationshipStatus === 'engaged',
-  ).length;
-  const marriedCount = archivedCards.filter(
-    card => card.relationshipStatus === 'married',
-  ).length;
+
+  const restoreProfile = async (profileId?: string) => {
+    console.log('restoreProfile clicked:', profileId);
+
+    if (!profileId) {
+      console.log('Missing profileId');
+      return;
+    }
+
+    try {
+      const response = await api.patch(`/api/profiles/${profileId}/unarchive`);
+
+      console.log('restoreProfile success:', response.data);
+
+      setArchivedCards(prev =>
+        prev.filter(card => card.profileId !== profileId),
+      );
+    } catch (error: any) {
+      console.log('restoreProfile error:', error);
+    }
+  };
+
+  const matcherOptions = useMemo(() => {
+    const matcherNames = Array.from(
+      new Set(
+        archivedCards
+          .map(card => card.matcherName?.trim())
+          .filter((name): name is string => Boolean(name)),
+      ),
+    );
+
+    return matcherNames.map((matcherName, index) => ({
+      id: index + 1,
+      name: 'matcherName',
+      label: matcherName,
+    }));
+  }, [archivedCards]);
+
+  const filteredAndSortedCards = useMemo(() => {
+    return [...archivedCards]
+      .filter(card => {
+        const byName = filterValues.name
+          ? String(card.name || '')
+              .toLowerCase()
+              .includes(filterValues.name.toLowerCase())
+          : true;
+
+        const byCity = filterValues.city
+          ? String(card.city || '')
+              .toLowerCase()
+              .includes(filterValues.city.toLowerCase())
+          : true;
+
+        const byGender = filterValues.gender
+          ? card.gender === filterValues.gender
+          : true;
+
+        const byMatcher = filterValues.matcherName
+          ? String(card.matcherName || '') === filterValues.matcherName
+          : true;
+
+        return byName && byCity && byGender && byMatcher;
+      })
+      .sort((a, b) => {
+        if (sortValue === 'sortName') {
+          return String(a.name || '').localeCompare(String(b.name || ''), 'he');
+        }
+
+        if (sortValue === 'sortAgeAsc') {
+          return (a.age || 0) - (b.age || 0);
+        }
+
+        if (sortValue === 'sortAgeDesc') {
+          return (b.age || 0) - (a.age || 0);
+        }
+
+        if (sortValue === 'sortCreatedAt') {
+          const aTime = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+          const bTime = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+
+          return bTime - aTime;
+        }
+
+        return 0;
+      });
+  }, [archivedCards, filterValues, sortValue]);
+
+  const {engagedCount, marriedCount} = useMemo(() => {
+    return {
+      engagedCount: filteredAndSortedCards.filter(
+        card => card.relationshipStatus === 'engaged',
+      ).length,
+      marriedCount: filteredAndSortedCards.filter(
+        card => card.relationshipStatus === 'married',
+      ).length,
+    };
+  }, [filteredAndSortedCards]);
+
+  const toggleFilter = () => {
+    setIsShowOrderBy(false);
+    setIsShowFilter(prev => !prev);
+  };
+
+  const toggleOrderBy = () => {
+    setIsShowFilter(false);
+    setIsShowOrderBy(prev => !prev);
+  };
+
+  const closeMenus = () => {
+    setIsShowFilter(false);
+    setIsShowOrderBy(false);
+  };
+
+  const applyFilter = (values: CardsFilterValues) => {
+    setFilterValues(values);
+    closeMenus();
+  };
+
+  const resetFilter = () => {
+    setFilterValues({});
+    closeMenus();
+  };
+
+  const applySort = (value: CardsSortValue) => {
+    setSortValue(value);
+    closeMenus();
+  };
+
+  const resetSort = () => {
+    setSortValue('');
+    closeMenus();
+  };
+
+  const headerBtns = [
+    {comp: <FilterSvg />, onPress: toggleFilter},
+    {comp: <OrderBySvg />, onPress: toggleOrderBy},
+  ];
+
+  const isMenuOpen = isShowFilter || isShowOrderBy;
 
   return (
-    <HomeScreen>
+    <HomeScreen
+      pinChildren={
+        <View style={styles.pinChildrenContainer}>
+          <CustomHeader headerBtns={headerBtns} />
+
+          {isShowFilter && (
+            <CustomFilter
+              values={filterValues}
+              matcherOptions={matcherOptions}
+              onApply={applyFilter}
+              onReset={resetFilter}
+            />
+          )}
+
+          {isShowOrderBy && (
+            <CustomOrderBy
+              value={sortValue}
+              onApply={applySort}
+              onReset={resetSort}
+            />
+          )}
+        </View>
+      }>
       <View style={styles.container}>
         <WhiteCard customStyle={styles.headerCard}>
           <CustomText text="archive" customStyle={styles.title} />
           <CustomText text="archiveSubtitle" customStyle={styles.subtitle} />
         </WhiteCard>
 
-        <View style={styles.statsRow}>
-          <View style={styles.statChip}>
-            <CustomText text={`${archivedCards.length}`} customStyle={styles.statValue} />
-            <CustomText text="archiveCards" customStyle={styles.statLabel} />
-          </View>
-          <View style={styles.statChip}>
-            <CustomText text={`${engagedCount}`} customStyle={styles.statValue} />
-            <CustomText text="engagedStatus" customStyle={styles.statLabel} />
-          </View>
-          <View style={styles.statChip}>
-            <CustomText text={`${marriedCount}`} customStyle={styles.statValue} />
-            <CustomText text="marriedStatus" customStyle={styles.statLabel} />
-          </View>
-        </View>
-
-        {archivedCards.length ? (
-          archivedCards.map((card, index) => (
-            <View key={`${card.name}_${index}`} style={styles.cardBlock}>
-              <View style={styles.relationshipBar}>
+        {!isMenuOpen && (
+          <>
+            <View style={styles.statsRow}>
+              <View style={styles.statChip}>
                 <CustomText
-                  text={`${card.name} + ${card.partnerName || ''}`}
-                  customStyle={styles.relationshipText}
+                  text={`${filteredAndSortedCards.length}`}
+                  customStyle={styles.statValue}
                 />
                 <CustomText
-                  text={
-                    card.relationshipStatus === 'married'
-                      ? 'marriedStatus'
-                      : 'engagedStatus'
-                  }
-                  customStyle={styles.relationshipBadge}
+                  text="archiveCards"
+                  customStyle={styles.statLabel}
                 />
               </View>
-              <MatchCard
-                {...card}
-                isSlide={false}
-                isShowMeetingInfo={false}
-                isShowInfoButtons={false}
-              />
+
+              <View style={styles.statChip}>
+                <CustomText
+                  text={`${engagedCount}`}
+                  customStyle={styles.statValue}
+                />
+                <CustomText
+                  text="engagedStatus"
+                  customStyle={styles.statLabel}
+                />
+              </View>
+
+              <View style={styles.statChip}>
+                <CustomText
+                  text={`${marriedCount}`}
+                  customStyle={styles.statValue}
+                />
+                <CustomText
+                  text="marriedStatus"
+                  customStyle={styles.statLabel}
+                />
+              </View>
             </View>
-          ))
-        ) : (
-          <WhiteCard customStyle={styles.emptyCard}>
-            <CustomText text="archiveEmptyTitle" customStyle={styles.emptyTitle} />
-            <CustomText text="archiveEmptyText" customStyle={styles.emptyText} />
-          </WhiteCard>
+
+            {filteredAndSortedCards.length ? (
+              filteredAndSortedCards.map((card, index) => (
+                <View
+                  key={card.profileId || `${card.name}_${index}`}
+                  style={styles.cardBlock}>
+                  <View
+                    style={[
+                      styles.relationshipBar,
+                      isRTL
+                        ? styles.relationshipBarRtl
+                        : styles.relationshipBarLtr,
+                    ]}>
+                    <CustomText
+                      text={`${card.name || '—'} + ${card.partnerName || '—'}`}
+                      customStyle={[
+                        styles.relationshipText,
+                        isRTL ? styles.textRtl : styles.textLtr,
+                      ]}
+                    />
+
+                    <View
+                      style={[
+                        styles.badgesRow,
+                        isRTL ? styles.badgesRowRtl : styles.badgesRowLtr,
+                      ]}>
+                      {card.partnerOutsideApp && (
+                        <CustomText
+                          text="partnerOutsideApp"
+                          customStyle={styles.externalPartnerBadge}
+                        />
+                      )}
+
+                      <CustomText
+                        text={
+                          card.relationshipStatus === 'married'
+                            ? 'marriedStatus'
+                            : 'engagedStatus'
+                        }
+                        customStyle={styles.relationshipBadge}
+                      />
+                    </View>
+                  </View>
+
+                  <MatchCard
+                    {...card}
+                    isSlide={false}
+                    isShowMeetingInfo={false}
+                    isShowInfoButtons={false}
+                  />
+
+                  <CustomButton
+                    text="חזר להיות פנוי"
+                    customStyle={styles.restoreButton}
+                    customTextStyle={styles.restoreButtonText}
+                    onPress={() => restoreProfile(card.profileId)}
+                  />
+                </View>
+              ))
+            ) : (
+              <WhiteCard customStyle={styles.emptyCard}>
+                <CustomText
+                  text="archiveEmptyTitle"
+                  customStyle={styles.emptyTitle}
+                />
+                <CustomText
+                  text="archiveEmptyText"
+                  customStyle={styles.emptyText}
+                />
+              </WhiteCard>
+            )}
+          </>
         )}
       </View>
     </HomeScreen>

@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		0C80B921A6F3F58F76C31292 /* libPods-TheMatchers.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 5DCACB8F33CDC322A6C60F78 /* libPods-TheMatchers.a */; };
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
+		22A1C3C58F1B4E20A9F5D111 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 409EF8FE2FC3137B003FA489 /* GoogleService-Info.plist */; };
 		25575F9F6E7A4B238943F3F3 /* Birzia-Light.otf in Resources */ = {isa = PBXBuildFile; fileRef = B3030135402E4DBCBFD8A8BF /* Birzia-Light.otf */; };
 		50A3C96AB7C94BCDBED8052C /* Birzia-Black.otf in Resources */ = {isa = PBXBuildFile; fileRef = AEE874AE338F4E0C928CF608 /* Birzia-Black.otf */; };
 		761780ED2CA45674006654EE /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761780EC2CA45674006654EE /* AppDelegate.swift */; };
@@ -195,6 +196,7 @@
 			files = (
 				81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */,
 				13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */,
+				22A1C3C58F1B4E20A9F5D111 /* GoogleService-Info.plist in Resources */,
 				A48EE865ED5DA1157FDD69F0 /* PrivacyInfo.xcprivacy in Resources */,
 				50A3C96AB7C94BCDBED8052C /* Birzia-Black.otf in Resources */,
 				FE3FDE5F98CF44C38D40C53B /* Birzia-Bold.otf in Resources */,

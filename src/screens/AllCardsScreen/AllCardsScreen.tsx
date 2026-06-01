@@ -12,6 +12,8 @@ import CustomButton from '../../components/CustomButton/CustomButton';
 import CustomFilter from '../../components/CustomFilter/CustomFilter';
 import CustomHeader from '../../components/CustomHeader/CustomHeader';
 import CustomOrderBy from '../../components/CustomOrderBy/CustomOrderBy';
+import {CardsFilterValues} from '../../components/CustomFilter/CustomFilter.type';
+import {CardsSortValue} from '../../components/CustomOrderBy/CustomOrderBy.type';
 import MatchCard from '../../components/MatchCard/MatchCard';
 import {MatchCardType} from '../../components/MatchCard/MatchCard.type';
 import FilterSvg from '../../assets/images/filter.svg';
@@ -22,7 +24,8 @@ import CustomText from '../../components/CustomText/CustomText';
 import {FontsStyle} from '../../utils/FontsStyle';
 import {RootStackParamList} from '../../components/MainStackNavigation/MainStackNavigation.type';
 import {getSessionUser} from '../../services/session';
-import {isArchivedCard} from '../../utils/archiveCards';
+import api from '../../services/api';
+import {mapProfileToCard} from '../../utils/generalFunction';
 
 type NavigationProp = StackNavigationProp<RootStackParamList>;
 type AllCardsRouteProp = RouteProp<RootStackParamList, 'AllCardsScreen'>;
@@ -30,11 +33,24 @@ type AllCardsRouteProp = RouteProp<RootStackParamList, 'AllCardsScreen'>;
 const AllCardsScreen = () => {
   const navigation = useNavigation<NavigationProp>();
   const route = useRoute<AllCardsRouteProp>();
+
   const onlyMine = route.params?.onlyMine === true;
+
   const [isShowFilter, setIsShowFilter] = useState(false);
   const [isShowOrderBy, setIsShowOrderBy] = useState(false);
-  const [sessionPhone, setSessionPhone] = useState('');
-  const [isAdmin, setIsAdmin] = useState(false);
+  const [sessionUserId, setSessionUserId] = useState('');
+  const [cards, setCards] = useState<MatchCardType[]>([]);
+  const [filterValues, setFilterValues] = useState<CardsFilterValues>({});
+  const [sortValue, setSortValue] = useState<CardsSortValue>('');
+
+  useEffect(() => {
+    const loadSession = async () => {
+      const sessionUser = await getSessionUser();
+      setSessionUserId(sessionUser?.id ?? '');
+    };
+
+    loadSession();
+  }, []);
 
   useFocusEffect(
     React.useCallback(() => {
@@ -43,156 +59,116 @@ const AllCardsScreen = () => {
     }, []),
   );
 
-  const allCardsArray: MatchCardType[] = [
-    {
-      city: 'cityBneiBrak',
-      matcherMail: 'matchmaker1@example.com',
-      mail: 'candidate1@example.com',
-      phone: '0521111111',
-      matcherPhone: '0549450954',
-      matcherName: 'matchmakerShiranBetzalel',
-      name: 'David Levi',
-      offered: true,
-      met: false,
-      gender: 'male',
-      age: 29,
-      height: '1.78',
-      status: 'single',
-      relationshipStatus: 'engaged',
-      partnerName: 'Miriam Cohen',
-      numOfChildren: 0,
-      isShowInfoButtons: true,
-      isShowMeetingInfo: true,
-      images: [
-        'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=500&auto=format&fit=crop&q=80',
-      ],
-    },
-    {
-      city: 'jerusalem',
-      matcherMail: 'matchmaker2@example.com',
-      mail: 'candidate2@example.com',
-      phone: '0522222222',
-      matcherPhone: '0549450954',
-      matcherName: 'matchmakerShiranBetzalel',
-      name: 'Miriam Cohen',
-      offered: false,
-      met: false,
-      gender: 'female',
-      age: 27,
-      height: '1.66',
-      status: 'single',
-      numOfChildren: 0,
-      isShowInfoButtons: true,
-      isShowMeetingInfo: true,
-      images: [
-        'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=500&auto=format&fit=crop&q=80',
-      ],
-    },
-    {
-      city: 'telAviv',
-      matcherMail: 'matchmaker3@example.com',
-      mail: 'candidate3@example.com',
-      phone: '0523333333',
-      matcherPhone: '0549450954',
-      matcherName: 'matchmakerShiranBetzalel',
-      name: 'Yosef Friedman',
-      offered: true,
-      met: true,
-      gender: 'male',
-      age: 36,
-      height: '1.82',
-      status: 'divorced',
-      numOfChildren: 2,
-      isShowInfoButtons: true,
-      isShowMeetingInfo: true,
-      images: [
-        'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=500&auto=format&fit=crop&q=80',
-      ],
-    },
-    {
-      city: 'haifa',
-      matcherMail: 'matchmaker4@example.com',
-      mail: 'candidate4@example.com',
-      phone: '0524444444',
-      matcherPhone: '0549450954',
-      matcherName: 'matchmakerShiranBetzalel',
-      name: 'Rachel Stern',
-      offered: false,
-      met: true,
-      gender: 'female',
-      age: 34,
-      height: '1.70',
-      status: 'widower',
-      numOfChildren: 1,
-      isShowInfoButtons: true,
-      isShowMeetingInfo: true,
-      images: [
-        'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=500&auto=format&fit=crop&q=80',
-      ],
-    },
-  ];
+  const fetchProfiles = React.useCallback(async () => {
+    try {
+      const response = await api.get('/api/profiles');
 
-  useEffect(() => {
-    const loadSession = async () => {
-      const sessionUser = await getSessionUser();
-      setSessionPhone(sessionUser?.phone ?? '');
-      setIsAdmin(sessionUser?.role === 'admin');
-    };
+      const profiles = Array.isArray(response.data?.profiles)
+        ? response.data.profiles
+        : [];
 
-    loadSession();
+      setCards(profiles.map(mapProfileToCard));
+    } catch (error) {
+      console.error('Failed to load profiles', error);
+      setCards([]);
+    }
   }, []);
 
-  useEffect(() => {
-    if (onlyMine) {
-      setIsShowOrderBy(false);
-      setIsShowFilter(false);
-    }
-  }, [onlyMine]);
+  useFocusEffect(
+    React.useCallback(() => {
+      if (onlyMine && !sessionUserId) {
+        return;
+      }
 
-  const visibleCards = useMemo(() => {
-    if (!onlyMine || isAdmin) {
-      return allCardsArray.filter(card => !isArchivedCard(card));
-    }
-
-    const normalizedSessionPhone = sessionPhone.replace(/\D/g, '');
-
-    if (!normalizedSessionPhone) {
-      return [];
-    }
-
-    return allCardsArray.filter(
-      card =>
-        !isArchivedCard(card) &&
-        card.matcherPhone.replace(/\D/g, '') === normalizedSessionPhone,
-    );
-  }, [allCardsArray, isAdmin, onlyMine, sessionPhone]);
+      fetchProfiles();
+    }, [fetchProfiles, onlyMine, sessionUserId]),
+  );
 
   const matcherOptions = useMemo(() => {
-    const matcherNames = Array.from(
-      new Set(allCardsArray.map(card => card.matcherName).filter(Boolean)),
-    );
+    const matcherNames = new Set<string>();
 
-    return matcherNames.map((matcherName, index) => ({
+    cards.forEach(card => {
+      if (card.matcherName?.trim()) {
+        matcherNames.add(card.matcherName.trim());
+      }
+    });
+
+    return Array.from(matcherNames).map((matcherName, index) => ({
       id: index + 1,
       name: 'matcherName',
-      label: matcherName || '',
+      label: matcherName,
     }));
-  }, [allCardsArray]);
+  }, [cards]);
 
-  const currentMatcherName = useMemo(() => {
-    if (!onlyMine) {
-      return undefined;
-    }
-
-    const normalizedSessionPhone = sessionPhone.replace(/\D/g, '');
-    const matchingCard = allCardsArray.find(
+  const visibleCards = useMemo(() => {
+    const active = cards.filter(
       card =>
-        normalizedSessionPhone &&
-        card.matcherPhone.replace(/\D/g, '') === normalizedSessionPhone,
+        card.status !== 'archived' &&
+        card.relationshipStatus !== 'engaged' &&
+        card.relationshipStatus !== 'married',
     );
 
-    return matchingCard?.matcherName ?? visibleCards.find(card => card.matcherName)?.matcherName;
-  }, [allCardsArray, onlyMine, sessionPhone, visibleCards]);
+    if (onlyMine || filterValues.isMyCards) {
+      if (!sessionUserId) {
+        return [];
+      }
+
+      return active.filter(
+        card => String(card.assignedMatchmaker || '') === String(sessionUserId),
+      );
+    }
+
+    return active;
+  }, [cards, onlyMine, filterValues.isMyCards, sessionUserId]);
+
+  const filteredAndSortedCards = useMemo(() => {
+    return [...visibleCards]
+      .filter(card => {
+        const byName = filterValues.name
+          ? String(card.name || '')
+              .toLowerCase()
+              .includes(filterValues.name.toLowerCase())
+          : true;
+
+        const byCity = filterValues.city
+          ? String(card.city || '')
+              .toLowerCase()
+              .includes(filterValues.city.toLowerCase())
+          : true;
+
+        const byGender = filterValues.gender
+          ? card.gender === filterValues.gender
+          : true;
+
+        const byMatcher = filterValues.matcherName
+          ? String(card.matcherName || '') === filterValues.matcherName
+          : true;
+
+        return byName && byCity && byGender && byMatcher;
+      })
+      .sort((a, b) => {
+        if (sortValue === 'sortName') {
+          return String(a.name || '').localeCompare(String(b.name || ''), 'he');
+        }
+
+        if (sortValue === 'sortAgeAsc') {
+          return (a.age || 0) - (b.age || 0);
+        }
+
+        if (sortValue === 'sortAgeDesc') {
+          return (b.age || 0) - (a.age || 0);
+        }
+
+        if (sortValue === 'sortCreatedAt') {
+          const aTime = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+          const bTime = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+
+          return bTime - aTime;
+        }
+
+        return 0;
+      });
+  }, [visibleCards, filterValues, sortValue]);
 
   const toggleFilter = () => {
     setIsShowOrderBy(false);
@@ -209,10 +185,31 @@ const AllCardsScreen = () => {
     setIsShowOrderBy(false);
   };
 
+  const applyFilter = (values: CardsFilterValues) => {
+    setFilterValues(values);
+    closeMenus();
+  };
+
+  const resetFilter = () => {
+    setFilterValues({});
+    closeMenus();
+  };
+
+  const applySort = (value: CardsSortValue) => {
+    setSortValue(value);
+    closeMenus();
+  };
+
+  const resetSort = () => {
+    setSortValue('');
+    closeMenus();
+  };
+
   const headerBtns = [
     {comp: <FilterSvg />, onPress: toggleFilter},
     {comp: <OrderBySvg />, onPress: toggleOrderBy},
   ];
+
   const isMenuOpen = isShowFilter || isShowOrderBy;
 
   return (
@@ -220,33 +217,40 @@ const AllCardsScreen = () => {
       pinChildren={
         <View style={styles.pinChildrenContainer}>
           <CustomHeader headerBtns={headerBtns} />
+
           {isShowFilter && (
             <CustomFilter
+              values={{
+                ...filterValues,
+                isMyCards: onlyMine ? true : filterValues.isMyCards,
+              }}
               isMyCards={onlyMine}
-              matcherName={currentMatcherName}
               matcherOptions={matcherOptions}
-              onApply={closeMenus}
-              onReset={closeMenus}
+              onApply={applyFilter}
+              onReset={resetFilter}
             />
           )}
+
           {isShowOrderBy && (
-            <CustomOrderBy onApply={closeMenus} onReset={closeMenus} />
+            <CustomOrderBy
+              value={sortValue}
+              onApply={applySort}
+              onReset={resetSort}
+            />
           )}
         </View>
       }>
       {!isMenuOpen && (
         <>
-          {visibleCards.length === 0 && (
-            <CustomText
-              text="noAssignedCards"
-              customStyle={FontsStyle.text}
-            />
-          )}
-          {visibleCards.map((matchItem, index) => {
-            return (
+          {filteredAndSortedCards.length === 0 ? (
+            <CustomText text="noAssignedCards" customStyle={FontsStyle.text} />
+          ) : (
+            filteredAndSortedCards.map((matchItem, index) => (
               <CustomButton
-                key={index}
-                onPress={() => navigation.navigate('MatchCardsScreen')}
+                key={matchItem.profileId || matchItem.phone || String(index)}
+                onPress={() =>
+                  navigation.navigate('MatchCardsScreen', {card: matchItem})
+                }
                 customStyle={styles.matchCard}>
                 <MatchCard
                   {...matchItem}
@@ -254,8 +258,8 @@ const AllCardsScreen = () => {
                   isShowMeetingInfo={false}
                 />
               </CustomButton>
-            );
-          })}
+            ))
+          )}
         </>
       )}
     </HomeScreen>

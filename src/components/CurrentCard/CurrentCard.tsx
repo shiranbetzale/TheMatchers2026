@@ -43,7 +43,7 @@ const CurrentCard = (props: CurrentCardProps) => {
     {
       text: 'cardStatus',
       info: `${status ? t(status) : ''}${
-        numOfChildren > 0 ? ' + ' + numOfChildren : ''
+        numOfChildren > 0 ? numOfChildren : ''
       }`,
     },
     {
@@ -63,8 +63,7 @@ const CurrentCard = (props: CurrentCardProps) => {
   };
 
   return (
-    <View
-      style={[styles.container, isMale ? styles.boy : styles.girl]}>
+    <View style={[styles.container, isMale ? styles.boy : styles.girl]}>
       <CustomText text={name} customStyle={styles.txt} />
       <Pressable
         style={styles.imgContainer}

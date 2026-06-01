@@ -1,56 +1,39 @@
-import {
-  FirebaseApp,
-  getApps,
-  initializeApp,
-} from '@react-native-firebase/app';
+import {getApp} from '@react-native-firebase/app';
 import {
   AuthorizationStatus,
   FirebaseMessagingTypes,
   getMessaging,
   getToken,
+  hasPermission,
   onMessage,
   onTokenRefresh,
   registerDeviceForRemoteMessages,
   requestPermission,
+  setBackgroundMessageHandler,
 } from '@react-native-firebase/messaging';
-import {PermissionsAndroid, Platform} from 'react-native';
+import { PermissionsAndroid, Platform } from 'react-native';
 import api from './api';
 
 type ForegroundMessageHandler = (
   message: FirebaseMessagingTypes.RemoteMessage,
 ) => void;
+export type PushRegistrationResult =
+  | {ok: true; token: string}
+  | {
+      ok: false;
+      reason: 'permission_denied' | 'token_missing' | 'unknown_error';
+      details?: string;
+    };
 
-const firebaseOptions = {
-  appId:
-    Platform.OS === 'ios'
-      ? '1:1008658155257:ios:04c12294077154805e8428'
-      : '1:1008658155257:android:08a2a338fa47f8f85e8428',
-  apiKey:
-    Platform.OS === 'ios'
-      ? 'AIzaSyAnUY-LUWxdz9FixoMamCuwSmyaXSqbY_0'
-      : 'AIzaSyDrY2pnmLo4c8zho-gUNQewR_WFeCCmbUc',
-  projectId: 'thematchers-39ff5',
-  storageBucket: 'thematchers-39ff5.firebasestorage.app',
-  messagingSenderId: '1008658155257',
+const getMessagingInstance = async () => getMessaging(getApp());
+
+export const setupBackgroundPushNotifications = () => {
+  const messaging = getMessaging(getApp());
+
+  setBackgroundMessageHandler(messaging, async message => {
+    console.log('Background push received:', message);
+  });
 };
-
-let firebaseAppPromise: Promise<FirebaseApp> | null = null;
-
-const getFirebaseApp = async () => {
-  const existingApp = getApps()[0];
-
-  if (existingApp) {
-    return existingApp;
-  }
-
-  if (!firebaseAppPromise) {
-    firebaseAppPromise = initializeApp(firebaseOptions);
-  }
-
-  return firebaseAppPromise;
-};
-
-const getMessagingInstance = async () => getMessaging(await getFirebaseApp());
 
 const requestAndroidNotificationPermission = async () => {
   if (Platform.OS !== 'android' || Number(Platform.Version) < 33) {
@@ -68,7 +51,18 @@ const requestFirebasePermission = async (
   messaging: FirebaseMessagingTypes.Module,
 ) => {
   if (Platform.OS === 'ios') {
+    const currentStatus = await hasPermission(messaging);
+    console.log('Current iOS notification permission status:', currentStatus);
+
+    if (currentStatus === AuthorizationStatus.DENIED) {
+      console.warn(
+        'iOS notification permission was denied. Enable it from Settings > Notifications.',
+      );
+      return false;
+    }
+
     const authStatus = await requestPermission(messaging);
+    console.log('Requested iOS notification permission status:', authStatus);
 
     return (
       authStatus === AuthorizationStatus.AUTHORIZED ||
@@ -80,30 +74,53 @@ const requestFirebasePermission = async (
 };
 
 const saveDeviceToken = async (token: string) => {
-  await api.post('/api/notifications/device-token', {
-    token,
-    platform: Platform.OS,
-  });
+  try {
+    await api.post('/api/notifications/device-token', {
+      token,
+      platform: Platform.OS,
+    });
+  } catch (error: any) {
+    const status = error?.response?.status;
+    const data = error?.response?.data;
+    const message = error?.message;
+    console.warn('Failed saving device token to backend', {status, data, message});
+    throw error;
+  }
 };
 
-export const registerForPushNotifications = async () => {
+export const registerForPushNotifications =
+  async (): Promise<PushRegistrationResult> => {
   try {
+    console.log('Push registration started');
     const messaging = await getMessagingInstance();
     const hasPermission = await requestFirebasePermission(messaging);
 
     if (!hasPermission) {
-      return undefined;
+      console.warn('Push permission not granted');
+      return {ok: false, reason: 'permission_denied'};
     }
 
     await registerDeviceForRemoteMessages(messaging);
+    console.log('Registered device for remote messages');
 
     const token = await getToken(messaging);
+    console.log('FCM token received:', Boolean(token));
+    if (!token) {
+      console.warn('FCM token is empty');
+      return {ok: false, reason: 'token_missing'};
+    }
     await saveDeviceToken(token);
+    console.log('FCM token saved on backend');
 
-    return token;
-  } catch (error) {
-    console.warn('Failed to register for push notifications', error);
-    return undefined;
+    return {ok: true, token};
+  } catch (error: any) {
+    const details = [error?.code, error?.message].filter(Boolean).join(' | ');
+    console.warn('Failed to register for push notifications', {
+      message: error?.message,
+      code: error?.code,
+      nativeErrorCode: error?.nativeErrorCode,
+    });
+    return {ok: false, reason: 'unknown_error', details};
   }
 };
 

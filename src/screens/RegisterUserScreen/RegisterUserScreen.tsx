@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
-import { View, Alert } from 'react-native';
-import { AxiosError } from 'axios';
-import { StackNavigationProp } from '@react-navigation/stack';
+import React, {useState} from 'react';
+import {View, Alert} from 'react-native';
+import {AxiosError} from 'axios';
+import {StackNavigationProp} from '@react-navigation/stack';
+import {useFocusEffect} from '@react-navigation/native';
 
 import CustomButton from '../../components/CustomButton/CustomButton';
 import CustomInput from '../../components/CustomInput/CustomInput';
@@ -10,9 +11,9 @@ import WhiteCard from '../../components/WhiteCard/WhiteCard';
 import HomeScreen from '../HomeScreen/HomeScreen';
 import CustomRadioButton from '../../components/CustomRadioButton/CustomRadioButton';
 
-import { styles } from './RegisterUserScreen.style';
-import { RootStackParamList } from '../../components/MainStackNavigation/MainStackNavigation.type';
-import { useLanguage } from '../../utils/LanguageProvider';
+import {styles} from './RegisterUserScreen.style';
+import {RootStackParamList} from '../../components/MainStackNavigation/MainStackNavigation.type';
+import {useLanguage} from '../../utils/LanguageProvider';
 import api from '../../services/api';
 
 type NavigationProp = StackNavigationProp<
@@ -24,38 +25,70 @@ interface Props {
   navigation: NavigationProp;
 }
 
-const RegisterUserScreen = ({ navigation: _navigation }: Props) => {
+const RegisterUserScreen = ({navigation}: Props) => {
   const [fullName, setFullName] = useState<string>('');
   const [phone, setPhone] = useState<string>('');
   const [email, setEmail] = useState<string>('');
   const [password, setPassword] = useState<string>('');
   const [gender, setGender] = useState<'male' | 'female'>('female');
-  const { t } = useLanguage();
+  const {t} = useLanguage();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      setFullName('');
+      setPhone('');
+      setEmail('');
+      setPassword('');
+      setGender('female');
+    }, []),
+  );
 
   const handleRegister = async () => {
-    if (!fullName || !phone || !email || !password) {
+    if (isSubmitting) {
+      return;
+    }
+
+    const cleanFullName = fullName.trim();
+    const cleanPhone = phone.trim();
+    const cleanEmail = email.trim().toLowerCase();
+    const cleanPassword = password.trim();
+
+    if (!cleanFullName || !cleanPhone || !cleanEmail || !cleanPassword) {
       Alert.alert(t('error'), t('errorRequiredFields'));
       return;
     }
 
-    if (!/^\d{9,10}$/.test(phone)) {
+    if (!/^\d{9,10}$/.test(cleanPhone)) {
       Alert.alert(t('error'), t('invalidPhone'));
       return;
     }
 
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) {
+      Alert.alert(t('error'), t('invalidEmail'));
+      return;
+    }
+
+    if (cleanPassword.length < 6) {
+      Alert.alert(t('error'), t('passwordTooShort'));
+      return;
+    }
+
     try {
+      setIsSubmitting(true);
+
       await api.post('/api/users/register-user', {
-        fullName,
-        phone,
-        email,
+        fullName: cleanFullName,
+        phone: cleanPhone,
+        email: cleanEmail,
         gender,
-        password,
+        password: cleanPassword,
       });
 
       Alert.alert(t('success'), t('userRegistered'));
-      // navigation.navigate('Login');
+      navigation.navigate('UsersList');
     } catch (err) {
-      const error = err as AxiosError<any>;
+      const error = err as AxiosError<{message?: string}>;
 
       if (error.response) {
         Alert.alert(
@@ -67,6 +100,8 @@ const RegisterUserScreen = ({ navigation: _navigation }: Props) => {
       } else {
         Alert.alert(t('error'), error.message || t('errorGeneric'));
       }
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -119,10 +154,11 @@ const RegisterUserScreen = ({ navigation: _navigation }: Props) => {
           <View style={[styles.field, styles.genderField]}>
             <CustomRadioButton
               text="gender"
-                radiosArray={[
-                  { id: 1, name: 'male', label: 'male' },
-                  { id: 2, name: 'female', label: 'female' },
-                ]}
+              value={gender}
+              radiosArray={[
+                {id: 1, name: 'male', label: 'male'},
+                {id: 2, name: 'female', label: 'female'},
+              ]}
               onSelect={option => {
                 if (option) setGender(option.name as 'male' | 'female');
               }}
@@ -130,10 +166,11 @@ const RegisterUserScreen = ({ navigation: _navigation }: Props) => {
           </View>
 
           <CustomButton
-            text="registerUser"
+            text={isSubmitting ? 'loading' : 'registerUser'}
             customStyle={styles.submitButton}
             customTextStyle={styles.submitButtonText}
             onPress={handleRegister}
+            isDisabled={isSubmitting}
           />
         </WhiteCard>
       </View>

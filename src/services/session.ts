@@ -1,21 +1,26 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import {API_TOKEN_KEY} from './api';
 
 const SESSION_EXPIRES_AT_KEY = 'sessionExpiresAt';
 const SESSION_ROLE_KEY = 'sessionRole';
 const SESSION_PHONE_KEY = 'sessionPhone';
 const SESSION_NAME_KEY = 'sessionName';
 const SESSION_EMAIL_KEY = 'sessionEmail';
-const SESSION_DURATION_MS = 10 * 60 * 1000;
+const SESSION_USER_ID_KEY = 'sessionUserId';
+const SESSION_DURATION_MS = 24 * 60 * 60 * 1000;
 const SESSION_KEYS = [
   SESSION_EXPIRES_AT_KEY,
   SESSION_ROLE_KEY,
   SESSION_PHONE_KEY,
   SESSION_NAME_KEY,
   SESSION_EMAIL_KEY,
+  SESSION_USER_ID_KEY,
+  API_TOKEN_KEY,
 ];
 
 export type UserRole = 'admin' | 'matchmaker' | 'user';
 export type SessionUser = {
+  id?: string;
   role: UserRole;
   phone: string;
   name?: string;
@@ -24,11 +29,15 @@ export type SessionUser = {
 
 export const saveSession = async (
   role: UserRole = 'user',
-  user?: {phone?: string; name?: string; email?: string},
+  user?: {id?: string; phone?: string; name?: string; email?: string},
 ) => {
   const expiresAt = Date.now() + SESSION_DURATION_MS;
   await AsyncStorage.setItem(SESSION_EXPIRES_AT_KEY, String(expiresAt));
   await AsyncStorage.setItem(SESSION_ROLE_KEY, role);
+
+  if (user?.id) {
+    await AsyncStorage.setItem(SESSION_USER_ID_KEY, user.id);
+  }
 
   if (user?.phone) {
     await AsyncStorage.setItem(SESSION_PHONE_KEY, user.phone);
@@ -85,13 +94,15 @@ export const getSessionUser = async (): Promise<SessionUser | null> => {
     return null;
   }
 
-  const [phone, name, email] = await Promise.all([
+  const [id, phone, name, email] = await Promise.all([
+    AsyncStorage.getItem(SESSION_USER_ID_KEY),
     AsyncStorage.getItem(SESSION_PHONE_KEY),
     AsyncStorage.getItem(SESSION_NAME_KEY),
     AsyncStorage.getItem(SESSION_EMAIL_KEY),
   ]);
 
   return {
+    id: id || undefined,
     role,
     phone: phone || '',
     name: name || undefined,

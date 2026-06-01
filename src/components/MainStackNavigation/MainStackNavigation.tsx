@@ -1,6 +1,5 @@
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import React from 'react';
-import AdminAllCardsScreen from '../../screens/AdminAllCardsScreen/AdminAllCardsScreen';
 import AllCardsScreen from '../../screens/AllCardsScreen/AllCardsScreen';
 import ArchiveScreen from '../../screens/ArchiveScreen/ArchiveScreen';
 import ContactScreen from '../../screens/ContactScreen/ContactScreen';
@@ -25,11 +24,6 @@ const MainStackNavigation = () => {
       name: 'AllCardsScreen',
       component: AllCardsScreen,
       title: '111',
-    },
-    {
-      name: 'AdminAllCardsScreen',
-      component: AdminAllCardsScreen,
-      title: '112',
     },
     {
       name: 'ArchiveScreen',
@@ -75,10 +69,10 @@ const MainStackNavigation = () => {
 
   return (
     <Stack.Navigator screenOptions={{headerShown: false}}>
-      {stackArr.map((stackItem, index) => {
+      {stackArr.map((stackItem) => {
         return (
           <Stack.Screen
-            key={index}
+            key={stackItem.name}
             name={stackItem.name}
             component={stackItem.component}
             options={{title: stackItem.title, headerShown: false}}

@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
-import { View } from 'react-native';
-import {useNavigation} from '@react-navigation/native';
+import React, {useEffect, useState} from 'react';
+import {View} from 'react-native';
+import {AxiosError} from 'axios';
+import {RouteProp, useNavigation, useRoute} from '@react-navigation/native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
-import { styles } from './Wizard.style';
+import {styles} from './Wizard.style';
 import {
   WizardBtnType,
   WizardFormValues,
@@ -20,12 +21,10 @@ import {isFormComplete} from '../../utils/formCompletion';
 import {RootStackParamList} from '../MainStackNavigation/MainStackNavigation.type';
 import {FormField} from '../../utils/FormFields.type';
 import ErrorBanner from '../ErrorBanner/ErrorBanner';
-import {
-  isCandidateAlreadyRegistered,
-  registerCandidateIdentity,
-} from '../../services/candidateRegistry';
+import api from '../../services/api';
 
 type WizardNavigationProp = NativeStackNavigationProp<RootStackParamList>;
+type WizardRouteProp = RouteProp<RootStackParamList, 'Wizard'>;
 
 const getInitialWizardValues = (fields: FormField[]) =>
   fields.reduce<WizardFormValues>((initialValues, field) => {
@@ -42,21 +41,64 @@ const getInitialWizardValues = (fields: FormField[]) =>
     return initialValues;
   }, {});
 
+type ProfilePayload = Record<string, unknown>;
+
+const buildProfilePayload = (values: WizardFormValues): ProfilePayload => {
+  const entries = Object.entries(values).filter(([key, value]) => {
+    if (key.endsWith('OptionId')) {
+      return false;
+    }
+
+    if (value === undefined || value === null) {
+      return false;
+    }
+
+    return String(value).trim().length > 0;
+  });
+
+  const payload: ProfilePayload = Object.fromEntries(entries);
+
+  if (typeof payload.images === 'string') {
+    try {
+      payload.images = JSON.parse(payload.images);
+    } catch {
+      payload.images = [];
+    }
+  }
+
+  return payload;
+};
+
 const Wizard = () => {
   const navigation = useNavigation<WizardNavigationProp>();
+  const route = useRoute<WizardRouteProp>();
   const [wizardStep, setWizardStep] = useState<number>(1);
   const [submitErrorKey, setSubmitErrorKey] = useState<string | null>(null);
   const [formValues, setFormValues] = useState<WizardFormValues>(() =>
     getInitialWizardValues([...detailsFormArray, ...matchFormArray]),
   );
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const wizardSteps: WizardStep[] = [
-    { id: 1, name: "Step1", title: "wizardAboutMe", comp: Step1Screen },
-    { id: 2, name: "Step2", title: "wizardPartner", comp: Step2Screen },
-    { id: 3, name: "Step3", title: "uploadPictures", comp: Step3Screen }
+    {id: 1, name: 'Step1', title: 'wizardAboutMe', comp: Step1Screen},
+    {id: 2, name: 'Step2', title: 'wizardPartner', comp: Step2Screen},
+    {id: 3, name: 'Step3', title: 'uploadPictures', comp: Step3Screen},
   ];
 
-  const currentStep = wizardSteps.find(step => step.id === wizardStep);
+  const currentStep =
+    wizardSteps.find(step => step.id === wizardStep) ?? wizardSteps[0];
+
+  useEffect(() => {
+    if (!route.params?.resetToken) {
+      return;
+    }
+
+    setWizardStep(1);
+    setSubmitErrorKey(null);
+    setFormValues(
+      getInitialWizardValues([...detailsFormArray, ...matchFormArray]),
+    );
+  }, [route.params?.resetToken]);
 
   const isStepComplete = (step: number) => {
     if (step === 1) {
@@ -96,44 +138,55 @@ const Wizard = () => {
   };
 
   const goToStep = (step: number) => {
-    if(step >= 1 && step <= wizardSteps.length) {
+    if (step >= 1 && step <= wizardSteps.length) {
       setWizardStep(step);
     }
   };
 
   const finishWizard = async () => {
-    const candidateIdentity = {
-      fullName: formValues.fullName,
-      phone: formValues.phone,
-    };
-
-    if (await isCandidateAlreadyRegistered(candidateIdentity)) {
-      setSubmitErrorKey('candidateAlreadyExists');
+    if (isSubmitting) {
       return;
     }
 
-    await registerCandidateIdentity(candidateIdentity);
-    setSubmitErrorKey(null);
-    navigation.navigate('AllCardsScreen');
-  };
+    setIsSubmitting(true);
 
+    try {
+      const payload = buildProfilePayload(formValues);
+
+      await api.post('/api/profiles', payload);
+
+      setSubmitErrorKey(null);
+      navigation.navigate('AllCardsScreen');
+    } catch (error) {
+      const axiosError = error as AxiosError<{message?: string}>;
+
+      if (axiosError.response?.status === 409) {
+        setSubmitErrorKey('candidateAlreadyExists');
+        return;
+      }
+
+      setSubmitErrorKey('errorServer');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
   const btnAProps: WizardBtnType = {
     isBtnDis: wizardStep <= 1,
-    btnTxt: "previous",
-    btnFunc: () => goToStep(wizardStep - 1)
+    btnTxt: 'previous',
+    btnFunc: () => goToStep(wizardStep - 1),
   };
 
   const btnBProps: WizardBtnType = {
-    isBtnDis: !isStepComplete(wizardStep),
-    btnTxt: wizardStep === wizardSteps.length ? "finish" : "next",
+    isBtnDis: isSubmitting || !isStepComplete(wizardStep),
+    btnTxt: wizardStep === wizardSteps.length ? 'finish' : 'next',
     btnFunc: () =>
       wizardStep === wizardSteps.length
         ? finishWizard()
-        : goToStep(wizardStep + 1)
+        : goToStep(wizardStep + 1),
   };
 
   const txtProps: WizardTxtType = {
-    text: currentStep?.title || ''
+    text: currentStep?.title || '',
   };
 
   return (
@@ -147,8 +200,7 @@ const Wizard = () => {
           currentStep={wizardStep}
           totalSteps={wizardSteps.length}
         />
-      }
-    >
+      }>
       <View style={styles.containerDynamicComp}>
         {submitErrorKey && (
           <View style={styles.errorContainer}>

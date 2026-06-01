@@ -1,79 +1,186 @@
 const express = require('express');
+const nodemailer = require('nodemailer');
 
 const router = express.Router();
 
 const requiredFields = ['name', 'email', 'message'];
+
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-router.post('/', async (req, res, next) => {
-  try {
-    let nodemailer;
-    try {
-      nodemailer = require('nodemailer');
-    } catch (err) {
-      return res.status(500).json({
-        error: 'mail_dependency_missing',
-        message: 'nodemailer is not installed',
-      });
-    }
+function createTransportConfig() {
+  console.log('SMTP_SERVICE:', process.env.SMTP_SERVICE);
+  console.log('SMTP_HOST:', process.env.SMTP_HOST);
+  console.log('SMTP_USER:', process.env.SMTP_USER);
 
+  const smtpHost = String(process.env.SMTP_HOST || '').trim();
+  const smtpPort = Number(process.env.SMTP_PORT || 587);
+  const smtpSecure = String(process.env.SMTP_SECURE || 'false') === 'true';
+  const smtpUser = String(process.env.SMTP_USER || '').trim();
+  const smtpPass = String(process.env.SMTP_PASS || '').trim();
+  const smtpService = String(process.env.SMTP_SERVICE || '').trim();
+
+  const hasAuth = Boolean(smtpUser && smtpPass);
+
+  if (smtpHost) {
+    return {
+      host: smtpHost,
+      port: smtpPort,
+      secure: smtpSecure,
+      family: 4,
+      connectionTimeout: 10000,
+      greetingTimeout: 10000,
+      socketTimeout: 15000,
+      auth: hasAuth
+        ? {
+            user: smtpUser,
+            pass: smtpPass,
+          }
+        : undefined,
+    };
+  }
+
+  if (smtpService) {
+    return {
+      service: smtpService,
+      host: 'smtp.gmail.com',
+      port: 465,
+      secure: true,
+      family: 4,
+      connectionTimeout: 20000,
+      greetingTimeout: 20000,
+      socketTimeout: 30000,
+      auth: hasAuth ? {user: smtpUser, pass: smtpPass} : undefined,
+    };
+  }
+
+  return null;
+}
+
+router.post('/', async (req, res) => {
+  try {
     const {name, email, phone = '', message} = req.body || {};
-    const missingField = requiredFields.find(
-      field => !req.body?.[field]?.trim(),
-    );
+
+    const cleanName = String(name || '').trim();
+    const cleanEmail = String(email || '').trim();
+    const cleanPhone = String(phone || '').trim();
+    const cleanMessage = String(message || '').trim();
+
+    const missingField = [
+      ['name', cleanName],
+      ['email', cleanEmail],
+      ['message', cleanMessage],
+    ].find(([, value]) => !value)?.[0];
 
     if (missingField) {
       return res.status(400).json({
         error: 'missing_field',
         field: missingField,
+        message: `Missing required field: ${missingField}`,
       });
     }
 
-    if (!emailRegex.test(email.trim())) {
+    if (!emailRegex.test(cleanEmail)) {
       return res.status(400).json({
         error: 'invalid_email',
         field: 'email',
+        message: 'Invalid email format',
       });
     }
 
-    if (!process.env.SMTP_HOST || !process.env.CONTACT_TO) {
+    const hasSmtpService = Boolean(
+      String(process.env.SMTP_SERVICE || '').trim(),
+    );
+
+    const hasSmtpHost = Boolean(String(process.env.SMTP_HOST || '').trim());
+
+    const hasContactTo = Boolean(String(process.env.CONTACT_TO || '').trim());
+
+    if ((!hasSmtpService && !hasSmtpHost) || !hasContactTo) {
       return res.status(500).json({
         error: 'mail_not_configured',
-        message: 'SMTP_HOST and CONTACT_TO must be configured',
+        message: 'Set CONTACT_TO and either SMTP_SERVICE or SMTP_HOST',
       });
     }
 
-    const transporter = nodemailer.createTransport({
-      host: process.env.SMTP_HOST,
-      port: Number(process.env.SMTP_PORT || 587),
-      secure: process.env.SMTP_SECURE === 'true',
-      auth:
-        process.env.SMTP_USER && process.env.SMTP_PASS
-          ? {
-              user: process.env.SMTP_USER,
-              pass: process.env.SMTP_PASS,
-            }
-          : undefined,
-    });
+    const transportConfig = createTransportConfig();
+
+    if (!transportConfig) {
+      return res.status(500).json({
+        error: 'mail_not_configured',
+        message: 'SMTP transport is not configured',
+      });
+    }
+
+    const transporter = nodemailer.createTransport(transportConfig);
 
     await transporter.sendMail({
-      from: process.env.CONTACT_FROM || process.env.SMTP_USER,
+      from:
+        process.env.CONTACT_FROM ||
+        process.env.SMTP_USER ||
+        'noreply@thematchers.app',
+
       to: process.env.CONTACT_TO,
-      replyTo: email.trim(),
-      subject: `TheMatchers contact: ${name.trim()}`,
+
+      replyTo: cleanEmail,
+
+      subject: `TheMatchers Contact Form - ${cleanName}`,
+
       text: [
-        `Name: ${name.trim()}`,
-        `Email: ${email.trim()}`,
-        `Phone: ${phone.trim() || '-'}`,
+        `Name: ${cleanName}`,
+        `Email: ${cleanEmail}`,
+        `Phone: ${cleanPhone || '-'}`,
         '',
         'Message:',
-        message.trim(),
+        cleanMessage,
       ].join('\n'),
+
+      html: `
+        <div style="font-family: Arial, sans-serif;">
+          <h2>New Contact Request</h2>
+
+          <p>
+            <strong>Name:</strong>
+            ${cleanName}
+          </p>
+
+          <p>
+            <strong>Email:</strong>
+            ${cleanEmail}
+          </p>
+
+          <p>
+            <strong>Phone:</strong>
+            ${cleanPhone || '-'}
+          </p>
+
+          <hr />
+
+          <p>
+            <strong>Message:</strong>
+          </p>
+
+          <p>${cleanMessage.replace(/\n/g, '<br />')}</p>
+        </div>
+      `,
     });
 
-    res.json({ok: true});
+    return res.json({
+      ok: true,
+      message: 'Email sent successfully',
+    });
   } catch (err) {
-    next(err);
+    console.error('[contact] send failed', {
+      message: err?.message,
+      code: err?.code,
+      command: err?.command,
+    });
+
+    return res.status(500).json({
+      error: 'mail_send_failed',
+      message: err?.message || 'Failed to send email',
+      code: err?.code || undefined,
+      command: err?.command || undefined,
+    });
   }
 });
 
