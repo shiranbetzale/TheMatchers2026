@@ -2,7 +2,10 @@ const express = require('express');
 const Profile = require('../models/Profile');
 const User = require('../models/User');
 const {requireAuth} = require('../middleware/auth');
-const {notifyProfileCreated} = require('../services/pushNotifications');
+const {
+  notifyProfileCreated,
+  notifyProfileRelationshipStatus,
+} = require('../services/pushNotifications');
 
 const router = express.Router();
 
@@ -10,6 +13,16 @@ function logDev(...args) {
   if (process.env.NODE_ENV !== 'production') {
     console.log(...args);
   }
+}
+
+function normalizeName(value) {
+  return String(value || '')
+    .trim()
+    .toLowerCase();
+}
+
+function getProfileName(profile) {
+  return profile?.fullName || profile?.name || '';
 }
 
 async function enrichProfilesWithMatcher(profiles) {
@@ -30,10 +43,7 @@ async function enrichProfilesWithMatcher(profiles) {
 
       return {
         ...profileData,
-        images:
-          Array.isArray(profileData.images) && profileData.images.length
-            ? profileData.images
-            : [DEFAULT_PROFILE_IMAGE],
+        images: Array.isArray(profileData.images) ? profileData.images : [],
       };
     });
   }
@@ -69,6 +79,111 @@ function canAccessProfile(user, profile) {
   );
 }
 
+function assertProfileAccess(user, profile) {
+  if (!profile) {
+    const error = new Error('Profile not found');
+    error.status = 404;
+    throw error;
+  }
+
+  if (!canAccessProfile(user, profile)) {
+    const error = new Error('Forbidden profile access');
+    error.status = 403;
+    throw error;
+  }
+}
+
+async function resolvePartnerProfile(profile) {
+  if (!profile || profile.partnerOutsideApp) {
+    return null;
+  }
+
+  if (profile.partnerProfileId) {
+    const partner = await Profile.findById(profile.partnerProfileId);
+
+    if (partner) {
+      return partner;
+    }
+  }
+
+  const partnerName = normalizeName(profile.partnerName);
+
+  if (!partnerName) {
+    return null;
+  }
+
+  const profiles = await Profile.find({});
+
+  return (
+    profiles.find(
+      item =>
+        String(item.id) !== String(profile.id) &&
+        normalizeName(getProfileName(item)) === partnerName,
+    ) || null
+  );
+}
+
+async function syncPartnerRelationship(profile, relationshipStatus) {
+  if (relationshipStatus !== 'engaged' && relationshipStatus !== 'married') {
+    return null;
+  }
+
+  const partner = await resolvePartnerProfile(profile);
+
+  if (!partner) {
+    return null;
+  }
+
+  partner.status = 'archived';
+  partner.archivedReason = relationshipStatus;
+  partner.relationshipStatus = relationshipStatus;
+  partner.partnerName = getProfileName(profile);
+  partner.partnerProfileId = profile.id;
+  partner.partnerOutsideApp = false;
+  partner.collaborationMatchmaker = profile.collaborationMatchmaker || '';
+
+  if (!profile.partnerProfileId) {
+    profile.partnerProfileId = partner.id;
+    profile.partnerOutsideApp = false;
+    await profile.save();
+  }
+
+  await partner.save();
+  return partner;
+}
+
+async function notifyRelationshipStatusOnce(profile, relationshipStatus) {
+  if (relationshipStatus !== 'engaged' && relationshipStatus !== 'married') {
+    return;
+  }
+
+  if (String(profile.relationshipNotifiedStatus || '') === relationshipStatus) {
+    logDev('RELATIONSHIP PUSH SKIPPED: already notified', {
+      profileId: profile.id,
+      relationshipStatus,
+    });
+    return;
+  }
+
+  const response = await notifyProfileRelationshipStatus(
+    profile,
+    relationshipStatus,
+  );
+
+  logDev('RELATIONSHIP PUSH RESULT:', {
+    profileId: profile.id,
+    relationshipStatus,
+    successCount: response.successCount,
+    failureCount: response.failureCount,
+  });
+
+  if (response.successCount > 0) {
+    profile.relationshipNotifiedStatus = relationshipStatus;
+    profile.relationshipNotifiedAt = new Date();
+    await profile.save();
+  }
+}
+
 router.get(
   '/',
   requireAuth(['admin', 'matchmaker']),
@@ -88,8 +203,11 @@ router.get(
         userId: req.user.id,
         found: profiles.length,
         assigned: profiles.map(profile => ({
-          name: profile.fullName,
+          name: profile.fullName || profile.name,
           assignedMatchmaker: profile.assignedMatchmaker,
+          status: profile.status,
+          maritalStatus: profile.maritalStatus,
+          relationshipStatus: profile.relationshipStatus,
         })),
       });
 
@@ -153,6 +271,24 @@ router.post(
   },
 );
 
+router.get(
+  '/:id',
+  requireAuth(['admin', 'matchmaker']),
+  async (req, res, next) => {
+    try {
+      const profile = await Profile.findById(req.params.id);
+
+      assertProfileAccess(req.user, profile);
+
+      const [enrichedProfile] = await enrichProfilesWithMatcher(profile);
+
+      res.json({profile: enrichedProfile});
+    } catch (error) {
+      next(error);
+    }
+  },
+);
+
 router.put(
   '/:id',
   requireAuth(['admin', 'matchmaker']),
@@ -160,11 +296,11 @@ router.put(
     try {
       const profile = await Profile.findById(req.params.id);
 
-      if (!profile || !canAccessProfile(req.user, profile)) {
-        const error = new Error('Profile not found');
-        error.status = 404;
-        throw error;
-      }
+      assertProfileAccess(req.user, profile);
+
+      const previousRelationshipStatus = String(
+        profile.relationshipStatus || '',
+      );
 
       Object.assign(profile, req.body);
 
@@ -179,9 +315,22 @@ router.put(
       } else if (profile.status === 'archived') {
         profile.status = 'active';
         profile.archivedReason = '';
+        profile.relationshipStatus = '';
+        profile.partnerName = '';
+        profile.partnerProfileId = '';
+        profile.partnerOutsideApp = false;
+        profile.collaborationMatchmaker = '';
       }
 
       await profile.save();
+      await syncPartnerRelationship(profile, relationshipStatus);
+
+      if (
+        relationshipStatus !== previousRelationshipStatus ||
+        String(profile.relationshipNotifiedStatus || '') !== relationshipStatus
+      ) {
+        await notifyRelationshipStatusOnce(profile, relationshipStatus);
+      }
 
       const [enrichedProfile] = await enrichProfilesWithMatcher(profile);
 
@@ -199,20 +348,30 @@ router.post(
     try {
       const profile = await Profile.findById(req.params.id);
 
-      if (!profile || !canAccessProfile(req.user, profile)) {
-        const error = new Error('Profile not found');
-        error.status = 404;
-        throw error;
-      }
+      assertProfileAccess(req.user, profile);
 
       profile.status = 'archived';
       profile.archivedReason = req.body.reason || 'married';
+
+      const previousRelationshipStatus = String(
+        profile.relationshipStatus || '',
+      );
 
       if (req.body.reason === 'engaged' || req.body.reason === 'married') {
         profile.relationshipStatus = req.body.reason;
       }
 
       await profile.save();
+
+      const relationshipStatus = String(profile.relationshipStatus || '');
+      await syncPartnerRelationship(profile, relationshipStatus);
+
+      if (
+        relationshipStatus !== previousRelationshipStatus ||
+        String(profile.relationshipNotifiedStatus || '') !== relationshipStatus
+      ) {
+        await notifyRelationshipStatusOnce(profile, relationshipStatus);
+      }
 
       const [enrichedProfile] = await enrichProfilesWithMatcher(profile);
 
@@ -230,17 +389,17 @@ router.patch(
     try {
       const profile = await Profile.findById(req.params.id);
 
-      if (!profile || !canAccessProfile(req.user, profile)) {
-        const error = new Error('Profile not found');
-        error.status = 404;
-        throw error;
-      }
+      assertProfileAccess(req.user, profile);
 
       profile.status = 'active';
       profile.relationshipStatus = 'single';
       profile.archivedReason = '';
       profile.partnerName = '';
+      profile.partnerProfileId = '';
       profile.partnerOutsideApp = false;
+      profile.collaborationMatchmaker = '';
+      profile.relationshipNotifiedStatus = '';
+      profile.relationshipNotifiedAt = undefined;
 
       await profile.save();
 

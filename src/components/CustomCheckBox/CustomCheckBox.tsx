@@ -8,8 +8,16 @@ import {useLanguage} from "../../utils/LanguageProvider";
 import {FontsStyle} from "../../utils/FontsStyle";
 
 const CustomCheckBox = (props: CustomCheckBoxType) => {
-  const { text, options, isEditable = true, isSmallSize = false, onChange } = props;
+  const {
+    text,
+    options,
+    value = [],
+    isEditable = true,
+    isSmallSize = false,
+    onChange,
+  } = props;
   const {isRTL} = useLanguage();
+  const selectedValues = value.map(item => String(item));
 
   return (
     <View
@@ -39,6 +47,11 @@ const CustomCheckBox = (props: CustomCheckBoxType) => {
               ]}>
               <CustomSingleCheckBox
                 {...option}
+                isSelected={
+                  selectedValues.includes(option.label) ||
+                  selectedValues.includes(String(option.id)) ||
+                  selectedValues.includes(option.name)
+                }
                 isSmallSize={isSmallSize}
                 isRTL={isRTL}
                 isEditable={isEditable}

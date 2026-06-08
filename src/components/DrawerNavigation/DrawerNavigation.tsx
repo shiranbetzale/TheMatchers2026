@@ -160,7 +160,10 @@ const CustomDrawerContent = (props: DrawerContentComponentProps) => {
               activeOpacity={0.84}
               onPress={() => {
                 if (route.name === 'Wizard') {
-                  navigation.navigate('Wizard', {resetToken: Date.now()});
+                  navigation.navigate('Wizard', {
+                    mode: 'create',
+                    resetToken: Date.now(),
+                  });
                   return;
                 }
 
@@ -241,6 +244,9 @@ const DrawerNavigation = (props: DrawerNavigationType) => {
   useEffect(loadRole, [loadRole]);
   useFocusEffect(loadRole);
 
+  const canUseDrawer =
+    roleResolved && (userRole === 'admin' || userRole === 'matchmaker');
+
   const screenOptionsProps: DrawerNavigationOptions = {
     headerStyle: styles.headerStyle,
     headerTitleStyle: FontsStyle.textDecoration,
@@ -248,7 +254,9 @@ const DrawerNavigation = (props: DrawerNavigationType) => {
     drawerPosition: isRTL ? 'right' : 'left',
     drawerStyle: styles.drawerStyle,
     overlayColor: 'rgba(6, 26, 54, 0.42)',
-    header: DrawerHeader,
+    swipeEnabled: canUseDrawer,
+    headerShown: canUseDrawer,
+    header: canUseDrawer ? DrawerHeader : undefined,
   };
 
   return (
@@ -257,7 +265,9 @@ const DrawerNavigation = (props: DrawerNavigationType) => {
       initialRouteName={initialRoute}
       backBehavior="history"
       screenOptions={screenOptionsProps}
-      drawerContent={drawerProps => <CustomDrawerContent {...drawerProps} />}>
+      drawerContent={drawerProps =>
+        canUseDrawer ? <CustomDrawerContent {...drawerProps} /> : <View />
+      }>
       {drawerData.map(stackItem => {
         const isAuthScreen =
           stackItem.name === 'Login' || stackItem.name === 'OnBoarding';
@@ -277,9 +287,12 @@ const DrawerNavigation = (props: DrawerNavigationType) => {
             component={stackItem.component}
             options={{
               title: stackItem.title || stackItem.name,
-              headerShown: stackItem.isHeaderShown,
+              headerShown: canUseDrawer ? stackItem.isHeaderShown : false,
               drawerItemStyle:
-                isAuthScreen || isRoleBlocked || stackItem.hideInDrawer
+                !canUseDrawer ||
+                isAuthScreen ||
+                isRoleBlocked ||
+                stackItem.hideInDrawer
                   ? {display: 'none'}
                   : undefined,
             }}

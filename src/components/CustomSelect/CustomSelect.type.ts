@@ -5,5 +5,7 @@ export type CustomSelectType = {
   options: Option[];
   value?: string | number;
   isEditable?: boolean;
+  allowClear?: boolean;
+  layout?: 'row' | 'column';
   onSelect: (option?: Option) => void;
 };

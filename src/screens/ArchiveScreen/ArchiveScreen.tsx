@@ -1,6 +1,7 @@
 import React, {useMemo, useState} from 'react';
-import {View} from 'react-native';
-import {useFocusEffect} from '@react-navigation/native';
+import {TouchableOpacity, View} from 'react-native';
+import {useFocusEffect, useNavigation} from '@react-navigation/native';
+import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 
 import MatchCard from '../../components/MatchCard/MatchCard';
 import {MatchCardType} from '../../components/MatchCard/MatchCard.type';
@@ -17,14 +18,20 @@ import {CardsSortValue} from '../../components/CustomOrderBy/CustomOrderBy.type'
 
 import FilterSvg from '../../assets/images/filter.svg';
 import OrderBySvg from '../../assets/images/orderBy.svg';
+import RestoreSvg from '../../assets/images/restore.svg';
 
 import {styles} from './ArchiveScreen.style';
 import api from '../../services/api';
 import {useLanguage} from '../../utils/LanguageProvider';
 import {mapProfileToCard} from '../../utils/generalFunction';
+import {RootStackParamList} from '../../components/MainStackNavigation/MainStackNavigation.type';
+
+type ArchiveNavigationProp = NativeStackNavigationProp<RootStackParamList>;
+const NO_MATCHER_FILTER_VALUE = 'noMatcher';
 
 const ArchiveScreen = () => {
   const {isRTL} = useLanguage();
+  const navigation = useNavigation<ArchiveNavigationProp>();
 
   const [archivedCards, setArchivedCards] = useState<MatchCardType[]>([]);
   const [isShowFilter, setIsShowFilter] = useState(false);
@@ -56,25 +63,17 @@ const ArchiveScreen = () => {
     }, [fetchArchivedProfiles]),
   );
 
-  const restoreProfile = async (profileId?: string) => {
-    console.log('restoreProfile clicked:', profileId);
-
-    if (!profileId) {
-      console.log('Missing profileId');
+  const restoreProfile = (card: MatchCardType) => {
+    if (!card.profileId) {
       return;
     }
 
-    try {
-      const response = await api.patch(`/api/profiles/${profileId}/unarchive`);
-
-      console.log('restoreProfile success:', response.data);
-
-      setArchivedCards(prev =>
-        prev.filter(card => card.profileId !== profileId),
-      );
-    } catch (error: any) {
-      console.log('restoreProfile error:', error);
-    }
+    navigation.navigate('Wizard', {
+      mode: 'edit',
+      profileId: card.profileId,
+      card,
+      restoreToAvailable: true,
+    });
   };
 
   const matcherOptions = useMemo(() => {
@@ -91,6 +90,24 @@ const ArchiveScreen = () => {
       name: 'matcherName',
       label: matcherName,
     }));
+  }, [archivedCards]);
+
+  const nameOptions = useMemo(() => {
+    const names = Array.from(
+      new Set(
+        archivedCards
+          .map(card => card.name?.trim())
+          .filter((name): name is string => Boolean(name)),
+      ),
+    );
+
+    return names
+      .sort((a, b) => a.localeCompare(b, 'he'))
+      .map((name, index) => ({
+        id: index + 1,
+        name: 'name',
+        label: name,
+      }));
   }, [archivedCards]);
 
   const filteredAndSortedCards = useMemo(() => {
@@ -112,9 +129,12 @@ const ArchiveScreen = () => {
           ? card.gender === filterValues.gender
           : true;
 
-        const byMatcher = filterValues.matcherName
-          ? String(card.matcherName || '') === filterValues.matcherName
-          : true;
+        const byMatcher =
+          filterValues.matcherName === NO_MATCHER_FILTER_VALUE
+            ? !String(card.matcherName || '').trim()
+            : filterValues.matcherName
+              ? String(card.matcherName || '') === filterValues.matcherName
+              : true;
 
         return byName && byCity && byGender && byMatcher;
       })
@@ -199,11 +219,12 @@ const ArchiveScreen = () => {
     <HomeScreen
       pinChildren={
         <View style={styles.pinChildrenContainer}>
-          <CustomHeader headerBtns={headerBtns} />
+          <CustomHeader headerBtns={headerBtns} actionsPosition="left" />
 
           {isShowFilter && (
             <CustomFilter
               values={filterValues}
+              nameOptions={nameOptions}
               matcherOptions={matcherOptions}
               onApply={applyFilter}
               onReset={resetFilter}
@@ -312,12 +333,14 @@ const ArchiveScreen = () => {
                     isShowInfoButtons={false}
                   />
 
-                  <CustomButton
-                    text="חזר להיות פנוי"
-                    customStyle={styles.restoreButton}
-                    customTextStyle={styles.restoreButtonText}
-                    onPress={() => restoreProfile(card.profileId)}
-                  />
+                  <TouchableOpacity
+                    activeOpacity={0.82}
+                    accessibilityRole="button"
+                    accessibilityLabel="חזר להיות פנוי"
+                    style={styles.restoreIconButton}
+                    onPress={() => restoreProfile(card)}>
+                    <RestoreSvg width={24} height={24} />
+                  </TouchableOpacity>
                 </View>
               ))
             ) : (

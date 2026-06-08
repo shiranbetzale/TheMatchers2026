@@ -1,7 +1,7 @@
 import React, {useEffect, useRef} from 'react';
 import {Animated, SafeAreaView, ScrollView, View} from 'react-native';
-import { HomeScreenType } from './HomeScreen.type';
-import { styles } from './HomeScreen.style';
+import {HomeScreenType} from './HomeScreen.type';
+import {styles} from './HomeScreen.style';
 
 const HomeScreen = ({
   children,
@@ -49,8 +49,8 @@ const HomeScreen = ({
             styles.staticContainer,
             styles.staticContent,
             {
-            opacity: contentOpacity,
-            transform: [{translateY: contentTranslateY}],
+              opacity: contentOpacity,
+              transform: [{translateY: contentTranslateY}],
             },
           ]}>
           {children}
@@ -59,7 +59,8 @@ const HomeScreen = ({
         <ScrollView
           style={styles.scrollContainer}
           contentContainerStyle={styles.scrollContent}
-          showsVerticalScrollIndicator={false}>
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled">
           <Animated.View
             style={{
               opacity: contentOpacity,

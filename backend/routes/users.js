@@ -161,6 +161,25 @@ router.get('/all', requireAuth(['admin']), async (_req, res, next) => {
   }
 });
 
+router.get('/matchmakers', requireAuth(['admin', 'matchmaker']), async (_req, res, next) => {
+  try {
+    const users = await User.find({
+      role: {$in: ['admin', 'matchmaker']},
+      isActive: {$ne: false},
+    });
+
+    const sortedUsers = [...users].sort((a, b) =>
+      String(a.fullName || '').localeCompare(String(b.fullName || ''), 'he'),
+    );
+
+    res.json({
+      users: sortedUsers.map(sanitizeUser),
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
 router.put('/update/:id', requireAuth(['admin']), async (req, res, next) => {
   try {
     const {id} = req.params;

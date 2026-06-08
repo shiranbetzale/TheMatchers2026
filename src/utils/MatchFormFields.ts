@@ -17,6 +17,10 @@ const matchFormArray: FormField[] = [
     minRange: 0,
     maxRange: 10,
     step: 1,
+    condition: [
+      {fieldId: 'matchStatus', value: '4'},
+      {fieldId: 'matchStatus', value: '5'},
+    ],
     collapseTitle: 'generalDetails',
   },
   {
@@ -31,6 +35,10 @@ const matchFormArray: FormField[] = [
   {
     id: 'matchArea',
     text: 'partnerResidentialArea',
+    genderTextLabels: {
+      male: 'partnerResidentialAreaMale',
+      female: 'partnerResidentialAreaFemale',
+    },
     fieldType: 'checkbox',
     handlePress: () => console.log(),
     options: [
@@ -60,11 +68,59 @@ const matchFormArray: FormField[] = [
     fieldType: 'checkbox',
     handlePress: () => console.log(),
     options: [
-      {id: 1, name: 'matchStatus', label: 'single'},
-      {id: 2, name: 'matchStatus', label: 'widower'},
-      {id: 3, name: 'matchStatus', label: 'divorced'},
-      {id: 4, name: 'matchStatus', label: 'widowerWithChildren'},
-      {id: 5, name: 'matchStatus', label: 'divorcedWithChildren'},
+      {
+        id: 1,
+        name: 'matchStatus',
+        label: 'single',
+        genderLabels: {
+          male: 'singleStatusMale',
+          female: 'singleStatusFemale',
+        },
+      },
+      {
+        id: 2,
+        name: 'matchStatus',
+        label: 'widower',
+        genderLabels: {
+          male: 'widowedStatusMale',
+          female: 'widowedStatusFemale',
+        },
+      },
+      {
+        id: 3,
+        name: 'matchStatus',
+        label: 'divorced',
+        genderLabels: {
+          male: 'divorcedStatusMale',
+          female: 'divorcedStatusFemale',
+        },
+        hideWhen: [
+          {fieldId: 'gender', value: '1'},
+          {fieldId: 'isCohen', value: 'true'},
+        ],
+      },
+      {
+        id: 4,
+        name: 'matchStatus',
+        label: 'widowerWithChildren',
+        genderLabels: {
+          male: 'widowedWithChildrenStatusMale',
+          female: 'widowedWithChildrenStatusFemale',
+        },
+      },
+      {
+        id: 5,
+        name: 'matchStatus',
+        label: 'divorcedWithChildren',
+        genderLabels: {
+          male: 'divorcedWithChildrenStatusMale',
+          female: 'divorcedWithChildrenStatusFemale',
+        },
+        hideWhen: [
+          {fieldId: 'gender', value: '1'},
+          {fieldId: 'isCohen', value: 'true'},
+        ],
+      },
     ],
     collapseTitle: 'generalDetails',
   },
@@ -74,58 +130,151 @@ const matchFormArray: FormField[] = [
     fieldType: 'checkbox',
     handlePress: () => console.log(),
     options: [
-      {id: 1, name: 'matchHashkafa', label: 'religious'},
-      {id: 2, name: 'matchHashkafa', label: 'haredi'},
-      {id: 3, name: 'matchHashkafa', label: 'modernHaredi'},
-      {id: 4, name: 'matchHashkafa', label: 'baalTeshuva'},
+      {
+        id: 1,
+        name: 'matchHashkafa',
+        label: 'religious',
+        genderLabels: {
+          male: 'religiousStatusMale',
+          female: 'religiousStatusFemale',
+        },
+      },
+      {
+        id: 5,
+        name: 'matchHashkafa',
+        label: 'datiLeumi',
+        genderLabels: {
+          male: 'datiLeumiStatusMale',
+          female: 'datiLeumiStatusFemale',
+        },
+      },
+      {
+        id: 2,
+        name: 'matchHashkafa',
+        label: 'haredi',
+        genderLabels: {
+          male: 'harediStatusMale',
+          female: 'harediStatusFemale',
+        },
+      },
+      {
+        id: 3,
+        name: 'matchHashkafa',
+        label: 'modernHaredi',
+        genderLabels: {
+          male: 'modernHarediStatusMale',
+          female: 'modernHarediStatusFemale',
+        },
+      },
+      {
+        id: 4,
+        name: 'matchHashkafa',
+        label: 'baalTeshuva',
+        genderLabels: {
+          male: 'baalTeshuvaStatusMale',
+          female: 'baalTeshuvaStatusFemale',
+        },
+      },
     ],
     collapseTitle: 'styleSection',
   },
   {
     id: 'matchIsWantSmoker',
     text: 'openToSmokerQuestion',
+    genderTextLabels: {
+      male: 'openToSmokerQuestionMale',
+      female: 'openToSmokerQuestionFemale',
+    },
     fieldType: 'switch',
     collapseTitle: 'generalDetails',
   },
   {
     id: 'matchIsWantCohen',
     text: 'openToCohenQuestion',
+    genderTextLabels: {
+      male: 'openToCohenQuestionMale',
+      female: 'openToCohenQuestionFemale',
+    },
     fieldType: 'switch',
     collapseTitle: 'generalDetails',
   },
   {
     id: 'matchIsGer',
     text: 'openToConvertQuestion',
+    genderTextLabels: {
+      male: 'openToConvertQuestionMale',
+      female: 'openToConvertQuestionFemale',
+    },
     fieldType: 'switch',
     collapseTitle: 'generalDetails',
   },
   {
     id: 'matchIsHozerBitshuva',
     text: 'openToBaalTeshuvaQuestion',
+    genderTextLabels: {
+      male: 'openToBaalTeshuvaQuestionMale',
+      female: 'openToBaalTeshuvaQuestionFemale',
+    },
     fieldType: 'switch',
     collapseTitle: 'generalDetails',
   },
   {
     id: 'matchIsVaccinatedCorona',
     text: 'openToCovidVaccinatedQuestion',
+    genderTextLabels: {
+      male: 'openToCovidVaccinatedQuestionMale',
+      female: 'openToCovidVaccinatedQuestionFemale',
+    },
     fieldType: 'switch',
     collapseTitle: 'generalDetails',
   },
   {
     id: 'matchIsWantNationalService',
     text: 'openToNationalServiceQuestion',
+    genderTextLabels: {
+      male: 'openToNationalServiceQuestionMale',
+      female: 'openToNationalServiceQuestionFemale',
+    },
     fieldType: 'switch',
     collapseTitle: 'generalDetails',
   },
   {
     id: 'matchIsWantArmy',
     text: 'openToArmyServiceQuestion',
+    genderTextLabels: {
+      male: 'openToArmyServiceQuestionMale',
+      female: 'openToArmyServiceQuestionFemale',
+    },
+    fieldType: 'switch',
+    collapseTitle: 'generalDetails',
+  },
+  {
+    id: 'matchIsWantOrphan',
+    text: 'openToOrphanQuestion',
+    genderTextLabels: {
+      male: 'openToOrphanQuestionMale',
+      female: 'openToOrphanQuestionFemale',
+    },
+    fieldType: 'switch',
+    collapseTitle: 'generalDetails',
+  },
+  {
+    id: 'matchIsWantDivorcedParents',
+    text: 'openToDivorcedParentsQuestion',
+    genderTextLabels: {
+      male: 'openToDivorcedParentsQuestionMale',
+      female: 'openToDivorcedParentsQuestionFemale',
+    },
     fieldType: 'switch',
     collapseTitle: 'generalDetails',
   },
   {
     id: 'matchIsDrivingLicense',
     text: 'openToDrivingLicenseQuestion',
+    genderTextLabels: {
+      male: 'openToDrivingLicenseQuestionMale',
+      female: 'openToDrivingLicenseQuestionFemale',
+    },
     fieldType: 'switch',
     collapseTitle: 'generalDetails',
   },
@@ -135,12 +284,27 @@ const matchFormArray: FormField[] = [
     fieldType: 'checkbox',
     handlePress: () => console.log(),
     options: [
-      {id: 1, name: 'matchWhatWorks', label: 'yeshivaStudent'},
-      {id: 2, name: 'matchWhatWorks', label: 'kollelStudent'},
+      {
+        id: 1,
+        name: 'matchWhatWorks',
+        label: 'yeshivaStudent',
+        isShow: [{fieldId: 'gender', value: '2'}],
+      },
+      {
+        id: 2,
+        name: 'matchWhatWorks',
+        label: 'kollelStudent',
+        isShow: [{fieldId: 'gender', value: '2'}],
+      },
       {id: 3, name: 'matchWhatWorks', label: 'working'},
       {id: 4, name: 'matchWhatWorks', label: 'academicStudent'},
       {id: 5, name: 'matchWhatWorks', label: 'workingAndStudyingAcademic'},
-      {id: 6, name: 'matchWhatWorks', label: 'workingAndLearning'},
+      {
+        id: 6,
+        name: 'matchWhatWorks',
+        label: 'workingAndLearning',
+        isShow: [{fieldId: 'gender', value: '2'}],
+      },
     ],
     collapseTitle: 'workAndEducation',
   },
@@ -153,7 +317,12 @@ const matchFormArray: FormField[] = [
       {id: 1, name: 'matchEducation', label: 'degree'},
       {id: 2, name: 'matchEducation', label: 'practicalEngineer'},
       {id: 3, name: 'matchEducation', label: 'matriculation'},
-      {id: 4, name: 'matchEducation', label: 'yeshivaEducation'},
+      {
+        id: 4,
+        name: 'matchEducation',
+        label: 'yeshivaEducation',
+        isShow: [{fieldId: 'gender', value: '2'}],
+      },
     ],
     collapseTitle: 'workAndEducation',
   },
@@ -193,6 +362,7 @@ const matchFormArray: FormField[] = [
       {id: 4, name: 'matchBeardType', label: 'cleanShaven'},
     ],
     collapseTitle: 'appearance',
+    condition: [{fieldId: 'gender', value: '2'}],
   },
   {
     id: 'matchClothes',
@@ -205,6 +375,7 @@ const matchFormArray: FormField[] = [
       {id: 3, name: 'matchClothes', label: 'colorfulWeekdayBlackWhiteShabbat'},
     ],
     collapseTitle: 'appearance',
+    condition: [{fieldId: 'gender', value: '2'}],
   },
   {
     id: 'matchZerem',
@@ -224,6 +395,7 @@ const matchFormArray: FormField[] = [
     keyboardTypeOption: 'default',
     fieldType: 'input',
     collapseTitle: 'additionalDetails',
+    condition: [{fieldId: 'matchZerem', value: '1'}],
   },
   {
     id: 'matchTribe',
@@ -231,6 +403,7 @@ const matchFormArray: FormField[] = [
     keyboardTypeOption: 'default',
     fieldType: 'input',
     collapseTitle: 'additionalDetails',
+    condition: [{fieldId: 'matchZerem', value: '3'}],
   },
   {
     id: 'matchImportantInfo',

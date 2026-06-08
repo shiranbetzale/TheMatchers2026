@@ -48,7 +48,8 @@ const detailsFormArray: FormField[] = [
   {
     id: 'hight',
     text: 'heightLabel',
-    keyboardTypeOption: 'numeric',
+    keyboardTypeOption: 'default',
+    inputMode: 'decimal',
     fieldType: 'input',
     collapseTitle: 'personalDetails',
   },
@@ -66,11 +67,51 @@ const detailsFormArray: FormField[] = [
     fieldType: 'select',
     handlePress: () => console.log(),
     options: [
-      {id: 1, name: 'status', label: 'singleStatus'},
-      {id: 2, name: 'status', label: 'widowedStatus'},
-      {id: 3, name: 'status', label: 'divorcedStatus'},
-      {id: 4, name: 'status', label: 'widowedWithChildrenStatus'},
-      {id: 5, name: 'status', label: 'divorcedWithChildrenStatus'},
+      {
+        id: 1,
+        name: 'status',
+        label: 'singleStatus',
+        genderLabels: {
+          male: 'singleStatusMale',
+          female: 'singleStatusFemale',
+        },
+      },
+      {
+        id: 2,
+        name: 'status',
+        label: 'widowedStatus',
+        genderLabels: {
+          male: 'widowedStatusMale',
+          female: 'widowedStatusFemale',
+        },
+      },
+      {
+        id: 3,
+        name: 'status',
+        label: 'divorcedStatus',
+        genderLabels: {
+          male: 'divorcedStatusMale',
+          female: 'divorcedStatusFemale',
+        },
+      },
+      {
+        id: 4,
+        name: 'status',
+        label: 'widowedWithChildrenStatus',
+        genderLabels: {
+          male: 'widowedWithChildrenStatusMale',
+          female: 'widowedWithChildrenStatusFemale',
+        },
+      },
+      {
+        id: 5,
+        name: 'status',
+        label: 'divorcedWithChildrenStatus',
+        genderLabels: {
+          male: 'divorcedWithChildrenStatusMale',
+          female: 'divorcedWithChildrenStatusFemale',
+        },
+      },
     ],
     collapseTitle: 'personalDetails',
   },
@@ -136,6 +177,12 @@ const detailsFormArray: FormField[] = [
         label: 'scarfAndWig',
         isShow: [{fieldId: 'gender', value: '2'}],
       },
+      {
+        id: 6,
+        name: 'halfCover',
+        label: 'halfCover',
+        isShow: [{fieldId: 'gender', value: '2'}],
+      },
     ],
     collapseTitle: 'personalDetails',
   },
@@ -145,6 +192,8 @@ const detailsFormArray: FormField[] = [
     id: 'phone',
     text: 'phoneLabel',
     keyboardTypeOption: 'numeric',
+    inputMode: 'numeric',
+    onlyDigits: true,
     fieldType: 'input',
     collapseTitle: 'contactDetails',
     maxLength: 10,
@@ -176,10 +225,51 @@ const detailsFormArray: FormField[] = [
     fieldType: 'select',
     handlePress: () => console.log(),
     options: [
-      {id: 1, name: 'hashkafa', label: 'religiousStatus'},
-      {id: 2, name: 'hashkafa', label: 'harediStatus'},
-      {id: 3, name: 'hashkafa', label: 'modernHarediStatus'},
-      {id: 4, name: 'hashkafa', label: 'baalTeshuvaStatus'},
+      {
+        id: 1,
+        name: 'hashkafa',
+        label: 'religiousStatus',
+        genderLabels: {
+          male: 'religiousStatusMale',
+          female: 'religiousStatusFemale',
+        },
+      },
+      {
+        id: 5,
+        name: 'hashkafa',
+        label: 'datiLeumiStatus',
+        genderLabels: {
+          male: 'datiLeumiStatusMale',
+          female: 'datiLeumiStatusFemale',
+        },
+      },
+      {
+        id: 2,
+        name: 'hashkafa',
+        label: 'harediStatus',
+        genderLabels: {
+          male: 'harediStatusMale',
+          female: 'harediStatusFemale',
+        },
+      },
+      {
+        id: 3,
+        name: 'hashkafa',
+        label: 'modernHarediStatus',
+        genderLabels: {
+          male: 'modernHarediStatusMale',
+          female: 'modernHarediStatusFemale',
+        },
+      },
+      {
+        id: 4,
+        name: 'hashkafa',
+        label: 'baalTeshuvaStatus',
+        genderLabels: {
+          male: 'baalTeshuvaStatusMale',
+          female: 'baalTeshuvaStatusFemale',
+        },
+      },
     ],
     collapseTitle: 'styleSection',
   },
@@ -187,6 +277,8 @@ const detailsFormArray: FormField[] = [
     id: 'hozerBitshoveAge',
     text: 'baalTeshuvaAgeQuestion',
     keyboardTypeOption: 'numeric',
+    inputMode: 'numeric',
+    onlyDigits: true,
     fieldType: 'input',
     condition: [{fieldId: 'hashkafa', value: '4'}],
     collapseTitle: 'styleSection',
@@ -334,10 +426,7 @@ const detailsFormArray: FormField[] = [
     text: 'yeshivaKetanaLabel',
     keyboardTypeOption: 'default',
     fieldType: 'input',
-    condition: [
-      {fieldId: 'whatWorks', value: '1'},
-      {fieldId: 'gender', value: '1'},
-    ],
+    condition: [{fieldId: 'whatWorks', value: '1'}],
     collapseTitle: 'workAndEducation',
   },
   {
@@ -345,10 +434,7 @@ const detailsFormArray: FormField[] = [
     text: 'yeshivaGedolaLabel',
     keyboardTypeOption: 'default',
     fieldType: 'input',
-    condition: [
-      {fieldId: 'whatWorks', value: '1'},
-      {fieldId: 'gender', value: '1'},
-    ],
+    condition: [{fieldId: 'whatWorks', value: '1'}],
     collapseTitle: 'workAndEducation',
   },
   {
@@ -356,10 +442,7 @@ const detailsFormArray: FormField[] = [
     text: 'kibbutzLabel',
     keyboardTypeOption: 'default',
     fieldType: 'input',
-    condition: [
-      {fieldId: 'whatWorks', value: '1'},
-      {fieldId: 'gender', value: '1'},
-    ],
+    condition: [{fieldId: 'whatWorks', value: '1'}],
     collapseTitle: 'workAndEducation',
   },
   {
@@ -367,10 +450,7 @@ const detailsFormArray: FormField[] = [
     text: 'kollelLabel',
     keyboardTypeOption: 'default',
     fieldType: 'input',
-    condition: [
-      {fieldId: 'whatWorks', value: '2'},
-      {fieldId: 'gender', value: '1'},
-    ],
+    condition: [{fieldId: 'whatWorks', value: '2'}],
     collapseTitle: 'workAndEducation',
   },
   {
@@ -498,7 +578,28 @@ const detailsFormArray: FormField[] = [
     id: 'rabbiPhone',
     text: 'rabbiPhoneNumber',
     keyboardTypeOption: 'numeric',
+    inputMode: 'numeric',
+    onlyDigits: true,
     fieldType: 'input',
+    collapseTitle: 'additionalDetails',
+    maxLength: 10,
+  },
+  {
+    id: 'helpWithMoney',
+    text: 'helpWithMoney',
+    keyboardTypeOption: 'numeric',
+    inputMode: 'numeric',
+    onlyDigits: true,
+    formatWithCommas: true,
+    fieldType: 'input',
+    collapseTitle: 'additionalDetails',
+  },
+  {
+    id: 'helpWithMoneyDetails',
+    text: 'helpWithMoneyDetails',
+    keyboardTypeOption: 'default',
+    fieldType: 'input',
+    isMultiline: true,
     collapseTitle: 'additionalDetails',
   },
   {

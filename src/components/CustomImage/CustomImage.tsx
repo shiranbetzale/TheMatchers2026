@@ -2,9 +2,9 @@ import React, {useMemo, useState} from 'react';
 import { Image } from 'react-native';
 import { styles } from './CustomImage.style';
 import { CustomImageType } from './CustomImage.type';
+import {getDefaultProfileImage} from '../../utils/generalFunction';
 
-const DEFAULT_IMAGE_URI =
-  'https://www.shutterstock.com/image-photo/cartoon-3d-icon-thai-tuk-600w-2251713231.jpg';
+const DEFAULT_IMAGE_URI = getDefaultProfileImage();
 
 const CustomImage = (props: CustomImageType) => {
   const { src, customImgStyle } = props;

@@ -11,7 +11,7 @@ export const styles = StyleSheet.create({
     justifyContent: "center",
   },
   smallContainer: {
-    minHeight: 76,
+    minHeight: 104,
   },
   label: {
     ...FontsStyle.questionLabel,
@@ -20,26 +20,37 @@ export const styles = StyleSheet.create({
     marginBottom: GeneralStyle.spacing.xs,
   },
   smallRange: {
-    marginRight: GeneralStyle.spacing.sm,
-    marginBottom: GeneralStyle.spacing.sm / 2,
+    width: '100%',
+    marginBottom: GeneralStyle.spacing.xs,
     alignItems: 'center',
   },
   rangeContainer: {
-    flexDirection: "row",
+    flexDirection: "column",
     alignItems: 'center',
     justifyContent: "center",
     width: "100%",
-    marginTop: GeneralStyle.spacing.sm
+    marginTop: GeneralStyle.spacing.sm,
+    paddingHorizontal: GeneralStyle.spacing.sm,
+    rowGap: GeneralStyle.spacing.sm,
   },
   range: {
+    width: '100%',
     alignItems: 'center',
-    width: "70%",
   },
   rangeText: {
-    width: "15%",
+    width: 118,
+    alignItems: 'center',
   },
   smallRangeText: {
-    width: '15%',
+    width: 104,
+    alignItems: 'center',
+  },
+  stepperRow: {
+    width: '100%',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: GeneralStyle.spacing.xs,
   },
   left: {
     left: 0,
@@ -58,6 +69,45 @@ export const styles = StyleSheet.create({
   },
   selectedStyle: {
     backgroundColor: Colors.darkGreen
+  },
+  stepper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 3,
+  },
+  stepButton: {
+    width: 30,
+    height: 30,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: GeneralStyle.radius.sm,
+    borderWidth: 1,
+    borderColor: Colors.borderSoft,
+    backgroundColor: Colors.ivory,
+    ...Colors.Shadow,
+    elevation: 2,
+  },
+  stepButtonDisabled: {
+    opacity: 0.35,
+  },
+  stepButtonText: {
+    ...FontsStyle.subTitle,
+    color: Colors.darkGreen,
+    fontSize: 18,
+    lineHeight: 20,
+    textAlign: 'center',
+  },
+  stepValue: {
+    ...FontsStyle.text,
+    minWidth: 34,
+    height: 34,
+    paddingHorizontal: 2,
+    paddingVertical: 0,
+    textAlign: 'center',
+    color: Colors.darkGreen,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.borderSoft,
   },
   textRight: {
     textAlign: 'right',

@@ -12,7 +12,20 @@
           "package_name": "com.thematchers"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "1008658155257-fvrp01861lsdndj0kspqalt6egnuk3ce.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.thematchers",
+            "certificate_hash": "5e8f16062ea3cd2c4a0d547876baa6f38cabf625"
+          }
+        },
+        {
+          "client_id": "1008658155257-bi1udjf7hfteg1tsblfju65nc3ipuoes.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyDrY2pnmLo4c8zho-gUNQewR_WFeCCmbUc"
@@ -20,7 +33,19 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1008658155257-bi1udjf7hfteg1tsblfju65nc3ipuoes.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "1008658155257-fc34vgfr3ftu1vnf8or2kermi038q7en.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "TheMatchers"
+              }
+            }
+          ]
         }
       }
     }

@@ -1,7 +1,7 @@
 import React, {useEffect, useState} from 'react';
 import {
-  Alert,
   Modal,
+  ScrollView,
   Text,
   TextInput,
   TouchableOpacity,
@@ -24,11 +24,12 @@ import MatchCard from '../../components/MatchCard/MatchCard';
 import {MatchCardType} from '../../components/MatchCard/MatchCard.type';
 import HomeScreen from '../HomeScreen/HomeScreen';
 import {RootStackParamList} from '../../components/MainStackNavigation/MainStackNavigation.type';
-import {UserRole, getSessionRole} from '../../services/session';
+import {UserRole, getSessionRole, getSessionUser} from '../../services/session';
 import ClockSvg from '../../assets/images/clock.svg';
 import DatePickerSvg from '../../assets/images/datePicker.svg';
 import LocationSvg from '../../assets/images/location.svg';
 import {useLanguage} from '../../utils/LanguageProvider';
+import {useMessage} from '../../utils/MessageProvider';
 import api from '../../services/api';
 import {isArchivedCard} from '../../utils/archiveCards';
 import {Option} from '../../utils/FormFields.type';
@@ -37,16 +38,54 @@ import {styles} from './MatchCardsScreen.style';
 import {SelectOptionWithValue} from './MatchCardsScreen.type';
 import {
   formatTimePart,
+  getDefaultProfileImage,
   mapProfileToCard,
   normalizeMeetingTime,
 } from '../../utils/generalFunction';
+import {buildAiSortedMatches} from '../../utils/matchScoring';
 
 type NavigationProp = StackNavigationProp<RootStackParamList>;
 type MatchCardsRouteProp = RouteProp<RootStackParamList, 'MatchCardsScreen'>;
 type MeetingStatus = NonNullable<MatchCardType['meetingStatus']>;
 
-const DEFAULT_PROFILE_IMAGE =
-  'https://www.shutterstock.com/image-photo/cartoon-3d-icon-thai-tuk-600w-2251713231.jpg';
+const buildMatchmakerOptions = (
+  profiles: any[],
+  users: any[],
+): SelectOptionWithValue[] => {
+  const matchmakerMap = new Map<string, string>();
+
+  users.forEach((user: any) => {
+    const userId = String(user.id || user._id || '').trim();
+    const userName = String(user.fullName || user.name || '').trim();
+    const userRole = String(user.role || '').trim();
+
+    if (
+      userId &&
+      userName &&
+      (userRole === 'matchmaker' || userRole === 'admin')
+    ) {
+      matchmakerMap.set(userId, userName);
+    }
+  });
+
+  profiles.forEach((profile: any) => {
+    const assignedMatchmaker = String(profile.assignedMatchmaker || '').trim();
+    const matcherName = String(profile.matcherName || '').trim();
+
+    if (assignedMatchmaker && matcherName) {
+      matchmakerMap.set(assignedMatchmaker, matcherName);
+    }
+  });
+
+  return Array.from(matchmakerMap.entries()).map(
+    ([matchmakerId, matcherName], index) => ({
+      id: index + 1,
+      name: 'collaborationMatchmaker',
+      label: matcherName,
+      value: matchmakerId,
+    }),
+  );
+};
 
 const DEFAULT_CURRENT_CARD: MatchCardType = {
   gender: 'female',
@@ -56,7 +95,7 @@ const DEFAULT_CURRENT_CARD: MatchCardType = {
   status: 'widower',
   numOfChildren: 5,
   city: 'cityBneiBrak',
-  images: [DEFAULT_PROFILE_IMAGE],
+  images: [getDefaultProfileImage('female')],
   mail: '',
   phone: '',
   matcherPhone: '',
@@ -67,7 +106,9 @@ const MatchCardsScreen = () => {
   const navigation = useNavigation<NavigationProp>();
   const route = useRoute<MatchCardsRouteProp>();
   const {isRTL, language, t} = useLanguage();
+  const {showMessage} = useMessage();
   const [userRole, setUserRole] = useState<UserRole | null>(null);
+  const [currentUserId, setCurrentUserId] = useState('');
   const [isMeetingDateOpen, setIsMeetingDateOpen] = useState(false);
   const [isMeetingTimeOpen, setIsMeetingTimeOpen] = useState(false);
   const [isMeetingModalOpen, setIsMeetingModalOpen] = useState(false);
@@ -85,6 +126,9 @@ const MatchCardsScreen = () => {
 
   useEffect(() => {
     getSessionRole().then(setUserRole);
+    getSessionUser().then(sessionUser => {
+      setCurrentUserId(sessionUser?.id ?? '');
+    });
   }, []);
 
   const [currentCard, setCurrentCard] = useState<MatchCardType>(
@@ -98,10 +142,24 @@ const MatchCardsScreen = () => {
   }, [route.params?.card]);
 
   useEffect(() => {
-    if (route.params?.openMeetingModal && canManageMeetings) {
-      setIsMeetingModalOpen(true);
+    if (!route.params?.openMeetingModal || userRole === null) {
+      return;
     }
-  }, [canManageMeetings, route.params?.openMeetingModal]);
+
+    if (!canManageMeetings) {
+      showMessage({type: 'error', message: t('errorProfileAccessDenied')});
+      return;
+    }
+
+    setIsMeetingModalOpen(true);
+  }, [
+    canManageMeetings,
+    route.params?.meetingEditToken,
+    route.params?.openMeetingModal,
+    showMessage,
+    t,
+    userRole,
+  ]);
 
   const fetchCurrentCardDetails = React.useCallback(async () => {
     try {
@@ -183,40 +241,26 @@ const MatchCardsScreen = () => {
 
   const fetchMatches = React.useCallback(async () => {
     try {
-      const response = await api.get('/api/profiles');
-      const profiles = Array.isArray(response.data?.profiles)
-        ? response.data.profiles
+      const [profilesResponse, matchmakersResponse] = await Promise.all([
+        api.get('/api/profiles'),
+        api.get('/api/users/matchmakers'),
+      ]);
+      const profiles = Array.isArray(profilesResponse.data?.profiles)
+        ? profilesResponse.data.profiles
+        : [];
+      const matchmakers = Array.isArray(matchmakersResponse.data?.users)
+        ? matchmakersResponse.data.users
         : [];
       setAllProfiles(profiles);
 
       buildPartnerOptions(profiles, currentCard.collaborationMatchmaker);
+      setMatchmakerOptions(buildMatchmakerOptions(profiles, matchmakers));
 
-      const matchmakerMap = new Map<string, string>();
-
-      profiles.forEach((profile: any) => {
-        const assignedMatchmaker = String(
-          profile.assignedMatchmaker || '',
-        ).trim();
-        const matcherName = String(profile.matcherName || '').trim();
-
-        if (assignedMatchmaker && matcherName) {
-          matchmakerMap.set(assignedMatchmaker, matcherName);
-        }
-      });
-
-      const collaborationOptions: SelectOptionWithValue[] = Array.from(
-        matchmakerMap.entries(),
-      ).map(([matchmakerId, matcherName], index) => ({
-        id: index + 1,
-        name: 'collaborationMatchmaker',
-        label: matcherName,
-        value: matchmakerId,
-      }));
-
-      setMatchmakerOptions(collaborationOptions);
-
-      const mapped: MatchCardType[] = profiles
-        .map((profile: any) => mapProfileToCard(profile))
+      const eligibleMatches: MatchCardType[] = buildAiSortedMatches(
+        currentCard,
+        profiles,
+        {minScore: 0},
+      )
         .filter((card: MatchCardType) => !isArchivedCard(card))
         .filter((card: MatchCardType) => {
           if (currentCard.profileId) {
@@ -240,6 +284,12 @@ const MatchCardsScreen = () => {
 
           return card.gender !== currentCard.gender;
         });
+      const visibleMatches = eligibleMatches.filter(
+        card => (card.aiMatchScore || 0) >= 70,
+      );
+      const mapped = visibleMatches.length
+        ? visibleMatches
+        : eligibleMatches.slice(0, 1);
 
       setMatchArray(mapped);
     } catch {
@@ -278,6 +328,26 @@ const MatchCardsScreen = () => {
     }
 
     return normalizeMeetingTime(value) === value;
+  };
+
+  const isMeetingDateTimeInPast = (dateValue?: string, timeValue?: string) => {
+    const normalizedTime = normalizeMeetingTime(timeValue);
+
+    if (!dateValue || !normalizedTime) {
+      return false;
+    }
+
+    const date = new Date(dateValue);
+
+    if (Number.isNaN(date.getTime())) {
+      return false;
+    }
+
+    const [hours, minutes] = normalizedTime.split(':').map(Number);
+    const meetingDateTime = new Date(date);
+    meetingDateTime.setHours(hours, minutes, 0, 0);
+
+    return meetingDateTime.getTime() <= Date.now();
   };
 
   const updateCurrentMeetingStatus = (meetingStatus: MeetingStatus) => {
@@ -327,6 +397,9 @@ const MatchCardsScreen = () => {
   const hasInvalidMeetingTime =
     Boolean(currentCard.meetingTime) &&
     !isValidMeetingTime(currentCard.meetingTime);
+  const hasPastMeetingDateTime =
+    currentCard.meetingStatus === 'busy' &&
+    isMeetingDateTimeInPast(currentCard.meetingDate, currentCard.meetingTime);
   const currentMeetingTimeText =
     normalizeMeetingTime(currentCard.meetingTime) ?? 'meetingTime';
   const [selectedHour, selectedMinute] = timePickerValue.split(':').map(Number);
@@ -375,8 +448,8 @@ const MatchCardsScreen = () => {
       }
 
       if (!profileId) {
-        Alert.alert(t('error'), t('errorGeneric'));
-        return;
+        showMessage({type: 'error', message: t('errorGeneric')});
+        return false;
       }
 
       const normalizedMeetingTime = normalizeMeetingTime(
@@ -385,23 +458,33 @@ const MatchCardsScreen = () => {
 
       if (currentCard.meetingStatus === 'busy') {
         if (!currentCard.meetingDate) {
-          Alert.alert(t('error'), t('meetingDateRequired'));
-          return;
+          showMessage({type: 'error', message: t('meetingDateRequired')});
+          return false;
         }
 
         if (!normalizedMeetingTime) {
-          Alert.alert(t('error'), t('meetingTimeRequired'));
-          return;
+          showMessage({type: 'error', message: t('meetingTimeRequired')});
+          return false;
+        }
+
+        if (
+          isMeetingDateTimeInPast(
+            currentCard.meetingDate,
+            normalizedMeetingTime,
+          )
+        ) {
+          showMessage({type: 'error', message: t('meetingTimeInPast')});
+          return false;
         }
 
         if (!currentCard.meetingLocation?.trim()) {
-          Alert.alert(t('error'), t('meetingLocationRequired'));
-          return;
+          showMessage({type: 'error', message: t('meetingLocationRequired')});
+          return false;
         }
 
         if (!currentCard.partnerName?.trim()) {
-          Alert.alert(t('error'), t('partnerRequired'));
-          return;
+          showMessage({type: 'error', message: t('partnerRequired')});
+          return false;
         }
       }
 
@@ -434,9 +517,19 @@ const MatchCardsScreen = () => {
       });
 
       await fetchCurrentCardDetails();
+      return true;
     } catch (error) {
       console.warn('Failed to save meeting', error);
-      Alert.alert(t('error'), t('errorServer'));
+      const status = (error as any)?.response?.status;
+      const messageKey =
+        status === 403
+          ? 'errorProfileAccessDenied'
+          : status === 404
+            ? 'profileNotFoundForUpdate'
+            : 'errorServer';
+
+      showMessage({type: 'error', message: t(messageKey)});
+      return false;
     }
   };
 
@@ -476,6 +569,9 @@ const MatchCardsScreen = () => {
           <CurrentCard
             {...currentCard}
             isShowMeetingButton={canManageMeetings}
+            isShowInfoButtons={true}
+            currentUserRole={userRole || undefined}
+            currentUserId={currentUserId}
             onMeetingPress={() => setIsMeetingModalOpen(true)}
           />
         </View>
@@ -494,15 +590,61 @@ const MatchCardsScreen = () => {
         />
       </View>
       {matchArray.map((matchItem, index) => (
-        <View key={matchItem.profileId || matchItem.phone} style={styles.card}>
+        <TouchableOpacity
+          key={matchItem.profileId || matchItem.phone || String(index)}
+          activeOpacity={0.9}
+          style={styles.card}
+          onPress={() =>
+            navigation.navigate('MatchCardsScreen', {
+              card: matchItem,
+            })
+          }>
+          <View
+            style={[
+              styles.aiScoreBar,
+              isRTL ? styles.rowReverse : styles.row,
+            ]}>
+            <View style={styles.aiScoreBadge}>
+              <CustomText
+                text={`${matchItem.aiMatchScore || 1}%`}
+                customStyle={styles.aiScoreValue}
+              />
+              <CustomText text="aiMatch" customStyle={styles.aiScoreLabel} />
+            </View>
+
+            <View
+              style={[
+                styles.aiReasons,
+                isRTL ? styles.alignEnd : styles.alignStart,
+              ]}>
+              <CustomText
+                text="aiMatchRecommended"
+                customStyle={[
+                  styles.aiReasonsTitle,
+                  isRTL ? styles.textRight : styles.textLeft,
+                ]}
+              />
+              {matchItem.aiMatchReasons?.length ? (
+                <CustomText
+                  text={matchItem.aiMatchReasons.join(' • ')}
+                  customStyle={[
+                    styles.aiReasonsText,
+                    isRTL ? styles.textRight : styles.textLeft,
+                  ]}
+                />
+              ) : null}
+            </View>
+          </View>
           <MatchCard
             {...matchItem}
             isShowMoreInfo={false}
-            isShowInfoButtons={false}
+            isShowInfoButtons={true}
             isShowMeetingInfo={true}
             isImagePreviewEnabled={true}
+            currentUserRole={userRole || undefined}
+            currentUserId={currentUserId}
           />
-        </View>
+        </TouchableOpacity>
       ))}
       {matchArray.length === 0 && (
         <View
@@ -525,320 +667,344 @@ const MatchCardsScreen = () => {
         visible={isMeetingModalOpen}
         onRequestClose={() => setIsMeetingModalOpen(false)}>
         <View style={styles.modalOverlay}>
-          <View style={styles.meetingModal}>
-            <View
-              style={[
-                styles.modalHeader,
-                isRTL ? styles.rowReverse : styles.row,
-              ]}>
-              <CustomText
-                text="meetingManagement"
-                customStyle={[
-                  styles.modalTitle,
-                  isRTL ? styles.textRight : styles.textLeft,
-                ]}
-              />
-              <TouchableOpacity
-                style={styles.modalCloseButton}
-                onPress={() => {
-                  setIsMeetingTimeOpen(false);
-                  setIsMeetingModalOpen(false);
-                }}>
-                <CustomText text="×" customStyle={styles.modalCloseText} />
-              </TouchableOpacity>
-            </View>
-
-            <View
-              style={[
-                styles.meetingStatusRow,
-                isRTL ? styles.rowReverse : styles.row,
-              ]}>
-              <TouchableOpacity
-                activeOpacity={0.85}
+          <ScrollView
+            style={styles.meetingModalScroll}
+            contentContainerStyle={styles.meetingModalScrollContent}
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}>
+            <View style={styles.meetingModal}>
+              <View
                 style={[
-                  styles.statusButton,
-                  currentCard.meetingStatus === 'available' &&
-                    styles.statusButtonActive,
-                ]}
-                onPress={() => updateCurrentMeetingStatus('available')}>
-                <View style={styles.statusDot} />
+                  styles.modalHeader,
+                  isRTL ? styles.rowReverse : styles.row,
+                ]}>
                 <CustomText
-                  text="available"
+                  text="meetingManagement"
                   customStyle={[
-                    styles.statusButtonText,
-                    currentCard.meetingStatus === 'available' &&
-                      styles.statusButtonTextActive,
-                  ]}
-                />
-              </TouchableOpacity>
-              <TouchableOpacity
-                activeOpacity={0.85}
-                style={[
-                  styles.statusButton,
-                  currentCard.meetingStatus === 'busy' &&
-                    styles.statusButtonActive,
-                ]}
-                onPress={() => updateCurrentMeetingStatus('busy')}>
-                <View style={styles.statusDot} />
-                <CustomText
-                  text="busy"
-                  customStyle={[
-                    styles.statusButtonText,
-                    currentCard.meetingStatus === 'busy' &&
-                      styles.statusButtonTextActive,
-                  ]}
-                />
-              </TouchableOpacity>
-            </View>
-
-            {isMeetingBusy ? (
-              <>
-                <View style={styles.fieldGroup}>
-                  <CustomText
-                    text="meetingDate"
-                    customStyle={[
-                      styles.fieldLabel,
-                      isRTL ? styles.textRight : styles.textLeft,
-                    ]}
-                  />
-                  <TouchableOpacity
-                    activeOpacity={0.85}
-                    style={[
-                      styles.meetingField,
-                      isRTL ? styles.rowReverse : styles.row,
-                    ]}
-                    onPress={() => setIsMeetingDateOpen(true)}>
-                    <View style={styles.meetingIconBox}>
-                      <DatePickerSvg width={22} height={22} />
-                    </View>
-                    <Text
-                      style={[
-                        styles.meetingFieldText,
-                        isRTL ? styles.textRight : styles.textLeft,
-                      ]}>
-                      {currentMeetingDateText === 'meetingDate'
-                        ? t('meetingDate')
-                        : currentMeetingDateText}
-                    </Text>
-                  </TouchableOpacity>
-                </View>
-                <View style={styles.fieldGroup}>
-                  <CustomText
-                    text="meetingTime"
-                    customStyle={[
-                      styles.fieldLabel,
-                      isRTL ? styles.textRight : styles.textLeft,
-                    ]}
-                  />
-                  <TouchableOpacity
-                    activeOpacity={0.85}
-                    style={[
-                      styles.meetingField,
-                      isRTL ? styles.rowReverse : styles.row,
-                      hasInvalidMeetingTime && styles.invalidMeetingField,
-                    ]}
-                    onPress={openMeetingTimePicker}>
-                    <View style={styles.meetingIconBox}>
-                      <ClockSvg width={22} height={22} />
-                    </View>
-                    <Text
-                      style={[
-                        styles.meetingFieldText,
-                        currentMeetingTimeText !== 'meetingTime' &&
-                          styles.meetingTimeText,
-                        isRTL ? styles.textRight : styles.textLeft,
-                      ]}>
-                      {currentMeetingTimeText === 'meetingTime'
-                        ? t('meetingTime')
-                        : currentMeetingTimeText}
-                    </Text>
-                  </TouchableOpacity>
-                </View>
-                {isMeetingTimeOpen && (
-                  <View style={styles.inlineTimePicker}>
-                    <Text style={styles.timePickerValue}>
-                      {timePickerValue}
-                    </Text>
-
-                    <View style={styles.timePickerColumns}>
-                      <View style={styles.timePickerColumn}>
-                        <CustomText
-                          text="minutes"
-                          customStyle={styles.timePickerLabel}
-                        />
-                        <TouchableOpacity
-                          style={styles.timePickerButton}
-                          onPress={() => updateTimePickerValue('minute', 5)}>
-                          <CustomText
-                            text="+"
-                            customStyle={styles.timePickerButtonText}
-                          />
-                        </TouchableOpacity>
-                        <Text style={styles.timePickerPart}>
-                          {formatTimePart(selectedMinute)}
-                        </Text>
-                        <TouchableOpacity
-                          style={styles.timePickerButton}
-                          onPress={() => updateTimePickerValue('minute', -5)}>
-                          <CustomText
-                            text="-"
-                            customStyle={styles.timePickerButtonText}
-                          />
-                        </TouchableOpacity>
-                      </View>
-
-                      <View style={styles.timePickerSeparator} />
-
-                      <View style={styles.timePickerColumn}>
-                        <CustomText
-                          text="hour"
-                          customStyle={styles.timePickerLabel}
-                        />
-                        <TouchableOpacity
-                          style={styles.timePickerButton}
-                          onPress={() => updateTimePickerValue('hour', 1)}>
-                          <CustomText
-                            text="+"
-                            customStyle={styles.timePickerButtonText}
-                          />
-                        </TouchableOpacity>
-                        <Text style={styles.timePickerPart}>
-                          {formatTimePart(selectedHour)}
-                        </Text>
-                        <TouchableOpacity
-                          style={styles.timePickerButton}
-                          onPress={() => updateTimePickerValue('hour', -1)}>
-                          <CustomText
-                            text="-"
-                            customStyle={styles.timePickerButtonText}
-                          />
-                        </TouchableOpacity>
-                      </View>
-                    </View>
-
-                    <CustomButton
-                      text="confirmTime"
-                      customStyle={styles.timePickerConfirmButton}
-                      customTextStyle={styles.modalSaveText}
-                      onPress={saveMeetingTime}
-                    />
-                  </View>
-                )}
-                {hasInvalidMeetingTime && (
-                  <CustomText
-                    text="invalidMeetingTime"
-                    customStyle={styles.validationText}
-                  />
-                )}
-                <View style={styles.fieldGroup}>
-                  <CustomText
-                    text="meetingLocation"
-                    customStyle={[
-                      styles.fieldLabel,
-                      isRTL ? styles.textRight : styles.textLeft,
-                    ]}
-                  />
-                  <View
-                    style={[
-                      styles.meetingField,
-                      isRTL ? styles.rowReverse : styles.row,
-                    ]}>
-                    <View style={styles.meetingIconBox}>
-                      <LocationSvg width={22} height={22} />
-                    </View>
-                    <TextInput
-                      style={[
-                        styles.meetingInput,
-                        isRTL ? styles.textRight : styles.textLeft,
-                      ]}
-                      placeholder={t('meetingLocation')}
-                      placeholderTextColor="#9CA3AF"
-                      value={currentCard.meetingLocation ?? ''}
-                      onChangeText={value =>
-                        updateCurrentMeetingField('meetingLocation', value)
-                      }
-                    />
-                  </View>
-                </View>
-                <View style={styles.selectFieldContainer}>
-                  <CustomSelect
-                    text="collaborationMatchmaker"
-                    value={
-                      matchmakerOptions.find(
-                        option =>
-                          option.value === currentCard.collaborationMatchmaker,
-                      )?.label || ''
-                    }
-                    options={matchmakerOptions}
-                    onSelect={option => {
-                      const selectedOption = option as
-                        | SelectOptionWithValue
-                        | undefined;
-                      const selectedMatchmakerId = selectedOption?.value || '';
-
-                      setCurrentCard(card => ({
-                        ...card,
-                        collaborationMatchmaker: selectedMatchmakerId,
-                        partnerName: '',
-                        partnerProfileId: undefined,
-                      }));
-
-                      buildPartnerOptions(allProfiles, selectedMatchmakerId);
-                    }}
-                  />
-                </View>
-                <View style={styles.selectFieldContainer}>
-                  <CustomSelect
-                    text="partner"
-                    value={currentCard.partnerName || ''}
-                    options={partnerOptions}
-                    onSelect={option =>
-                      setCurrentCard(card => ({
-                        ...card,
-                        partnerName: option?.label || '',
-                        partnerProfileId: option?.label
-                          ? partnerByName[option.label] || undefined
-                          : undefined,
-                      }))
-                    }
-                  />
-                </View>
-              </>
-            ) : (
-              <View style={styles.availableMessage}>
-                <CustomText
-                  text="meetingAvailableMessage"
-                  customStyle={[
-                    styles.availableMessageText,
+                    styles.modalTitle,
                     isRTL ? styles.textRight : styles.textLeft,
                   ]}
                 />
+                <TouchableOpacity
+                  style={styles.modalCloseButton}
+                  onPress={() => {
+                    setIsMeetingTimeOpen(false);
+                    setIsMeetingModalOpen(false);
+                  }}>
+                  <CustomText text="×" customStyle={styles.modalCloseText} />
+                </TouchableOpacity>
               </View>
-            )}
-            <CustomButton
-              text="save"
-              customStyle={styles.modalSaveButton}
-              customTextStyle={styles.modalSaveText}
-              onPress={async () => {
-                await saveMeetingToServer();
-                setIsMeetingTimeOpen(false);
-                setIsMeetingModalOpen(false);
-              }}
-              isDisabled={isMeetingBusy && hasInvalidMeetingTime}
-            />
-            <DatePicker
-              modal
-              open={isMeetingDateOpen}
-              date={currentMeetingDate || new Date()}
-              minimumDate={today}
-              mode="date"
-              onConfirm={date => {
-                setIsMeetingDateOpen(false);
-                updateCurrentMeetingDate(date);
-              }}
-              onCancel={() => setIsMeetingDateOpen(false)}
-            />
-          </View>
+
+              <View
+                style={[
+                  styles.meetingStatusRow,
+                  isRTL ? styles.rowReverse : styles.row,
+                ]}>
+                <TouchableOpacity
+                  activeOpacity={0.85}
+                  style={[
+                    styles.statusButton,
+                    currentCard.meetingStatus === 'available' &&
+                      styles.statusButtonActive,
+                  ]}
+                  onPress={() => updateCurrentMeetingStatus('available')}>
+                  <View style={styles.statusDot} />
+                  <CustomText
+                    text="available"
+                    customStyle={[
+                      styles.statusButtonText,
+                      currentCard.meetingStatus === 'available' &&
+                        styles.statusButtonTextActive,
+                    ]}
+                  />
+                </TouchableOpacity>
+                <TouchableOpacity
+                  activeOpacity={0.85}
+                  style={[
+                    styles.statusButton,
+                    currentCard.meetingStatus === 'busy' &&
+                      styles.statusButtonActive,
+                  ]}
+                  onPress={() => updateCurrentMeetingStatus('busy')}>
+                  <View style={styles.statusDot} />
+                  <CustomText
+                    text="busy"
+                    customStyle={[
+                      styles.statusButtonText,
+                      currentCard.meetingStatus === 'busy' &&
+                        styles.statusButtonTextActive,
+                    ]}
+                  />
+                </TouchableOpacity>
+              </View>
+
+              {isMeetingBusy ? (
+                <>
+                  <View style={styles.fieldGroup}>
+                    <CustomText
+                      text="meetingDate"
+                      customStyle={[
+                        styles.fieldLabel,
+                        isRTL ? styles.textRight : styles.textLeft,
+                      ]}
+                    />
+                    <TouchableOpacity
+                      activeOpacity={0.85}
+                      style={[
+                        styles.meetingField,
+                        isRTL ? styles.rowReverse : styles.row,
+                      ]}
+                      onPress={() => setIsMeetingDateOpen(true)}>
+                      <View style={styles.meetingIconBox}>
+                        <DatePickerSvg width={22} height={22} />
+                      </View>
+                      <Text
+                        style={[
+                          styles.meetingFieldText,
+                          isRTL ? styles.textRight : styles.textLeft,
+                        ]}>
+                        {currentMeetingDateText === 'meetingDate'
+                          ? t('meetingDate')
+                          : currentMeetingDateText}
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                  <View style={styles.fieldGroup}>
+                    <CustomText
+                      text="meetingTime"
+                      customStyle={[
+                        styles.fieldLabel,
+                        isRTL ? styles.textRight : styles.textLeft,
+                      ]}
+                    />
+                    <TouchableOpacity
+                      activeOpacity={0.85}
+                      style={[
+                        styles.meetingField,
+                        isRTL ? styles.rowReverse : styles.row,
+                        hasInvalidMeetingTime && styles.invalidMeetingField,
+                      ]}
+                      onPress={openMeetingTimePicker}>
+                      <View style={styles.meetingIconBox}>
+                        <ClockSvg width={22} height={22} />
+                      </View>
+                      <Text
+                        style={[
+                          styles.meetingFieldText,
+                          currentMeetingTimeText !== 'meetingTime' &&
+                            styles.meetingTimeText,
+                          isRTL ? styles.textRight : styles.textLeft,
+                        ]}>
+                        {currentMeetingTimeText === 'meetingTime'
+                          ? t('meetingTime')
+                          : currentMeetingTimeText}
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                  {isMeetingTimeOpen && (
+                    <View style={styles.inlineTimePicker}>
+                      <Text style={styles.timePickerValue}>
+                        {timePickerValue}
+                      </Text>
+
+                      <View style={styles.timePickerColumns}>
+                        <View style={styles.timePickerColumn}>
+                          <CustomText
+                            text="minutes"
+                            customStyle={styles.timePickerLabel}
+                          />
+                          <TouchableOpacity
+                            style={styles.timePickerButton}
+                            onPress={() => updateTimePickerValue('minute', 5)}>
+                            <CustomText
+                              text="+"
+                              customStyle={styles.timePickerButtonText}
+                            />
+                          </TouchableOpacity>
+                          <Text style={styles.timePickerPart}>
+                            {formatTimePart(selectedMinute)}
+                          </Text>
+                          <TouchableOpacity
+                            style={styles.timePickerButton}
+                            onPress={() => updateTimePickerValue('minute', -5)}>
+                            <CustomText
+                              text="-"
+                              customStyle={styles.timePickerButtonText}
+                            />
+                          </TouchableOpacity>
+                        </View>
+
+                        <View style={styles.timePickerSeparator} />
+
+                        <View style={styles.timePickerColumn}>
+                          <CustomText
+                            text="hour"
+                            customStyle={styles.timePickerLabel}
+                          />
+                          <TouchableOpacity
+                            style={styles.timePickerButton}
+                            onPress={() => updateTimePickerValue('hour', 1)}>
+                            <CustomText
+                              text="+"
+                              customStyle={styles.timePickerButtonText}
+                            />
+                          </TouchableOpacity>
+                          <Text style={styles.timePickerPart}>
+                            {formatTimePart(selectedHour)}
+                          </Text>
+                          <TouchableOpacity
+                            style={styles.timePickerButton}
+                            onPress={() => updateTimePickerValue('hour', -1)}>
+                            <CustomText
+                              text="-"
+                              customStyle={styles.timePickerButtonText}
+                            />
+                          </TouchableOpacity>
+                        </View>
+                      </View>
+
+                      <CustomButton
+                        text="confirmTime"
+                        customStyle={styles.timePickerConfirmButton}
+                        customTextStyle={styles.modalSaveText}
+                        onPress={saveMeetingTime}
+                      />
+                    </View>
+                  )}
+                  {hasInvalidMeetingTime && (
+                    <CustomText
+                      text="invalidMeetingTime"
+                      customStyle={styles.validationText}
+                    />
+                  )}
+                  {hasPastMeetingDateTime && (
+                    <CustomText
+                      text="meetingTimeInPast"
+                      customStyle={styles.validationText}
+                    />
+                  )}
+                  <View style={styles.fieldGroup}>
+                    <CustomText
+                      text="meetingLocation"
+                      customStyle={[
+                        styles.fieldLabel,
+                        isRTL ? styles.textRight : styles.textLeft,
+                      ]}
+                    />
+                    <View
+                      style={[
+                        styles.meetingField,
+                        isRTL ? styles.rowReverse : styles.row,
+                      ]}>
+                      <View style={styles.meetingIconBox}>
+                        <LocationSvg width={22} height={22} />
+                      </View>
+                      <TextInput
+                        style={[
+                          styles.meetingInput,
+                          isRTL ? styles.textRight : styles.textLeft,
+                        ]}
+                        placeholder={t('meetingLocation')}
+                        placeholderTextColor="#9CA3AF"
+                        value={currentCard.meetingLocation ?? ''}
+                        onChangeText={value =>
+                          updateCurrentMeetingField('meetingLocation', value)
+                        }
+                      />
+                    </View>
+                  </View>
+                  <View style={styles.selectFieldContainer}>
+                    <CustomSelect
+                      layout="column"
+                      text="collaborationMatchmaker"
+                      value={
+                        matchmakerOptions.find(
+                          option =>
+                            option.value ===
+                            currentCard.collaborationMatchmaker,
+                        )?.label || ''
+                      }
+                      options={matchmakerOptions}
+                      onSelect={option => {
+                        const selectedOption = option as
+                          | SelectOptionWithValue
+                          | undefined;
+                        const selectedMatchmakerId =
+                          selectedOption?.value || '';
+
+                        setCurrentCard(card => ({
+                          ...card,
+                          collaborationMatchmaker: selectedMatchmakerId,
+                          partnerName: '',
+                          partnerProfileId: undefined,
+                        }));
+
+                        buildPartnerOptions(allProfiles, selectedMatchmakerId);
+                      }}
+                    />
+                  </View>
+                  <View style={styles.selectFieldContainer}>
+                    <CustomSelect
+                      layout="column"
+                      text="partner"
+                      value={currentCard.partnerName || ''}
+                      options={partnerOptions}
+                      onSelect={option =>
+                        setCurrentCard(card => ({
+                          ...card,
+                          partnerName: option?.label || '',
+                          partnerProfileId: option?.label
+                            ? partnerByName[option.label] || undefined
+                            : undefined,
+                        }))
+                      }
+                    />
+                  </View>
+                </>
+              ) : (
+                <View style={styles.availableMessage}>
+                  <CustomText
+                    text="meetingAvailableMessage"
+                    customStyle={[
+                      styles.availableMessageText,
+                      isRTL ? styles.textRight : styles.textLeft,
+                    ]}
+                  />
+                </View>
+              )}
+              <CustomButton
+                text="save"
+                customStyle={styles.modalSaveButton}
+                customTextStyle={styles.modalSaveText}
+                onPress={async () => {
+                  const didSave = await saveMeetingToServer();
+
+                  if (!didSave) {
+                    return;
+                  }
+
+                  setIsMeetingTimeOpen(false);
+                  setIsMeetingModalOpen(false);
+                }}
+                isDisabled={
+                  isMeetingBusy &&
+                  (hasInvalidMeetingTime || hasPastMeetingDateTime)
+                }
+              />
+              <DatePicker
+                modal
+                open={isMeetingDateOpen}
+                date={currentMeetingDate || new Date()}
+                minimumDate={today}
+                mode="date"
+                onConfirm={date => {
+                  setIsMeetingDateOpen(false);
+                  updateCurrentMeetingDate(date);
+                }}
+                onCancel={() => setIsMeetingDateOpen(false)}
+              />
+            </View>
+          </ScrollView>
         </View>
       </Modal>
     </HomeScreen>

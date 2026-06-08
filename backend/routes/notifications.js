@@ -1,6 +1,7 @@
 const express = require('express');
 const DeviceToken = require('../models/DeviceToken');
 const {requireAuth} = require('../middleware/auth');
+const {sendPushNotification} = require('../services/pushNotifications');
 
 const router = express.Router();
 
@@ -18,18 +19,27 @@ router.post('/device-token', requireAuth(), async (req, res, next) => {
       throw createHttpError('token is required', 400);
     }
 
+    const cleanToken = String(token || '').trim();
     const tokens = await DeviceToken.find({});
-    const existingToken = tokens.find(item => item.token === token);
+    const matchingTokens = tokens.filter(item => item.token === cleanToken);
+    const [existingToken, ...duplicateTokens] = matchingTokens;
 
     if (existingToken) {
       existingToken.user = req.user.id;
+      existingToken.token = cleanToken;
       existingToken.platform = platform;
       existingToken.lastSeenAt = new Date();
       await existingToken.save();
+
+      if (duplicateTokens.length) {
+        await Promise.all(
+          duplicateTokens.map(item => DeviceToken.findByIdAndDelete(item.id)),
+        );
+      }
     } else {
       const deviceToken = new DeviceToken({
         user: req.user.id,
-        token,
+        token: cleanToken,
         platform,
         lastSeenAt: new Date(),
       });
@@ -58,10 +68,47 @@ router.delete('/device-token', requireAuth(), async (req, res, next) => {
     );
 
     if (existingToken) {
-      await existingToken.delete();
+      await DeviceToken.findByIdAndDelete(existingToken.id);
     }
 
     res.json({ok: true});
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.post('/test', requireAuth(), async (req, res, next) => {
+  try {
+    const tokens = await DeviceToken.find({});
+    const userTokens = tokens
+      .filter(item => String(item.user || '') === String(req.user.id))
+      .map(item => String(item.token || '').trim())
+      .filter(Boolean);
+
+    if (!userTokens.length) {
+      return res.status(404).json({
+        ok: false,
+        message: 'No device token found for current user',
+      });
+    }
+
+    const response = await sendPushNotification({
+      tokens: userTokens,
+      title: 'התראת בדיקה',
+      body: 'אם קיבלת את זה, נוטיפיקציות עובדות במכשיר הזה',
+      data: {
+        type: 'test_push',
+        userId: req.user.id,
+        sentAt: new Date().toISOString(),
+      },
+    });
+
+    res.json({
+      ok: response.successCount > 0,
+      tokenCount: userTokens.length,
+      successCount: response.successCount,
+      failureCount: response.failureCount,
+    });
   } catch (error) {
     next(error);
   }

@@ -8,4 +8,5 @@ type headerBtn = {
 export type CustomHeaderType = {
   headerBtns: headerBtn[];
   title?: string;
+  actionsPosition?: 'left' | 'right';
 };

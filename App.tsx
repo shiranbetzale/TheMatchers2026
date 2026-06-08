@@ -1,6 +1,5 @@
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {
-  Alert,
   Platform,
   SafeAreaView,
   StatusBar,
@@ -14,7 +13,11 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import BootSplash from 'react-native-bootsplash';
 import DrawerNavigation from './src/components/DrawerNavigation/DrawerNavigation';
 import {LanguageProvider, useLanguage} from './src/utils/LanguageProvider';
-import {isSessionValid} from './src/services/session';
+import {
+  getSessionRole,
+  isSessionValid,
+  subscribeSessionChanges,
+} from './src/services/session';
 import {
   handleForegroundPushNotifications,
   registerForPushNotifications,
@@ -22,31 +25,45 @@ import {
 } from './src/services/pushNotifications';
 import {LoadingProvider} from './src/utils/LoadingProvider';
 import GlobalLoader from './src/utils/GlobalLoader';
+import {MessageProvider} from './src/utils/MessageProvider';
+import firebase from '@react-native-firebase/app';
 
-type Route = 'Login' | 'MainScreen' | 'OnBoarding';
+console.log('Firebase Apps:', firebase.apps.length);
+console.log('Firebase App Name:', firebase.app().name);
+
+type Route = 'Login' | 'MainScreen' | 'OnBoarding' | 'Wizard';
 setupBackgroundPushNotifications();
 
 const AppContent = () => {
   const [initialRoute, setInitialRoute] = useState<Route | null>(null);
+  const [sessionVersion, setSessionVersion] = useState(0);
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const {isRTL} = useLanguage();
+
+  const resolveInitialRoute = useCallback(async (): Promise<Route> => {
+    const seen = await AsyncStorage.getItem('hasSeenOnboarding');
+    const hasActiveSession = await isSessionValid();
+    const sessionRole = hasActiveSession ? await getSessionRole() : null;
+
+    if (hasActiveSession) {
+      registerForPushNotifications();
+    }
+
+    if (seen !== 'true') {
+      return 'OnBoarding';
+    }
+
+    if (!hasActiveSession) {
+      return 'Login';
+    }
+
+    return sessionRole === 'user' ? 'Wizard' : 'MainScreen';
+  }, []);
 
   useEffect(() => {
     const init = async () => {
       try {
-        const seen = await AsyncStorage.getItem('hasSeenOnboarding');
-        const hasActiveSession = await isSessionValid();
-
-        if (hasActiveSession) {
-          registerForPushNotifications();
-        }
-
-        if (seen !== 'true') {
-          setInitialRoute('OnBoarding');
-          return;
-        }
-
-        setInitialRoute(hasActiveSession ? 'MainScreen' : 'Login');
+        setInitialRoute(await resolveInitialRoute());
       } catch (e) {
         console.warn('Error loading onboarding state:', e);
         setInitialRoute('Login');
@@ -55,16 +72,28 @@ const AppContent = () => {
       }
     };
     init();
-  }, []);
+  }, [resolveInitialRoute]);
 
   useEffect(() => {
-    return handleForegroundPushNotifications(message => {
-      const title = message.notification?.title || 'התראה חדשה';
-      const body = message.notification?.body || '';
-
-      Alert.alert(title, body);
-    });
+    return handleForegroundPushNotifications();
   }, []);
+
+  useEffect(
+    () =>
+      subscribeSessionChanges(() => {
+        resolveInitialRoute()
+          .then(nextRoute => {
+            setInitialRoute(nextRoute);
+            setSessionVersion(version => version + 1);
+          })
+          .catch(error => {
+            console.warn('Failed to refresh navigation session state', error);
+            setInitialRoute('Login');
+            setSessionVersion(version => version + 1);
+          });
+      }),
+    [resolveInitialRoute],
+  );
 
   useEffect(() => {
     if (initialRoute !== null) {
@@ -112,9 +141,10 @@ const AppContent = () => {
         },
       ]}>
       <SafeAreaView style={styles.safeArea}>
-        <NavigationContainer>
+        <NavigationContainer
+          key={`${isRTL ? 'rtl' : 'ltr'}-${initialRoute}-${sessionVersion}`}>
           <DrawerNavigation
-            key={isRTL ? 'rtl' : 'ltr'}
+            key={`${isRTL ? 'rtl' : 'ltr'}-${sessionVersion}`}
             initialRoute={initialRoute}
           />
         </NavigationContainer>
@@ -125,10 +155,12 @@ const AppContent = () => {
 
 const App = () => (
   <LanguageProvider>
-    <LoadingProvider>
-      <AppContent />
-      <GlobalLoader />
-    </LoadingProvider>
+    <MessageProvider>
+      <LoadingProvider>
+        <AppContent />
+        <GlobalLoader />
+      </LoadingProvider>
+    </MessageProvider>
   </LanguageProvider>
 );
 

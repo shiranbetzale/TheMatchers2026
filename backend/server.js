@@ -1,5 +1,5 @@
 const path = require('path');
-require('dotenv').config({ path: path.join(__dirname, '.env') });
+require('dotenv').config({path: path.join(__dirname, '.env')});
 const cors = require('cors');
 const express = require('express');
 const http = require('http');
@@ -10,7 +10,7 @@ try {
 } catch (err) {
   morgan = null;
 }
-const { connectToDatabase } = require('./config/db');
+const {connectToDatabase} = require('./config/db');
 const usersRouter = require('./routes/users');
 const authRouter = require('./routes/auth');
 const invitationsRouter = require('./routes/invitations');
@@ -29,7 +29,7 @@ if (morgan) {
 }
 
 app.get('/health', (_req, res) => {
-  res.json({ status: 'ok', timestamp: Date.now() });
+  res.json({status: 'ok', timestamp: Date.now()});
 });
 
 app.use('/auth', authRouter);
@@ -41,14 +41,14 @@ app.use('/api/contact', contactRouter);
 app.use('/api/notifications', notificationsRouter);
 
 app.use((req, res) => {
-  res.status(404).json({ error: 'not_found', path: req.originalUrl });
+  res.status(404).json({error: 'not_found', path: req.originalUrl});
 });
 
 app.use((err, _req, res, _next) => {
   console.error(err);
   res
     .status(err.status || 500)
-    .json({ error: 'server_error', message: err.message || 'Unexpected error' });
+    .json({error: 'server_error', message: err.message || 'Unexpected error'});
 });
 
 async function start(port = PORT) {
@@ -58,7 +58,7 @@ async function start(port = PORT) {
 
   return new Promise((resolve, reject) => {
     server.on('error', reject);
-    server.listen(port, () => {
+    server.listen(port, '0.0.0.0', () => {
       console.log(`Backend server listening on port ${port}`);
       resolve(server);
     });
@@ -72,4 +72,4 @@ if (require.main === module) {
   });
 }
 
-module.exports = { app, start };
+module.exports = {app, start};

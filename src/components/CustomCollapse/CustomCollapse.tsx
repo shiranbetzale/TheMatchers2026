@@ -1,9 +1,9 @@
 import React, {useEffect, useRef, useState} from 'react';
-import { SectionList } from 'react-native';
+import {SectionList} from 'react-native';
 import generateField from '../../utils/GenerateField';
 import WhiteCard from '../WhiteCard/WhiteCard';
-import { styles } from './CustomCollapse.style';
-import { CustomCollapseType } from './CustomCollapse.type';
+import {styles} from './CustomCollapse.style';
+import {CustomCollapseType} from './CustomCollapse.type';
 import CustomTitleCollapse from './CustomTitleCollapse';
 
 const CustomCollapse = (props: CustomCollapseType) => {
@@ -54,7 +54,7 @@ const CustomCollapse = (props: CustomCollapseType) => {
       return;
     }
 
-    setExpandedSections((currentExpandedSections) => {
+    setExpandedSections(currentExpandedSections => {
       const next = new Set(currentExpandedSections);
       if (next.has(title)) {
         next.delete(title);
@@ -73,22 +73,26 @@ const CustomCollapse = (props: CustomCollapseType) => {
       extraData={{expandedSections, lockedSectionTitles}}
       keyExtractor={(item, index) => item + index}
       removeClippedSubviews={false}
+      keyboardShouldPersistTaps="always"
       stickySectionHeadersEnabled={false}
       showsVerticalScrollIndicator={false}
-      renderItem={({ section: { title }, item }) => {
+      renderItem={({section: {title}, item}) => {
         const isExpanded = expandedSections.has(title);
         if (!isExpanded || lockedSectionTitles.includes(title)) return null;
-        return <WhiteCard customStyle={[
-          styles.whiteCardContainer,
-          item.fieldType === 'autocomplete' && styles.autocompleteCard,
-        ]}>
-          {generateField({
-            ...item,
-            handlePress: option => handlePress(option, item.id),
-          })}
-        </WhiteCard>
+        return (
+          <WhiteCard
+            customStyle={[
+              styles.whiteCardContainer,
+              item.fieldType === 'autocomplete' && styles.autocompleteCard,
+            ]}>
+            {generateField({
+              ...item,
+              handlePress: option => handlePress(option, item.id),
+            })}
+          </WhiteCard>
+        );
       }}
-      renderSectionHeader={({ section: { title } }) => (
+      renderSectionHeader={({section: {title}}) => (
         <CustomTitleCollapse
           title={title}
           handlePress={() => handleToggle(title)}

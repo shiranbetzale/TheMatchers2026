@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, {useEffect, useState} from "react";
 import {Text, TouchableOpacity, View} from "react-native";
 import { styles } from "./CustomCheckBox.style";
 import CustomText from "../CustomText/CustomText";
@@ -7,6 +7,7 @@ import { Option } from "../../utils/FormFields.type";
 type SingleCheckBoxProps = Option & {
   isRTL?: boolean;
   isEditable?: boolean;
+  isSelected?: boolean;
   onChange?: (option: Option, value: boolean) => void;
 };
 
@@ -14,12 +15,17 @@ const CustomSingleCheckBox = (props: SingleCheckBoxProps) => {
   const {
     id,
     isEditable = true,
+    isSelected: initialIsSelected = false,
     isRTL = false,
     label,
     isSmallSize = false,
     onChange,
   } = props;
-  const [isSelected, setSelection] = useState(false);
+  const [isSelected, setSelection] = useState(initialIsSelected);
+
+  useEffect(() => {
+    setSelection(initialIsSelected);
+  }, [initialIsSelected]);
 
   const handleToggle = (next: boolean) => {
     if (!isEditable) {

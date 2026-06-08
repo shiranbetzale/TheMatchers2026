@@ -6,10 +6,11 @@ import { styles } from './CustomHeader.style';
 import { CustomHeaderType } from './CustomHeader.type';
 
 const CustomHeader = (props: CustomHeaderType) => {
-  const { headerBtns, title } = props;
+  const {actionsPosition = 'right', headerBtns, title} = props;
+  const isActionsLeft = actionsPosition === 'left';
 
   return (
-    <View style={styles.header}>
+    <View style={[styles.header, isActionsLeft && styles.headerLeft]}>
       <View style={styles.actions}>
         {headerBtns.map((item, index) => {
           return (
@@ -22,11 +23,13 @@ const CustomHeader = (props: CustomHeaderType) => {
           );
         })}
       </View>
+
       {title && (
         <View style={styles.titleContainer}>
           <CustomText text={title} customStyle={styles.title} />
         </View>
       )}
+
       <View style={styles.sidePlaceholder} />
     </View>
   );

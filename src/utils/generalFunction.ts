@@ -1,9 +1,23 @@
 import qs from 'qs';
-import {Linking} from 'react-native';
+import {Image, Linking} from 'react-native';
 import {MatchCardType} from '../components/MatchCard/MatchCard.type';
 
-const DEFAULT_PROFILE_IMAGE =
-  'https://www.shutterstock.com/image-photo/cartoon-3d-icon-thai-tuk-600w-2251713231.jpg';
+const DEFAULT_MALE_PROFILE_IMAGE = Image.resolveAssetSource(
+  require('../assets/images/anonymous-man.png'),
+).uri;
+const DEFAULT_FEMALE_PROFILE_IMAGE = Image.resolveAssetSource(
+  require('../assets/images/anonymous-woman.png'),
+).uri;
+
+export const getDefaultProfileImage = (gender?: string) => {
+  const normalizedGender = String(gender || '')
+    .trim()
+    .toLowerCase();
+
+  return normalizedGender === 'male' || normalizedGender === 'זכר'
+    ? DEFAULT_MALE_PROFILE_IMAGE
+    : DEFAULT_FEMALE_PROFILE_IMAGE;
+};
 
 const HEBREW_NUMERAL_LETTERS = [
   {value: 400, letter: 'ת'},
@@ -296,6 +310,156 @@ const getRelationshipStatus = (profile: any) =>
       ? 'engaged'
       : 'single');
 
+const normalizeLookupKey = (value: unknown) =>
+  String(value || '')
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, '');
+
+const PROFILE_STATUS_ALIASES: Record<string, string[]> = {
+  single: ['single'],
+  singleStatus: [
+    'singleStatus',
+    'singleStatusMale',
+    'singleStatusFemale',
+  ],
+  divorced: ['divorced'],
+  divorcedStatus: [
+    'divorcedStatus',
+    'divorcedStatusMale',
+    'divorcedStatusFemale',
+  ],
+  widower: ['widower'],
+  widowedStatus: [
+    'widowedStatus',
+    'widowedStatusMale',
+    'widowedStatusFemale',
+  ],
+  widowedWithChildrenStatus: [
+    'widowerWithChildren',
+    'widowedWithChildrenStatus',
+    'widowedWithChildrenStatusMale',
+    'widowedWithChildrenStatusFemale',
+  ],
+  divorcedWithChildrenStatus: [
+    'divorcedWithChildren',
+    'divorcedWithChildrenStatus',
+    'divorcedWithChildrenStatusMale',
+    'divorcedWithChildrenStatusFemale',
+  ],
+};
+
+const PROFILE_STATUS_ALIAS_MAP = Object.entries(PROFILE_STATUS_ALIASES).reduce<
+  Record<string, string>
+>((result, [status, aliases]) => {
+  aliases.forEach(alias => {
+    result[normalizeLookupKey(alias)] = status;
+  });
+
+  return result;
+}, {});
+
+const normalizeProfileStatus = (status: unknown) => {
+  const normalized = String(status || '').trim();
+  const statusKey = normalizeLookupKey(normalized);
+
+  if (!normalized || statusKey === 'active' || statusKey === 'archived') {
+    return '';
+  }
+
+  return PROFILE_STATUS_ALIAS_MAP[statusKey] ?? normalized;
+};
+
+const normalizeGenderKey = (gender: unknown): 'male' | 'female' | undefined => {
+  const normalizedGender = String(gender || '').trim().toLowerCase();
+
+  if (normalizedGender === 'male' || normalizedGender === '1') {
+    return 'male';
+  }
+
+  if (normalizedGender === 'female' || normalizedGender === '2') {
+    return 'female';
+  }
+
+  return undefined;
+};
+
+const getGenderedStatusKey = (status: string, gender: unknown) => {
+  const genderKey = normalizeGenderKey(gender);
+
+  if (!genderKey) {
+    return status;
+  }
+
+  const statusMap: Record<string, Record<'male' | 'female', string>> = {
+    single: {
+      male: 'singleStatusMale',
+      female: 'singleStatusFemale',
+    },
+    singleStatus: {
+      male: 'singleStatusMale',
+      female: 'singleStatusFemale',
+    },
+    divorced: {
+      male: 'divorcedStatusMale',
+      female: 'divorcedStatusFemale',
+    },
+    divorcedStatus: {
+      male: 'divorcedStatusMale',
+      female: 'divorcedStatusFemale',
+    },
+    widower: {
+      male: 'widowedStatusMale',
+      female: 'widowedStatusFemale',
+    },
+    widowedStatus: {
+      male: 'widowedStatusMale',
+      female: 'widowedStatusFemale',
+    },
+    widowedWithChildrenStatus: {
+      male: 'widowedWithChildrenStatusMale',
+      female: 'widowedWithChildrenStatusFemale',
+    },
+    divorcedWithChildrenStatus: {
+      male: 'divorcedWithChildrenStatusMale',
+      female: 'divorcedWithChildrenStatusFemale',
+    },
+  };
+
+  return statusMap[status]?.[genderKey] ?? status;
+};
+
+const getProfileCardStatus = (profile: any) => {
+  const status = normalizeProfileStatus(
+    profile.maritalStatus || profile.familyStatus || profile.status,
+  );
+
+  if (status) {
+    return status;
+  }
+
+  const relationshipStatus = String(profile.relationshipStatus || '').trim();
+
+  return relationshipStatus === 'single' ? 'singleStatus' : '';
+};
+
+export const getCardStatusText = (
+  status: unknown,
+  numOfChildren: number | undefined,
+  translate: (key: string) => string,
+  gender?: unknown,
+) => {
+  const normalizedStatus = normalizeProfileStatus(status);
+  const statusKey = normalizedStatus
+    ? getGenderedStatusKey(normalizedStatus, gender)
+    : '';
+  const statusText = statusKey ? translate(statusKey) : '';
+
+  return `${statusText}${
+    statusText && Number(numOfChildren) > 0 ? Number(numOfChildren) : ''
+  }`;
+};
+
 export const normalizeImages = (images: unknown): string[] => {
   if (!Array.isArray(images)) {
     return [];
@@ -354,19 +518,23 @@ export const normalizeMeetingTime = (value?: string | number) => {
 export const mapProfileToCard = (profile: any): MatchCardType => {
   const relationshipStatus = getRelationshipStatus(profile);
   const normalizedImages = normalizeImages(profile.images);
+  const gender = String(profile.gender || 'female');
 
   return {
     profileId: String(profile._id || profile.id || ''),
     createdAt: profile.createdAt ? String(profile.createdAt) : undefined,
-    name: profile.fullName || '—',
+    name: profile.fullName || profile.name || '—',
     age: Number(profile.age) || 0,
     height: String(profile.hight || profile.height || ''),
-    status: String(profile.status || 'single'),
+    status: getProfileCardStatus(profile),
+    maritalStatus: normalizeProfileStatus(
+      profile.maritalStatus || profile.familyStatus || profile.status,
+    ),
     images: normalizedImages.length
       ? normalizedImages
-      : [DEFAULT_PROFILE_IMAGE],
+      : [getDefaultProfileImage(gender)],
     numOfChildren: Number(profile.countOfChildren) || 0,
-    gender: String(profile.gender || 'female'),
+    gender,
     phone: String(profile.phone || ''),
     matcherPhone: String(profile.matcherPhone || ''),
     matcherMail: profile.matcherMail,

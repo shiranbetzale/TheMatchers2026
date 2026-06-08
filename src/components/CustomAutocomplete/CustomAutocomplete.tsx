@@ -1,6 +1,7 @@
-import React, {useEffect, useMemo, useState} from 'react';
-import {TextInput, TouchableOpacity, View} from 'react-native';
+import React, {useEffect, useMemo, useRef, useState} from 'react';
+import {Pressable, ScrollView, TextInput, View} from 'react-native';
 import {useLanguage} from '../../utils/LanguageProvider';
+import {Option} from '../../utils/FormFields.type';
 import CustomText from '../CustomText/CustomText';
 import {styles} from './CustomAutocomplete.style';
 import {CustomAutocompleteType} from './CustomAutocomplete.type';
@@ -10,21 +11,23 @@ const CustomAutocomplete = (props: CustomAutocompleteType) => {
   const {
     text,
     value,
-    options,
+    options = [],
     autocompleteSource,
     isSmallSize = false,
     isEditable = true,
     onChangeText = () => {},
     onSelect = () => {},
   } = props;
+
   const {isRTL, t} = useLanguage();
-  const [isFocused, setIsFocused] = useState(false);
-  const [remoteOptions, setRemoteOptions] = useState(options);
-  const valueText = value?.toString() || '';
-  const activeOptions =
-    autocompleteSource === 'israelCities' && remoteOptions.length
-      ? remoteOptions
-      : options;
+
+  const [isOpen, setIsOpen] = useState(false);
+  const [remoteOptions, setRemoteOptions] = useState<Option[]>(options);
+  const [isLoading, setIsLoading] = useState(false);
+  const [selectedText, setSelectedText] = useState('');
+  const requestIdRef = useRef(0);
+
+  const valueText = value?.toString() || selectedText;
 
   useEffect(() => {
     setRemoteOptions(options);
@@ -35,22 +38,28 @@ const CustomAutocomplete = (props: CustomAutocompleteType) => {
       return;
     }
 
-    const normalizedValue = valueText.trim();
+    const query = valueText.trim();
 
-    if (normalizedValue.length < 2) {
-      setRemoteOptions(options);
-      return;
-    }
+    const requestId = requestIdRef.current + 1;
+    requestIdRef.current = requestId;
+    setIsLoading(true);
 
     const timeoutId = setTimeout(() => {
-      fetchIsraelCities(normalizedValue)
+      fetchIsraelCities(query)
         .then(cities => {
-          if (cities.length) {
+          if (requestIdRef.current === requestId) {
             setRemoteOptions(cities);
           }
         })
         .catch(() => {
-          setRemoteOptions(options);
+          if (requestIdRef.current === requestId) {
+            setRemoteOptions(options);
+          }
+        })
+        .finally(() => {
+          if (requestIdRef.current === requestId) {
+            setIsLoading(false);
+          }
         });
     }, 250);
 
@@ -58,21 +67,28 @@ const CustomAutocomplete = (props: CustomAutocompleteType) => {
   }, [autocompleteSource, isEditable, options, valueText]);
 
   const filteredOptions = useMemo(() => {
-    const normalizedValue = valueText.trim().toLowerCase();
+    const query = valueText.trim().toLowerCase();
+    const activeOptions =
+      autocompleteSource === 'israelCities' ? remoteOptions : options;
 
-    if (!normalizedValue) {
+    if (!query) {
       return activeOptions;
     }
 
     return activeOptions.filter(option =>
-      option.label.toLowerCase().includes(normalizedValue),
+      String(option.label || '')
+        .toLowerCase()
+        .includes(query),
     );
-  }, [activeOptions, valueText]);
+  }, [autocompleteSource, options, remoteOptions, valueText]);
 
-  const handleSelect = (option: (typeof options)[number]) => {
-    onChangeText(option.label);
+  const handleSelect = (option: Option) => {
+    const selectedLabel = String(option.label || '');
+
+    setSelectedText(selectedLabel);
+    onChangeText(selectedLabel);
     onSelect(option);
-    setIsFocused(false);
+    setIsOpen(false);
   };
 
   return (
@@ -90,61 +106,73 @@ const CustomAutocomplete = (props: CustomAutocompleteType) => {
           ]}
         />
       </View>
-      <TextInput
-        style={[
-          isSmallSize ? styles.smallInput : styles.input,
-          styles.baseInput,
-          isRTL ? styles.textRight : styles.textLeft,
-          !isEditable && styles.readOnlyInput,
-        ]}
-        editable={isEditable}
-        value={valueText}
-        placeholder={t('selectPlaceholder')}
-        placeholderTextColor="#A8ADB7"
-        onFocus={() => setIsFocused(true)}
-        onChangeText={nextValue => {
-          onChangeText(nextValue);
-          setIsFocused(true);
-        }}
-      />
-      {isEditable && isFocused && (
-        <View
+
+      <View style={styles.inputWrapper}>
+        <TextInput
           style={[
-            styles.suggestionsPanel,
-            isSmallSize
-              ? styles.smallSuggestionsPanel
-              : styles.wideSuggestionsPanel,
-            isRTL ? styles.suggestionsRtl : styles.suggestionsLtr,
-          ]}>
-          {filteredOptions.length > 0 ? (
-            filteredOptions.slice(0, 6).map(option => (
-              <TouchableOpacity
-                key={`${option.name}_${option.id}`}
-                activeOpacity={0.82}
-                onPress={() => handleSelect(option)}
-                style={styles.suggestionItem}>
+            isSmallSize ? styles.smallInput : styles.input,
+            styles.baseInput,
+            isRTL ? styles.textRight : styles.textLeft,
+            !isEditable && styles.readOnlyInput,
+          ]}
+          editable={isEditable}
+          value={valueText}
+          placeholder={t('selectPlaceholder')}
+          placeholderTextColor="#A8ADB7"
+          onFocus={() => setIsOpen(true)}
+          onChangeText={nextValue => {
+            setSelectedText(nextValue);
+            onChangeText(nextValue);
+            setIsOpen(true);
+          }}
+        />
+
+        {isEditable && isOpen && (
+          <View style={styles.suggestionsPanel}>
+            {isLoading ? (
+              <View style={styles.emptyItem}>
                 <CustomText
-                  text={option.label}
+                  text="loading"
                   customStyle={[
-                    styles.suggestionText,
+                    styles.emptyText,
                     isRTL ? styles.textRight : styles.textLeft,
                   ]}
                 />
-              </TouchableOpacity>
-            ))
-          ) : (
-            <View style={styles.emptyItem}>
-              <CustomText
-                text="אין תוצאות"
-                customStyle={[
-                  styles.emptyText,
-                  isRTL ? styles.textRight : styles.textLeft,
-                ]}
-              />
-            </View>
-          )}
-        </View>
-      )}
+              </View>
+            ) : filteredOptions.length > 0 ? (
+              <ScrollView
+                keyboardShouldPersistTaps="always"
+                nestedScrollEnabled
+                showsVerticalScrollIndicator={false}>
+                {filteredOptions.map(option => (
+                  <Pressable
+                    key={`${option.name}_${option.id}_${option.label}`}
+                    onPress={() => handleSelect(option)}
+                    style={styles.suggestionItem}>
+                    <CustomText
+                      text={String(option.label || '')}
+                      customStyle={[
+                        styles.suggestionText,
+                        isRTL ? styles.textRight : styles.textLeft,
+                      ]}
+                    />
+                  </Pressable>
+                ))}
+              </ScrollView>
+            ) : (
+              <View style={styles.emptyItem}>
+                <CustomText
+                  text="noResults"
+                  customStyle={[
+                    styles.emptyText,
+                    isRTL ? styles.textRight : styles.textLeft,
+                  ]}
+                />
+              </View>
+            )}
+          </View>
+        )}
+      </View>
     </View>
   );
 };

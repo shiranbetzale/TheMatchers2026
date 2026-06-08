@@ -9,10 +9,14 @@ import {
   getVisibleFields,
   isSectionComplete,
 } from '../../utils/formCompletion';
-import {calculateAge, formatHebrewDate, groupBy} from '../../utils/generalFunction';
+import {
+  calculateAge,
+  formatHebrewDate,
+  groupBy,
+} from '../../utils/generalFunction';
 
 const Step1Screen = (props: WizardStepComponentProps) => {
-  const {values, onChange, onChangeMany} = props;
+  const {values, fieldErrors, onChange, onChangeMany} = props;
 
   const detailsFormArrayBeforeFiltered: CollapseSingleType[] = useMemo(
     () => groupBy(detailsFormArray, 'collapseTitle'),
@@ -48,10 +52,70 @@ const Step1Screen = (props: WizardStepComponentProps) => {
     return lockedTitles;
   }, [detailsFormArrayFiltered, values]);
 
+  const getGenderDependentResetValues = () => ({
+    status: '',
+    statusOptionId: '',
+    countOfChildren: '',
+    hasChildCustody: '',
+    childCustody: '',
+    typeOfHeadCover: '',
+    typeOfHeadCoverOptionId: '',
+    hashkafa: '',
+    hashkafaOptionId: '',
+    hozerBitshoveAge: '',
+    isGer: '',
+    isCohen: '',
+    whatWorks: '',
+    whatWorksOptionId: '',
+    isServedInArmy: '',
+    isNationalService: '',
+    smallYeshiva: '',
+    BigYeshiva: '',
+    kibutz: '',
+    colel: '',
+    nameOfWork: '',
+    whatLearning: '',
+    education: '',
+    highSchoolName: '',
+    seminarName: '',
+    beardType: '',
+    beardTypeOptionId: '',
+    clothes: '',
+    clothesOptionId: '',
+    matchStatus: '',
+    matchStatusOptionId: '',
+    matchCountOfChildren: '',
+    matchHashkafa: '',
+    matchHashkafaOptionId: '',
+    matchIsWantSmoker: '',
+    matchIsWantCohen: '',
+    matchIsGer: '',
+    matchIsHozerBitshuva: '',
+    matchIsVaccinatedCorona: '',
+    matchIsWantNationalService: '',
+    matchIsWantArmy: '',
+    matchIsWantOrphan: '',
+    matchIsWantDivorcedParents: '',
+    matchIsDrivingLicense: '',
+    matchWhatWorks: '',
+    matchWhatWorksOptionId: '',
+    matchEducation: '',
+    matchEducationOptionId: '',
+    matchBeardType: '',
+    matchBeardTypeOptionId: '',
+    matchClothes: '',
+    matchClothesOptionId: '',
+  });
+
   const handlePress = (option?: Option) => {
     if (option?.name) {
-      onChange(option.name, option.label);
-      onChange(`${option.name}OptionId`, String(option.id));
+      onChangeMany({
+        ...(option.name === 'gender' ? getGenderDependentResetValues() : {}),
+        [option.name]: option.label,
+        [`${option.name}OptionId`]: String(option.id),
+        ...(option.name === 'zerem' && option.id !== 1 ? {hasidut: ''} : {}),
+        ...(option.name === 'zerem' && option.id !== 3 ? {tribe: ''} : {}),
+      });
     }
   };
 
@@ -61,8 +125,10 @@ const Step1Screen = (props: WizardStepComponentProps) => {
         ...section,
         data: section.data.map(field => ({
           ...field,
+          errorText: fieldErrors[field.id],
           options: getVisibleOptions(field, values, detailsFormArray),
           value: values[field.id] ?? '',
+          contextValues: values,
           onChangeText: (value: string) => onChange(field.id, value),
           onChangeDate: (date: Date) => {
             if (field.id === 'birthDate') {

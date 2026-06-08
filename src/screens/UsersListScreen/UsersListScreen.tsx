@@ -1,13 +1,7 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import {
-  View,
-  Text,
-  FlatList,
-  Alert,
-  TextInput,
-  TouchableOpacity,
-} from 'react-native';
+import {View, Text, FlatList, TextInput, TouchableOpacity} from 'react-native';
 import {useLanguage} from '../../utils/LanguageProvider';
+import {useMessage} from '../../utils/MessageProvider';
 import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import {StackNavigationProp} from '@react-navigation/stack';
 import {RootStackParamList} from '../../components/MainStackNavigation/MainStackNavigation.type';
@@ -20,28 +14,32 @@ import SaveIcon from '../../assets/images/save.svg';
 import UserAddIcon from '../../assets/images/userAdd.svg';
 
 interface User {
+  id?: string;
   _id: string;
   fullName: string;
   phone: string;
   email?: string;
-  role?: 'admin' | 'matchmaker';
+  role?: UserRole;
   gender?: 'male' | 'female';
 }
+
+type UserRole = 'admin' | 'matchmaker' | 'user';
 
 type EditableUser = {
   fullName: string;
   phone: string;
   email: string;
   password: string;
-  role: 'admin' | 'matchmaker';
+  role: UserRole;
   gender: 'male' | 'female';
 };
 
-const normalizeRole = (value?: string): 'admin' | 'matchmaker' => {
+const normalizeRole = (value?: string): UserRole => {
   const normalized = String(value || '').toLowerCase();
   if (normalized === 'admin') return 'admin';
   if (normalized === 'matchmaker') return 'matchmaker';
-  return 'matchmaker';
+  if (normalized === 'user') return 'user';
+  return 'user';
 };
 
 const normalizeGender = (value?: string): 'male' | 'female' => {
@@ -50,6 +48,16 @@ const normalizeGender = (value?: string): 'male' | 'female' => {
   if (normalized === 'נקבה') return 'female';
   return normalized === 'male' ? 'male' : 'female';
 };
+
+const normalizeSearchValue = (value?: string) =>
+  String(value || '')
+    .trim()
+    .toLowerCase();
+
+const normalizePhoneSearchValue = (value?: string) =>
+  String(value || '').replace(/\D/g, '');
+
+const getUserId = (user: Partial<User>) => String(user._id || user.id || '');
 
 const UsersListScreen = () => {
   const [users, setUsers] = useState<User[]>([]);
@@ -62,21 +70,30 @@ const UsersListScreen = () => {
     role: 'matchmaker',
     gender: 'male',
   });
+  const [searchValue, setSearchValue] = useState('');
   const {t, isRTL} = useLanguage();
+  const {showMessage} = useMessage();
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
-  const roles: Array<'admin' | 'matchmaker'> = useMemo(
-    () => ['admin', 'matchmaker'],
+  const roles: UserRole[] = useMemo(
+    () => ['admin', 'matchmaker', 'user'],
     [],
   );
 
   const fetchUsers = useCallback(async () => {
     try {
       const response = await api.get('/api/users/all');
-      setUsers(response.data.users);
+      const nextUsers = Array.isArray(response.data?.users)
+        ? response.data.users.map((user: User) => ({
+            ...user,
+            _id: getUserId(user),
+          }))
+        : [];
+
+      setUsers(nextUsers.filter((user: User) => Boolean(user._id)));
     } catch (error: any) {
-      Alert.alert(t('error'), error.message || t('errorGeneric'));
+      showMessage({type: 'error', message: error.message || t('errorGeneric')});
     }
-  }, [t]);
+  }, [showMessage, t]);
 
   useEffect(() => {
     fetchUsers();
@@ -88,14 +105,50 @@ const UsersListScreen = () => {
     }, [fetchUsers]),
   );
 
-  const deleteUser = async (id: string) => {
-    try {
-      await api.delete(`/api/users/delete/${id}`);
-      Alert.alert(t('success'), t('userDeleted'));
-      fetchUsers();
-    } catch (error: any) {
-      Alert.alert(t('error'), error.message || t('errorGeneric'));
+  const filteredUsers = useMemo(() => {
+    const normalizedSearch = normalizeSearchValue(searchValue);
+    const normalizedPhoneSearch = normalizePhoneSearchValue(searchValue);
+
+    if (!normalizedSearch && !normalizedPhoneSearch) {
+      return users;
     }
+
+    return users.filter(user => {
+      const name = normalizeSearchValue(user.fullName);
+      const email = normalizeSearchValue(user.email);
+      const phone = normalizePhoneSearchValue(user.phone);
+
+      return (
+        name.includes(normalizedSearch) ||
+        email.includes(normalizedSearch) ||
+        (normalizedPhoneSearch
+          ? phone.includes(normalizedPhoneSearch)
+          : false)
+      );
+    });
+  }, [searchValue, users]);
+
+  const deleteUser = (id: string) => {
+    showMessage({
+      type: 'error',
+      title: t('delete'),
+      message: t('deleteUserConfirm'),
+      confirmText: t('delete'),
+      cancelText: t('cancel'),
+      autoDismissMs: false,
+      onConfirm: async () => {
+        try {
+          await api.delete(`/api/users/delete/${id}`);
+          showMessage({type: 'success', message: t('userDeleted')});
+          fetchUsers();
+        } catch (error: any) {
+          showMessage({
+            type: 'error',
+            message: error.message || t('errorGeneric'),
+          });
+        }
+      },
+    });
   };
 
   const startEditing = (user: User) => {
@@ -123,15 +176,17 @@ const UsersListScreen = () => {
   };
 
   const updateUser = async () => {
-    if (!editingUser) return;
+    const editingUserId = getUserId(editingUser || {});
+
+    if (!editingUser || !editingUserId) return;
 
     if (!editedUser.fullName || !editedUser.phone || !editedUser.email) {
-      Alert.alert(t('error'), t('errorRequiredFields'));
+      showMessage({type: 'error', message: t('errorRequiredFields')});
       return;
     }
 
     try {
-      await api.put(`/api/users/update/${editingUser._id}`, {
+      await api.put(`/api/users/update/${editingUserId}`, {
         fullName: editedUser.fullName.trim(),
         email: editedUser.email.trim().toLowerCase(),
         phone: editedUser.phone.trim(),
@@ -139,11 +194,11 @@ const UsersListScreen = () => {
         gender: editedUser.gender,
         ...(editedUser.password ? {password: editedUser.password} : {}),
       });
-      Alert.alert(t('success'), t('userUpdated'));
+      showMessage({type: 'success', message: t('userUpdated')});
       stopEditing();
       fetchUsers();
     } catch (error: any) {
-      Alert.alert(t('error'), error.message || t('errorGeneric'));
+      showMessage({type: 'error', message: error.message || t('errorGeneric')});
     }
   };
 
@@ -183,7 +238,7 @@ const UsersListScreen = () => {
 
   const renderItem = ({item}: {item: User}) => (
     <View style={styles.card}>
-      {editingUser?._id === item._id ? (
+      {getUserId(editingUser || {}) === getUserId(item) ? (
         <View style={styles.editorContainer}>
           <View
             style={[
@@ -259,7 +314,7 @@ const UsersListScreen = () => {
           {renderChoiceRow('role', roles, editedUser.role, next =>
             setEditedUser(prev => ({
               ...prev,
-              role: next as 'admin' | 'matchmaker',
+              role: next as UserRole,
             })),
           )}
         </View>
@@ -341,13 +396,24 @@ const UsersListScreen = () => {
               <UserAddIcon width={20} height={20} />
             </TouchableOpacity>
           </View>
+
+          <TextInput
+            value={searchValue}
+            onChangeText={setSearchValue}
+            style={[styles.searchInput, isRTL ? styles.inputRtl : styles.inputLtr]}
+            placeholder={t('usersSearchPlaceholder')}
+            placeholderTextColor="#8A94A6"
+            autoCorrect={false}
+            autoCapitalize="none"
+            keyboardType="default"
+          />
         </View>
       }>
       <View style={styles.container}>
         <FlatList
-          data={users}
+          data={filteredUsers}
           style={styles.list}
-          keyExtractor={item => item._id}
+          keyExtractor={item => getUserId(item)}
           renderItem={renderItem}
           contentContainerStyle={styles.listContent}
           ListEmptyComponent={<CustomText text="noUsersFound" />}

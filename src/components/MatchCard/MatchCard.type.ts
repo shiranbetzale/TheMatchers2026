@@ -5,6 +5,7 @@ export type MatchCardType = {
   age: number;
   height: string;
   status: string;
+  maritalStatus?: string;
   images: string[];
   numOfChildren: number;
   gender: string;
@@ -32,4 +33,8 @@ export type MatchCardType = {
   partnerImage?: string;
   partnerOutsideApp?: boolean;
   city?: string;
+  currentUserRole?: 'admin' | 'matchmaker' | 'user';
+  currentUserId?: string;
+  aiMatchScore?: number;
+  aiMatchReasons?: string[];
 };

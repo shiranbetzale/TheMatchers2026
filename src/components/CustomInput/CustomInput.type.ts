@@ -7,10 +7,13 @@ export type CustomInputType = {
   keyboardType?: KeyboardTypeOptions;
   inputMode?: TextInputProps['inputMode'];
   onlyDigits?: boolean;
+  formatWithCommas?: boolean;
   secureTextEntry?: boolean;
   allowToggleSecure?: boolean;
   isMultiline?: boolean;
   isEditable?: boolean;
+  errorText?: string;
+  defaultValue?: string | number;
   value?: string | number;
   onChangeText?: (text: string) => void;
   autoCapitalize?: TextInputProps['autoCapitalize'];

@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
-import { View, Alert } from 'react-native';
-import { AxiosError } from 'axios';
-import { StackNavigationProp } from '@react-navigation/stack';
+import React, {useState} from 'react';
+import {View} from 'react-native';
+import {AxiosError} from 'axios';
+import {StackNavigationProp} from '@react-navigation/stack';
 
 import CustomButton from '../../components/CustomButton/CustomButton';
 import CustomInput from '../../components/CustomInput/CustomInput';
@@ -10,37 +10,41 @@ import WhiteCard from '../../components/WhiteCard/WhiteCard';
 import HomeScreen from '../HomeScreen/HomeScreen';
 import CustomRadioButton from '../../components/CustomRadioButton/CustomRadioButton';
 
-import { RootStackParamList } from '../../components/MainStackNavigation/MainStackNavigation.type';
-import { styles } from './RegisterScreen.style';
-import { useLanguage } from '../../utils/LanguageProvider';
+import {RootStackParamList} from '../../components/MainStackNavigation/MainStackNavigation.type';
+import {styles} from './RegisterScreen.style';
+import {useLanguage} from '../../utils/LanguageProvider';
+import {useMessage} from '../../utils/MessageProvider';
 import api from '../../services/api';
 
-type NavigationProp = StackNavigationProp<
-  RootStackParamList,
-  'Register'
->;
+type NavigationProp = StackNavigationProp<RootStackParamList, 'Register'>;
 
 interface Props {
   navigation: NavigationProp;
 }
 
-const RegisterScreen = ({ navigation }: Props) => {
+const RegisterScreen = ({navigation}: Props) => {
   const [fullName, setFullName] = useState<string>('');
   const [phone, setPhone] = useState<string>('');
   const [email, setEmail] = useState<string>('');
   const [password, setPassword] = useState<string>('');
   const [gender, setGender] = useState<'male' | 'female'>('female');
 
-  const { t } = useLanguage();
+  const {t} = useLanguage();
+  const {showMessage} = useMessage();
 
   const handleSave = async () => {
-    if (!fullName.trim() || !phone.trim() || !email.trim() || !password.trim()) {
-      console.log(t('error'), t('errorRequiredFields'));
+    if (
+      !fullName.trim() ||
+      !phone.trim() ||
+      !email.trim() ||
+      !password.trim()
+    ) {
+      showMessage({type: 'error', message: t('errorRequiredFields')});
       return;
     }
 
     if (!/^\d{9,10}$/.test(phone)) {
-      console.log(t('error'), t('invalidPhone'));
+      showMessage({type: 'error', message: t('invalidPhone')});
       return;
     }
 
@@ -53,20 +57,23 @@ const RegisterScreen = ({ navigation }: Props) => {
         gender,
       });
 
-      Alert.alert(t('success'), t('matchmakerRegistered'));
+      showMessage({type: 'success', message: t('matchmakerRegistered')});
       navigation.navigate('UsersList');
     } catch (err) {
       const error = err as AxiosError<any>;
 
       if (error.response) {
-        console.log(
-          t('error'),
-          error.response.data?.message || t('errorServer'),
-        );
+        showMessage({
+          type: 'error',
+          message: error.response.data?.message || t('errorServer'),
+        });
       } else if (error.request) {
-        console.log(t('error'), t('errorNoResponse'));
+        showMessage({type: 'error', message: t('errorNoResponse')});
       } else {
-        console.log(t('error'), error.message || t('errorGeneric'));
+        showMessage({
+          type: 'error',
+          message: error.message || t('errorGeneric'),
+        });
       }
     }
   };
@@ -116,8 +123,8 @@ const RegisterScreen = ({ navigation }: Props) => {
               text="gender"
               value={gender}
               radiosArray={[
-                { id: 1, name: 'male', label: 'male' },
-                { id: 2, name: 'female', label: 'female' },
+                {id: 1, name: 'male', label: 'male'},
+                {id: 2, name: 'female', label: 'female'},
               ]}
               onSelect={option => {
                 if (option) setGender(option.name as 'male' | 'female');

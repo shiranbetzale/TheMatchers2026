@@ -8,17 +8,17 @@ export const styles = StyleSheet.create({
     width: '100%',
   },
 
-  restoreButton: {
+  restoreIconButton: {
     marginTop: 12,
     alignSelf: 'center',
-    paddingHorizontal: 18,
-    paddingVertical: 10,
-    borderRadius: 24,
-  },
-
-  restoreButtonText: {
-    fontSize: 14,
-    fontWeight: '600',
+    width: 44,
+    height: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: Colors.color1Light,
+    borderRadius: 22,
+    backgroundColor: Colors.champagne,
   },
   container: {
     gap: GeneralStyle.spacing.md,

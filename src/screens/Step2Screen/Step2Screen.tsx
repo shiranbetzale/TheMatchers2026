@@ -12,7 +12,21 @@ import {
 } from '../../utils/formCompletion';
 
 const Step2Screen = (props: WizardStepComponentProps) => {
-  const {values, onChange} = props;
+  const {values, fieldErrors, onChange, onChangeMany} = props;
+  const genderOptionId = String(values.genderOptionId || '').trim();
+  const gender = String(values.gender || '').trim().toLowerCase();
+  const partnerGender =
+    genderOptionId === '1' || gender === 'male' || gender === 'זכר'
+      ? 'female'
+      : genderOptionId === '2' || gender === 'female' || gender === 'נקבה'
+        ? 'male'
+        : undefined;
+  const partnerContextValues = partnerGender
+    ? {
+        ...values,
+        genderLabelTarget: partnerGender,
+      }
+    : values;
 
   const matchFormArrayBeforeFiltered: CollapseSingleType[] = useMemo(
     () => groupBy(matchFormArray, 'collapseTitle'),
@@ -50,8 +64,16 @@ const Step2Screen = (props: WizardStepComponentProps) => {
 
   const handlePress = (option?: Option) => {
     if (option?.name) {
-      onChange(option.name, option.label);
-      onChange(`${option.name}OptionId`, String(option.id));
+      onChangeMany({
+        [option.name]: option.label,
+        [`${option.name}OptionId`]: String(option.id),
+        ...(option.name === 'matchZerem' && option.id !== 1
+          ? {matchHasidut: ''}
+          : {}),
+        ...(option.name === 'matchZerem' && option.id !== 3
+          ? {matchTribe: ''}
+          : {}),
+      });
     }
   };
 
@@ -61,8 +83,10 @@ const Step2Screen = (props: WizardStepComponentProps) => {
         ...section,
         data: section.data.map(field => ({
           ...field,
+          errorText: fieldErrors[field.id],
           options: getVisibleOptions(field, values, matchFormArray),
           value: values[field.id] ?? '',
+          contextValues: partnerContextValues,
           onChangeText: (value: string) => onChange(field.id, value),
         })),
       }))}

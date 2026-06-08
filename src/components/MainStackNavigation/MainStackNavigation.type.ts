@@ -6,14 +6,24 @@ export type RootStackParamList = {
   EditFormScreen: {card?: MatchCardType} | undefined;
   Login: undefined;
   MatchCardsScreen:
-    | {card?: MatchCardType; openMeetingModal?: boolean}
+    | {card?: MatchCardType; openMeetingModal?: boolean; meetingEditToken?: number}
     | undefined;
   MeetingCalendarScreen: {meetings?: MatchCardType[]} | undefined;
   Settings: undefined;
   Register: undefined;
   RegisterUserScreen: undefined;
   UsersList: undefined;
-  Wizard: {resetToken?: number} | undefined;
+  Wizard:
+    | {
+        resetToken?: number;
+        mode?: 'create' | 'edit';
+        profileId?: string;
+        card?: MatchCardType;
+        restoreToAvailable?: boolean;
+        candidatePhone?: string;
+        matchmakerPhone?: string;
+      }
+    | undefined;
   HomeScreen: undefined;
   MainScreen: {showCongratsAfterLogin?: boolean} | undefined;
   AllCardsScreen: {onlyMine?: boolean} | undefined;

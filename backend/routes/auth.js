@@ -5,11 +5,22 @@ const {Buffer} = require('buffer');
 
 const User = require('../models/User');
 const {requireAuth} = require('../middleware/auth');
+const {admin} = require('../config/firebase');
 
 const router = express.Router();
 
 function normalizePhone(phone) {
   return String(phone || '').replace(/\D/g, '');
+}
+
+function normalizeLocalPhone(phone) {
+  const normalizedPhone = normalizePhone(phone);
+
+  if (normalizedPhone.startsWith('972')) {
+    return `0${normalizedPhone.slice(3)}`;
+  }
+
+  return normalizedPhone;
 }
 
 function normalizeEmail(email) {
@@ -30,6 +41,21 @@ function createToken(user) {
       sub: user.id || user._id,
       role: user.role,
       phone: user.phone,
+    },
+    process.env.JWT_SECRET,
+    {
+      expiresIn: '7d',
+    },
+  );
+}
+
+function createCandidateToken(matchmaker, candidatePhone) {
+  return jwt.sign(
+    {
+      sub: matchmaker.id || matchmaker._id,
+      role: 'user',
+      phone: candidatePhone,
+      matchmakerPhone: matchmaker.phone,
     },
     process.env.JWT_SECRET,
     {
@@ -85,10 +111,12 @@ async function findAllUsers() {
 }
 
 async function findUserByPhone(phone) {
-  const normalizedPhone = normalizePhone(phone);
+  const normalizedPhone = normalizeLocalPhone(phone);
   const users = await findAllUsers();
 
-  return users.find(user => normalizePhone(user.phone) === normalizedPhone);
+  return users.find(
+    user => normalizeLocalPhone(user.phone) === normalizedPhone,
+  );
 }
 
 async function findUserByPhoneOrEmail(phone, email) {
@@ -216,11 +244,28 @@ router.post('/login', async (req, res, next) => {
 
     const user = await findUserByPhone(phone);
 
-    if (
-      !user ||
-      !user.passwordHash ||
-      !verifyPassword(password, user.passwordHash)
-    ) {
+    if (!user) {
+      if (__dirname) {
+        console.warn('Login failed: user not found', {phone});
+      }
+      throw createHttpError('invalid credentials', 401);
+    }
+
+    if (!user.passwordHash) {
+      console.warn('Login failed: user has no password hash', {
+        phone,
+        userId: user.id || user._id,
+        role: user.role,
+      });
+      throw createHttpError('invalid credentials', 401);
+    }
+
+    if (!verifyPassword(password, user.passwordHash)) {
+      console.warn('Login failed: password mismatch', {
+        phone,
+        userId: user.id || user._id,
+        role: user.role,
+      });
       throw createHttpError('invalid credentials', 401);
     }
 
@@ -231,6 +276,129 @@ router.post('/login', async (req, res, next) => {
     res.json({
       user: sanitizeUser(user),
       token: createToken(user),
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.post('/candidate/send-code', async (req, res, next) => {
+  try {
+    requireFields(['phone', 'matchmakerPhone'], req.body);
+
+    const phone = normalizePhone(req.body.phone);
+    const matchmakerPhone = normalizePhone(req.body.matchmakerPhone);
+    const matchmaker = await findUserByPhone(matchmakerPhone);
+
+    console.log('candidate login check', {
+      phone,
+      matchmakerPhone,
+      matchmaker: matchmaker
+        ? {
+            id: matchmaker.id || matchmaker._id,
+            phone: matchmaker.phone,
+            role: matchmaker.role,
+            isActive: matchmaker.isActive,
+          }
+        : null,
+    });
+
+    if (
+      !matchmaker ||
+      matchmaker.isActive === false ||
+      (matchmaker.role !== 'matchmaker' && matchmaker.role !== 'admin')
+    ) {
+      throw createHttpError('matchmaker not found', 404);
+    }
+
+    res.json({
+      ok: true,
+      phone,
+      matchmakerPhone,
+      channel: 'firebase',
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.post('/candidate/verify-firebase', async (req, res, next) => {
+  try {
+    requireFields(['phone', 'matchmakerPhone', 'firebaseIdToken'], req.body);
+
+    const phone = normalizeLocalPhone(req.body.phone);
+    const matchmakerPhone = normalizePhone(req.body.matchmakerPhone);
+    const matchmaker = await findUserByPhone(matchmakerPhone);
+
+    if (
+      !matchmaker ||
+      matchmaker.isActive === false ||
+      (matchmaker.role !== 'matchmaker' && matchmaker.role !== 'admin')
+    ) {
+      throw createHttpError('matchmaker not found', 404);
+    }
+
+    let decodedToken;
+
+    try {
+      decodedToken = await admin
+        .auth()
+        .verifyIdToken(String(req.body.firebaseIdToken));
+    } catch (error) {
+      throw createHttpError('invalid firebase token', 401);
+    }
+
+    const verifiedPhone = normalizeLocalPhone(decodedToken.phone_number);
+
+    if (!verifiedPhone || verifiedPhone !== phone) {
+      throw createHttpError('phone mismatch', 401);
+    }
+
+    res.json({
+      user: {
+        id: matchmaker.id || matchmaker._id,
+        phone,
+        role: 'user',
+        matchmakerPhone,
+      },
+      token: createCandidateToken(matchmaker, phone),
+      nextScreen: 'Wizard',
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.post('/candidate/verify-code', async (req, res, next) => {
+  try {
+    requireFields(['phone', 'matchmakerPhone', 'code'], req.body);
+
+    const phone = normalizeLocalPhone(req.body.phone);
+    const matchmakerPhone = normalizePhone(req.body.matchmakerPhone);
+    const code = normalizePhone(req.body.code);
+    const matchmaker = await findUserByPhone(matchmakerPhone);
+
+    if (
+      !matchmaker ||
+      matchmaker.isActive === false ||
+      (matchmaker.role !== 'matchmaker' && matchmaker.role !== 'admin')
+    ) {
+      throw createHttpError('matchmaker not found', 404);
+    }
+
+    if (code !== matchmakerPhone) {
+      throw createHttpError('invalid candidate code', 401);
+    }
+
+    res.json({
+      user: {
+        id: matchmaker.id || matchmaker._id,
+        phone,
+        role: 'user',
+        matchmakerPhone,
+      },
+      token: createCandidateToken(matchmaker, phone),
+      nextScreen: 'Wizard',
     });
   } catch (error) {
     next(error);

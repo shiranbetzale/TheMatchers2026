@@ -16,6 +16,9 @@ export const styles = StyleSheet.create({
         borderBottomColor: Colors.borderSoft,
         ...Colors.Shadow,
     },
+    headerLeft: {
+        flexDirection: "row",
+    },
     actions: {
         flexDirection: "row-reverse",
         alignItems: "center",

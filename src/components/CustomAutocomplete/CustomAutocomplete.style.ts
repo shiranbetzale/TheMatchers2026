@@ -16,7 +16,7 @@ export const styles = StyleSheet.create({
   smallContainer: {
     width: '100%',
     minHeight: 48,
-    alignItems: 'flex-end',
+    alignItems: 'center',
     position: 'relative',
     zIndex: 20,
   },
@@ -36,16 +36,20 @@ export const styles = StyleSheet.create({
     width: '100%',
     flexShrink: 0,
   },
-  input: {
+  inputWrapper: {
     flex: 1,
     minWidth: 0,
+    position: 'relative',
+    zIndex: 100,
+  },
+  input: {
+    width: '100%',
     minHeight: 44,
     paddingHorizontal: GeneralStyle.spacing.md,
     paddingVertical: GeneralStyle.spacing.sm,
   },
   smallInput: {
-    flex: 1,
-    minWidth: 0,
+    width: '100%',
     minHeight: 40,
     paddingHorizontal: GeneralStyle.spacing.sm,
     paddingVertical: GeneralStyle.spacing.xs,
@@ -54,6 +58,7 @@ export const styles = StyleSheet.create({
   baseInput: {
     ...FontsStyle.text,
     color: Colors.black,
+    textAlignVertical: 'center',
     borderWidth: 1,
     borderColor: Colors.borderSoft,
     borderRadius: GeneralStyle.radius.md,
@@ -65,34 +70,28 @@ export const styles = StyleSheet.create({
   },
   suggestionsPanel: {
     position: 'absolute',
-    top: 52,
-    zIndex: 100,
-    elevation: 16,
-    maxHeight: 230,
+    top: '100%',
+    right: 0,
+    left: 0,
+    width: '100%',
+    maxHeight: 220,
+    marginTop: GeneralStyle.spacing.xs,
     overflow: 'hidden',
     borderWidth: 1,
     borderColor: Colors.borderSoft,
     borderRadius: GeneralStyle.radius.md,
     backgroundColor: Colors.ivory,
     ...Colors.Shadow,
-  },
-  wideSuggestionsPanel: {
-    width: '58%',
-  },
-  smallSuggestionsPanel: {
-    width: '58%',
-  },
-  suggestionsRtl: {
-    left: 0,
-  },
-  suggestionsLtr: {
-    right: 0,
+    zIndex: 1000,
+    elevation: 24,
   },
   suggestionItem: {
     paddingHorizontal: GeneralStyle.spacing.md,
     paddingVertical: GeneralStyle.spacing.sm,
     borderBottomWidth: 1,
     borderBottomColor: Colors.line,
+    minHeight: 48,
+    justifyContent: 'center',
   },
   suggestionText: {
     ...FontsStyle.text,

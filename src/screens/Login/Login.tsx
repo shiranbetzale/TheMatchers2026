@@ -1,5 +1,6 @@
 import React, {useEffect, useMemo, useState} from 'react';
 import {AxiosError} from 'axios';
+import {FirebaseAuthTypes} from '@react-native-firebase/auth';
 import {CommonActions, useNavigation} from '@react-navigation/native';
 import {StackNavigationProp} from '@react-navigation/stack';
 import {Modal, Platform, Text, TouchableOpacity, View} from 'react-native';
@@ -10,20 +11,174 @@ import CustomText from '../../components/CustomText/CustomText';
 import CustomInput from '../../components/CustomInput/CustomInput';
 import CustomButton from '../../components/CustomButton/CustomButton';
 import CustomTab from '../../components/CustomTab/CustomTab';
-import ErrorBanner from '../../components/ErrorBanner/ErrorBanner';
 
 import {styles} from './Login.style';
 import {RootStackParamList} from '../../components/MainStackNavigation/MainStackNavigation.type';
 import {useLanguage} from '../../utils/LanguageProvider';
-import {UserRole, isSessionValid, saveSession} from '../../services/session';
+import {useMessage} from '../../utils/MessageProvider';
+import {
+  UserRole,
+  getSessionRole,
+  getSessionUser,
+  isSessionValid,
+  saveSession,
+} from '../../services/session';
 import {registerForPushNotifications} from '../../services/pushNotifications';
-import {loginWithPassword} from '../../services/auth';
+import {
+  loginWithPassword,
+  sendCandidateCode,
+  verifyCandidateCode,
+} from '../../services/auth';
 
 type LoginMode = 'matchmaker' | 'candidate';
+
+const getFirebasePhoneErrorKey = (error: unknown) => {
+  const errorObject = error as {
+    code?: string;
+    nativeErrorCode?: string;
+    _code?: string;
+    message?: string;
+    _message?: string;
+    nativeErrorMessage?: string;
+    userInfo?: {
+      code?: string;
+      message?: string;
+    };
+  };
+  const message = String(
+    errorObject?.message ||
+      errorObject?._message ||
+      errorObject?.nativeErrorMessage ||
+      errorObject?.userInfo?.message ||
+      '',
+  );
+  const messageCodeMatch = message.match(/\[(auth\/[^\]]+)\]/);
+  const code = String(
+    errorObject?.code ||
+      errorObject?._code ||
+      errorObject?.nativeErrorCode ||
+      errorObject?.userInfo?.code ||
+      messageCodeMatch?.[1] ||
+      '',
+  );
+
+  if (code === 'auth/operation-not-allowed') {
+    return 'firebasePhoneAuthNotEnabled';
+  }
+
+  if (
+    code === 'auth/app-not-authorized' ||
+    code === 'auth/invalid-app-credential' ||
+    code === 'auth/missing-client-identifier' ||
+    code === 'auth/missing-app-credential'
+  ) {
+    return 'firebasePhoneAuthSetupError';
+  }
+
+  if (code === 'auth/invalid-phone-number') {
+    return 'invalidPhone';
+  }
+
+  if (code === 'auth/too-many-requests' || code === 'auth/quota-exceeded') {
+    return 'firebasePhoneAuthQuotaExceeded';
+  }
+
+  if (code === 'auth/network-request-failed') {
+    return 'errorNoResponse';
+  }
+
+  if (code === 'auth/invalid-verification-code') {
+    return 'invalidCandidateCode';
+  }
+
+  if (code === 'auth/session-expired') {
+    return 'candidateCodeExpired';
+  }
+
+  return null;
+};
+
+const getFirebasePhoneFallbackMessage = (error: unknown) => {
+  const errorObject = error as {
+    message?: string;
+    _message?: string;
+    nativeErrorMessage?: string;
+    userInfo?: {
+      message?: string;
+    };
+  };
+  const message = String(
+    errorObject?.message ||
+      errorObject?._message ||
+      errorObject?.nativeErrorMessage ||
+      errorObject?.userInfo?.message ||
+      '',
+  ).trim();
+
+  if (!message) {
+    return '';
+  }
+
+  return message.replace(/\[[^\]]+\]\s*/, '').trim();
+};
+
+const showCandidateAuthError = (
+  error: AxiosError<{message?: string}>,
+  rawError: unknown,
+  isCandidateLoginAttempt: boolean,
+  t: (key: string) => string,
+  showMessage: ReturnType<typeof useMessage>['showMessage'],
+) => {
+  const firebaseErrorKey = getFirebasePhoneErrorKey(rawError);
+  const firebaseFallbackMessage = getFirebasePhoneFallbackMessage(rawError);
+
+  if (isCandidateLoginAttempt && firebaseErrorKey) {
+    showMessage({type: 'error', message: t(firebaseErrorKey)});
+    return;
+  }
+
+  if (error.response?.status === 401 && !isCandidateLoginAttempt) {
+    showMessage({type: 'error', message: t('invalidCredentials')});
+    return;
+  }
+
+  if (isCandidateLoginAttempt && error.response?.status === 404) {
+    showMessage({type: 'error', message: t('matchmakerNotFound')});
+    return;
+  }
+
+  if (error.response) {
+    showMessage({
+      type: 'error',
+      message: isCandidateLoginAttempt
+        ? t('firebasePhoneAuthServerPrecheckError')
+        : t('errorServer'),
+    });
+    return;
+  }
+
+  if (error.request) {
+    showMessage({type: 'error', message: t('errorNoResponse')});
+    return;
+  }
+
+  if (isCandidateLoginAttempt && firebaseFallbackMessage) {
+    showMessage({type: 'error', message: firebaseFallbackMessage});
+    return;
+  }
+
+  showMessage({
+    type: 'error',
+    message: isCandidateLoginAttempt
+      ? t('firebasePhoneAuthUnknownError')
+      : t('errorGeneric'),
+  });
+};
 
 const Login = () => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
   const {t, language, changeLanguage, isRTL} = useLanguage();
+  const {showMessage} = useMessage();
 
   const [activeMode, setActiveMode] = useState<LoginMode>('matchmaker');
   const [langModalVisible, setLangModalVisible] = useState(false);
@@ -32,7 +187,13 @@ const Login = () => {
   const [mobile, setMobile] = useState('');
   const [password, setPassword] = useState('');
   const [matchmakerCode, setMatchmakerCode] = useState('');
-  const [errorKey, setErrorKey] = useState<string | null>(null);
+  const [candidateCode, setCandidateCode] = useState('');
+  const [candidateCodeModalVisible, setCandidateCodeModalVisible] =
+    useState(false);
+  const [pendingCandidatePhone, setPendingCandidatePhone] = useState('');
+  const [pendingMatchmakerPhone, setPendingMatchmakerPhone] = useState('');
+  const [candidateConfirmation, setCandidateConfirmation] =
+    useState<FirebaseAuthTypes.ConfirmationResult | null>(null);
 
   const languages = useMemo(
     () => [
@@ -65,10 +226,31 @@ const Login = () => {
         return;
       }
 
+      const [sessionRole, sessionUser] = await Promise.all([
+        getSessionRole(),
+        getSessionUser(),
+      ]);
+
+      if (!isMounted) {
+        return;
+      }
+
       navigation.dispatch(
         CommonActions.reset({
           index: 0,
-          routes: [{name: 'MainScreen'}],
+          routes:
+            sessionRole === 'user'
+              ? [
+                  {
+                    name: 'Wizard',
+                    params: {
+                      mode: 'create',
+                      resetToken: Date.now(),
+                      candidatePhone: sessionUser?.phone,
+                    },
+                  },
+                ]
+              : [{name: 'MainScreen'}],
         }),
       );
     };
@@ -88,7 +270,6 @@ const Login = () => {
     }
 
     setActiveMode(nextMode);
-    setErrorKey(null);
 
     setPassword('');
     setMatchmakerCode('');
@@ -108,22 +289,21 @@ const Login = () => {
       : cleanMatchmakerCode;
 
     if (!cleanMobile || !requiredSecret) {
-      setErrorKey('errorRequiredFields');
+      showMessage({type: 'error', message: t('errorRequiredFields')});
       return;
     }
 
     if (!/^\d{10}$/.test(cleanMobile)) {
-      setErrorKey('invalidPhone');
+      showMessage({type: 'error', message: t('invalidPhone')});
       return;
     }
 
     if (!isMatchmakerLogin && !/^\d{10}$/.test(cleanMatchmakerCode)) {
-      setErrorKey('invalidPhone');
+      showMessage({type: 'error', message: t('invalidPhone')});
       return;
     }
 
     try {
-      setErrorKey(null);
       setIsSubmitting(true);
 
       let role: UserRole = isMatchmakerLogin ? 'matchmaker' : 'user';
@@ -134,16 +314,23 @@ const Login = () => {
         role = user.role;
         hasBackendSession = true;
       } else {
-        await saveSession(role, {
-          phone: cleanMobile,
-        });
+        const confirmation = await sendCandidateCode(
+          cleanMobile,
+          cleanMatchmakerCode,
+        );
+        setPendingCandidatePhone(cleanMobile);
+        setPendingMatchmakerPhone(cleanMatchmakerCode);
+        setCandidateConfirmation(confirmation);
+        setCandidateCode('');
+        setCandidateCodeModalVisible(true);
+        return;
       }
 
       if (hasBackendSession) {
         const pushResult = await registerForPushNotifications();
 
         if (__DEV__) {
-          const platformLabel = Platform.OS === 'ios' ? 'iOS' : 'Android';
+          const platformLabel = Platform.OS;
 
           const message = pushResult.ok
             ? `FCM token created (${platformLabel})`
@@ -173,26 +360,116 @@ const Login = () => {
           routes: [
             {
               name: 'MainScreen',
-              params: {showCongratsAfterLogin: true},
             },
           ],
         }),
       );
     } catch (err) {
       const error = err as AxiosError<{message?: string}>;
+      const isCandidateLoginAttempt =
+        !isMatchmakerLogin || Boolean(cleanMatchmakerCode);
 
       if (__DEV__) {
         console.warn('Login failed', error);
       }
 
-      if (error.response?.status === 401) {
-        setErrorKey('invalidCredentials');
+      showCandidateAuthError(
+        error,
+        err,
+        isCandidateLoginAttempt,
+        t,
+        showMessage,
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleVerifyCandidateCode = async () => {
+    if (isSubmitting) {
+      return;
+    }
+
+    const cleanCandidatePhone = pendingCandidatePhone.trim();
+    const cleanMatchmakerPhone = pendingMatchmakerPhone.trim();
+    const cleanCode = candidateCode.trim();
+
+    if (!cleanCode) {
+      showMessage({type: 'error', message: t('errorRequiredFields')});
+      return;
+    }
+
+    try {
+      setIsSubmitting(true);
+
+      if (!candidateConfirmation) {
+        showMessage({
+          type: 'error',
+          message: t('firebasePhoneAuthUnknownError'),
+        });
+        return;
+      }
+
+      const candidateAuth = await verifyCandidateCode({
+        confirmation: candidateConfirmation,
+        phone: cleanCandidatePhone,
+        matchmakerPhone: cleanMatchmakerPhone,
+        code: cleanCode,
+      });
+      await saveSession('user', {
+        id: candidateAuth.user.id,
+        phone: cleanCandidatePhone,
+      });
+      registerForPushNotifications();
+
+      setMobile('');
+      setPassword('');
+      setMatchmakerCode('');
+      setCandidateCode('');
+      setCandidateConfirmation(null);
+      setCandidateCodeModalVisible(false);
+
+      navigation.dispatch(
+        CommonActions.reset({
+          index: 0,
+          routes: [
+            {
+              name: 'Wizard',
+              params: {
+                resetToken: Date.now(),
+                mode: 'create',
+                candidatePhone: cleanCandidatePhone,
+                matchmakerPhone: cleanMatchmakerPhone,
+              },
+            },
+          ],
+        }),
+      );
+    } catch (err) {
+      const error = err as AxiosError<{message?: string}>;
+      const firebaseErrorKey = getFirebasePhoneErrorKey(err);
+      const firebaseFallbackMessage = getFirebasePhoneFallbackMessage(err);
+
+      if (__DEV__) {
+        console.warn('Candidate verification failed', error);
+      }
+
+      if (firebaseErrorKey) {
+        showMessage({type: 'error', message: t(firebaseErrorKey)});
+      } else if (error.response?.status === 401) {
+        showMessage({type: 'error', message: t('invalidCandidateCode')});
+      } else if (error.response?.status === 404) {
+        showMessage({type: 'error', message: t('matchmakerNotFound')});
       } else if (error.response) {
-        setErrorKey('errorServer');
+        showMessage({type: 'error', message: t('errorServer')});
       } else if (error.request) {
-        setErrorKey('errorNoResponse');
+        showMessage({type: 'error', message: t('errorNoResponse')});
       } else {
-        setErrorKey('errorGeneric');
+        showMessage({
+          type: 'error',
+          message:
+            firebaseFallbackMessage || t('firebasePhoneAuthUnknownError'),
+        });
       }
     } finally {
       setIsSubmitting(false);
@@ -288,12 +565,6 @@ const Login = () => {
               </View>
             </View>
           </WhiteCard>
-
-          {errorKey && (
-            <View style={styles.errorContainerBottom}>
-              <ErrorBanner message={errorKey} />
-            </View>
-          )}
         </HomeScreen>
       </View>
 
@@ -323,6 +594,81 @@ const Login = () => {
             ))}
           </View>
         </TouchableOpacity>
+      </Modal>
+
+      <Modal
+        transparent
+        visible={candidateCodeModalVisible}
+        animationType="fade"
+        onRequestClose={() => {
+          setCandidateCodeModalVisible(false);
+          setCandidateCode('');
+          setCandidateConfirmation(null);
+        }}>
+        <View style={styles.codeModalOverlay}>
+          <View style={styles.codeModalContent}>
+            <View style={styles.codeModalHeader}>
+              <CustomText
+                text="candidateCodeTitle"
+                customStyle={styles.codeModalTitle}
+              />
+              <TouchableOpacity
+                style={styles.codeModalCloseButton}
+                onPress={() => {
+                  setCandidateCodeModalVisible(false);
+                  setCandidateCode('');
+                  setCandidateConfirmation(null);
+                }}>
+                <Text style={styles.codeModalCloseText}>×</Text>
+              </TouchableOpacity>
+            </View>
+
+            <CustomText
+              text="candidateCodeSubtitle"
+              customStyle={[
+                styles.codeModalSubtitle,
+                isRTL ? styles.textRight : styles.textLeft,
+              ]}
+            />
+
+            <View style={styles.space}>
+              <CustomInput
+                placeholder="candidateCodePlaceholder"
+                keyboardType="numeric"
+                inputMode="numeric"
+                onlyDigits
+                maxLength={10}
+                value={candidateCode}
+                onChangeText={setCandidateCode}
+              />
+            </View>
+
+            <View
+              style={[
+                styles.codeModalActions,
+                isRTL ? styles.rowReverse : styles.row,
+              ]}>
+              <CustomButton
+                text="cancel"
+                onPress={() => {
+                  setCandidateCodeModalVisible(false);
+                  setCandidateCode('');
+                  setCandidateConfirmation(null);
+                }}
+                isDisabled={isSubmitting}
+                customStyle={styles.codeCancelButton}
+                customTextStyle={styles.codeCancelButtonText}
+              />
+              <CustomButton
+                text={isSubmitting ? 'loading' : 'confirm'}
+                onPress={handleVerifyCandidateCode}
+                isDisabled={isSubmitting}
+                customStyle={styles.codeConfirmButton}
+                customTextStyle={styles.codeConfirmButtonText}
+              />
+            </View>
+          </View>
+        </View>
       </Modal>
     </>
   );

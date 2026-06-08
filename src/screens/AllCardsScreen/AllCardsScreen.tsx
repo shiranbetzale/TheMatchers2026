@@ -29,6 +29,7 @@ import {mapProfileToCard} from '../../utils/generalFunction';
 
 type NavigationProp = StackNavigationProp<RootStackParamList>;
 type AllCardsRouteProp = RouteProp<RootStackParamList, 'AllCardsScreen'>;
+const NO_MATCHER_FILTER_VALUE = 'noMatcher';
 
 const AllCardsScreen = () => {
   const navigation = useNavigation<NavigationProp>();
@@ -61,7 +62,9 @@ const AllCardsScreen = () => {
 
   const fetchProfiles = React.useCallback(async () => {
     try {
-      const response = await api.get('/api/profiles');
+      const response = await api.get('/api/profiles', {
+        params: onlyMine ? {scope: 'mine'} : undefined,
+      });
 
       const profiles = Array.isArray(response.data?.profiles)
         ? response.data.profiles
@@ -72,16 +75,12 @@ const AllCardsScreen = () => {
       console.error('Failed to load profiles', error);
       setCards([]);
     }
-  }, []);
+  }, [onlyMine]);
 
   useFocusEffect(
     React.useCallback(() => {
-      if (onlyMine && !sessionUserId) {
-        return;
-      }
-
       fetchProfiles();
-    }, [fetchProfiles, onlyMine, sessionUserId]),
+    }, [fetchProfiles]),
   );
 
   const matcherOptions = useMemo(() => {
@@ -100,6 +99,24 @@ const AllCardsScreen = () => {
     }));
   }, [cards]);
 
+  const nameOptions = useMemo(() => {
+    const names = new Set<string>();
+
+    cards.forEach(card => {
+      if (card.name?.trim()) {
+        names.add(card.name.trim());
+      }
+    });
+
+    return Array.from(names)
+      .sort((a, b) => a.localeCompare(b, 'he'))
+      .map((name, index) => ({
+        id: index + 1,
+        name: 'name',
+        label: name,
+      }));
+  }, [cards]);
+
   const visibleCards = useMemo(() => {
     const active = cards.filter(
       card =>
@@ -108,7 +125,7 @@ const AllCardsScreen = () => {
         card.relationshipStatus !== 'married',
     );
 
-    if (onlyMine || filterValues.isMyCards) {
+    if (filterValues.isMyCards) {
       if (!sessionUserId) {
         return [];
       }
@@ -119,7 +136,7 @@ const AllCardsScreen = () => {
     }
 
     return active;
-  }, [cards, onlyMine, filterValues.isMyCards, sessionUserId]);
+  }, [cards, filterValues.isMyCards, sessionUserId]);
 
   const filteredAndSortedCards = useMemo(() => {
     return [...visibleCards]
@@ -140,9 +157,12 @@ const AllCardsScreen = () => {
           ? card.gender === filterValues.gender
           : true;
 
-        const byMatcher = filterValues.matcherName
-          ? String(card.matcherName || '') === filterValues.matcherName
-          : true;
+        const byMatcher =
+          filterValues.matcherName === NO_MATCHER_FILTER_VALUE
+            ? !String(card.matcherName || '').trim()
+            : filterValues.matcherName
+              ? String(card.matcherName || '') === filterValues.matcherName
+              : true;
 
         return byName && byCity && byGender && byMatcher;
       })
@@ -216,7 +236,7 @@ const AllCardsScreen = () => {
     <HomeScreen
       pinChildren={
         <View style={styles.pinChildrenContainer}>
-          <CustomHeader headerBtns={headerBtns} />
+          <CustomHeader headerBtns={headerBtns} actionsPosition="left" />
 
           {isShowFilter && (
             <CustomFilter
@@ -225,6 +245,7 @@ const AllCardsScreen = () => {
                 isMyCards: onlyMine ? true : filterValues.isMyCards,
               }}
               isMyCards={onlyMine}
+              nameOptions={nameOptions}
               matcherOptions={matcherOptions}
               onApply={applyFilter}
               onReset={resetFilter}

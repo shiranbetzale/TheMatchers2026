@@ -31,6 +31,18 @@ export const styles = StyleSheet.create({
   headerRowLtr: {
     flexDirection: 'row',
   },
+  searchInput: {
+    minHeight: 44,
+    borderWidth: 1,
+    borderColor: '#CFD7E5',
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 9,
+    marginBottom: GeneralStyle.spacing.sm,
+    ...FontsStyle.text,
+    color: '#102A56',
+    backgroundColor: '#fff',
+  },
   addButton: {
     width: 36,
     height: 36,

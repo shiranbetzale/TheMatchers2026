@@ -1,16 +1,9 @@
 import React, {useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import {
-  RouteProp,
-  useFocusEffect,
-  useNavigation,
-  useRoute,
-} from '@react-navigation/native';
+import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import {StackNavigationProp} from '@react-navigation/stack';
 
 import CustomButton from '../../components/CustomButton/CustomButton';
-import CongratsModal from '../../components/CongratsModal/CongratsModal';
 import CustomText from '../../components/CustomText/CustomText';
 import MatchCard from '../../components/MatchCard/MatchCard';
 import {MatchCardType} from '../../components/MatchCard/MatchCard.type';
@@ -21,52 +14,58 @@ import {RootStackParamList} from '../../components/MainStackNavigation/MainStack
 import {styles} from './MainScreen.style';
 import {useLanguage} from '../../utils/LanguageProvider';
 import {UserRole, getSessionRole, getSessionUser} from '../../services/session';
-import {relationshipAnnouncements} from '../../data/relationshipAnnouncements';
 import api from '../../services/api';
 import {mapProfileToCard} from '../../utils/generalFunction';
-
-type MainScreenRouteProp = RouteProp<RootStackParamList, 'MainScreen'>;
-
-const VIEWED_ANNOUNCEMENT_COUPLES_KEY = 'viewedRelationshipAnnouncementCouples';
-
-const getAnnouncementCoupleKey = (
-  announcement: (typeof relationshipAnnouncements)[number],
-) =>
-  [announcement.candidate.name, announcement.partner.name]
-    .map(name => name.trim().toLowerCase())
-    .sort()
-    .join('|');
-
-const parseStoredIds = (value: string | null) => {
-  if (!value) {
-    return [];
-  }
-
-  try {
-    const parsed = JSON.parse(value);
-
-    return Array.isArray(parsed)
-      ? parsed.filter(item => typeof item === 'string')
-      : [];
-  } catch {
-    return [];
-  }
-};
 
 const isActiveCard = (card: MatchCardType) =>
   card.status !== 'archived' &&
   card.relationshipStatus !== 'engaged' &&
   card.relationshipStatus !== 'married';
 
+const getUniqueAppCoupleCount = (
+  cards: MatchCardType[],
+  relationshipStatus: 'engaged' | 'married',
+) => {
+  const coupleKeys = new Set<string>();
+
+  cards.forEach(card => {
+    if (
+      card.relationshipStatus !== relationshipStatus ||
+      card.partnerOutsideApp
+    ) {
+      return;
+    }
+
+    const profileId = String(card.profileId || '').trim();
+    const partnerProfileId = String(card.partnerProfileId || '').trim();
+
+    if (profileId && partnerProfileId) {
+      coupleKeys.add([profileId, partnerProfileId].sort().join(':'));
+      return;
+    }
+
+    const names = [card.name, card.partnerName]
+      .map(name =>
+        String(name || '')
+          .trim()
+          .toLowerCase(),
+      )
+      .filter(Boolean)
+      .sort();
+
+    if (names.length) {
+      coupleKeys.add(names.join(':'));
+    }
+  });
+
+  return coupleKeys.size;
+};
+
 const MainScreen = () => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
-  const route = useRoute<MainScreenRouteProp>();
   const {isRTL} = useLanguage();
 
   const [userRole, setUserRole] = useState<UserRole | null>(null);
-  const [visibleAnnouncementId, setVisibleAnnouncementId] = useState<
-    string | null
-  >(null);
   const [cards, setCards] = useState<MatchCardType[]>([]);
   const [matcherName, setMatcherName] = useState('');
 
@@ -84,13 +83,19 @@ const MainScreen = () => {
 
   const fetchProfiles = React.useCallback(async () => {
     try {
-      const response = await api.get('/api/profiles');
+      const [activeResponse, archivedResponse] = await Promise.all([
+        api.get('/api/profiles'),
+        api.get('/api/profiles', {params: {status: 'archived'}}),
+      ]);
 
-      const profiles = Array.isArray(response.data?.profiles)
-        ? response.data.profiles
+      const activeProfiles = Array.isArray(activeResponse.data?.profiles)
+        ? activeResponse.data.profiles
+        : [];
+      const archivedProfiles = Array.isArray(archivedResponse.data?.profiles)
+        ? archivedResponse.data.profiles
         : [];
 
-      setCards(profiles.map(mapProfileToCard));
+      setCards([...activeProfiles, ...archivedProfiles].map(mapProfileToCard));
     } catch (error) {
       console.warn('Failed to fetch main profiles', error);
       setCards([]);
@@ -102,57 +107,6 @@ const MainScreen = () => {
       fetchProfiles();
     }, [fetchProfiles]),
   );
-
-  useEffect(() => {
-    const showPendingAnnouncement = async () => {
-      if (!route.params?.showCongratsAfterLogin) {
-        return;
-      }
-
-      const dismissedValue = await AsyncStorage.getItem(
-        VIEWED_ANNOUNCEMENT_COUPLES_KEY,
-      );
-
-      const viewedCoupleIds = parseStoredIds(dismissedValue);
-
-      const nextAnnouncement = relationshipAnnouncements.find(
-        announcement =>
-          !viewedCoupleIds.includes(getAnnouncementCoupleKey(announcement)),
-      );
-
-      if (!nextAnnouncement) {
-        return;
-      }
-
-      await AsyncStorage.setItem(
-        VIEWED_ANNOUNCEMENT_COUPLES_KEY,
-        JSON.stringify(
-          Array.from(
-            new Set([
-              ...viewedCoupleIds,
-              getAnnouncementCoupleKey(nextAnnouncement),
-            ]),
-          ),
-        ),
-      );
-
-      setVisibleAnnouncementId(nextAnnouncement.id);
-    };
-
-    showPendingAnnouncement();
-  }, [route.params?.showCongratsAfterLogin]);
-
-  const visibleAnnouncement = relationshipAnnouncements.find(
-    announcement => announcement.id === visibleAnnouncementId,
-  );
-
-  const closeCongrats = async () => {
-    if (!visibleAnnouncementId) {
-      return;
-    }
-
-    setVisibleAnnouncementId(null);
-  };
 
   const activeCards = useMemo(() => cards.filter(isActiveCard), [cards]);
 
@@ -174,8 +128,13 @@ const MainScreen = () => {
     [activeCards],
   );
 
-  const engagedCount = useMemo(
-    () => cards.filter(card => card.relationshipStatus === 'engaged').length,
+  const engagedThroughAppCount = useMemo(
+    () => getUniqueAppCoupleCount(cards, 'engaged'),
+    [cards],
+  );
+
+  const marriedThroughAppCount = useMemo(
+    () => getUniqueAppCoupleCount(cards, 'married'),
     [cards],
   );
 
@@ -252,7 +211,14 @@ const MainScreen = () => {
             {[
               {value: String(activeCards.length), label: 'cardsCount'},
               {value: String(addedThisWeekCount), label: 'newCards'},
-              {value: String(engagedCount), label: 'engagedThisMonth'},
+              {
+                value: String(engagedThroughAppCount),
+                label: 'engagedThroughApp',
+              },
+              {
+                value: String(marriedThroughAppCount),
+                label: 'marriedThroughApp',
+              },
             ].map((stat, index, stats) => (
               <React.Fragment key={stat.label}>
                 <View style={styles.heroStat}>
@@ -340,7 +306,10 @@ const MainScreen = () => {
             customTextStyle={styles.secondaryButtonText}
             text="singleRegistration"
             onPress={() =>
-              navigation.navigate('Wizard', {resetToken: Date.now()})
+              navigation.navigate('Wizard', {
+                mode: 'create',
+                resetToken: Date.now(),
+              })
             }
           />
 
@@ -353,11 +322,6 @@ const MainScreen = () => {
         </View>
       </WhiteCard>
 
-      <CongratsModal
-        announcement={visibleAnnouncement}
-        visible={Boolean(visibleAnnouncement)}
-        onClose={closeCongrats}
-      />
     </HomeScreen>
   );
 };

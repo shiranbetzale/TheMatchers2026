@@ -1,7 +1,15 @@
 import React, {useEffect, useMemo, useState} from 'react';
-import {Text, View} from 'react-native';
+import {
+  Modal,
+  ScrollView,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import {StackNavigationProp} from '@react-navigation/stack';
+import DatePicker from 'react-native-date-picker';
 
 import CustomButton from '../../components/CustomButton/CustomButton';
 import CustomText from '../../components/CustomText/CustomText';
@@ -16,9 +24,10 @@ import {
   normalizeMeetingTime,
 } from '../../utils/generalFunction';
 import {useLanguage} from '../../utils/LanguageProvider';
+import {useMessage} from '../../utils/MessageProvider';
 import api from '../../services/api';
-import {RootStackParamList} from '../../components/MainStackNavigation/MainStackNavigation.type';
 import EditSvg from '../../assets/images/edit.svg';
+import {RootStackParamList} from '../../components/MainStackNavigation/MainStackNavigation.type';
 
 const formatGregorianShortDate = (date: Date, locale: string) =>
   date.toLocaleDateString(locale, {
@@ -62,11 +71,41 @@ const getMeetingDayKey = (value: string) => {
   return `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`;
 };
 
+const isMeetingDateTimeInPast = (dateValue?: string, timeValue?: string) => {
+  const normalizedTime = normalizeMeetingTime(timeValue);
+
+  if (!dateValue || !normalizedTime) {
+    return false;
+  }
+
+  const date = new Date(dateValue);
+
+  if (Number.isNaN(date.getTime())) {
+    return false;
+  }
+
+  const [hours, minutes] = normalizedTime.split(':').map(Number);
+  const meetingDateTime = new Date(date);
+  meetingDateTime.setHours(hours, minutes, 0, 0);
+
+  return meetingDateTime.getTime() <= Date.now();
+};
+
 const MeetingCalendarScreen = () => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
   const {language, t, isRTL} = useLanguage();
+  const {showMessage} = useMessage();
   const [sessionUser, setSessionUser] = useState<SessionUser | null>(null);
   const [meetings, setMeetings] = useState<MatchCardType[]>([]);
+  const [editingMeeting, setEditingMeeting] = useState<MatchCardType | null>(
+    null,
+  );
+  const [editMeetingDate, setEditMeetingDate] = useState('');
+  const [editMeetingTime, setEditMeetingTime] = useState('');
+  const [editMeetingLocation, setEditMeetingLocation] = useState('');
+  const [isEditDateOpen, setIsEditDateOpen] = useState(false);
+  const canEditMeetings =
+    sessionUser?.role === 'admin' || sessionUser?.role === 'matchmaker';
 
   useEffect(() => {
     getSessionUser().then(setSessionUser);
@@ -187,6 +226,91 @@ const MeetingCalendarScreen = () => {
     [scheduledMeetings],
   );
 
+  const today = useMemo(() => {
+    const nextToday = new Date();
+    nextToday.setHours(0, 0, 0, 0);
+    return nextToday;
+  }, []);
+
+  const editMeetingDateValue = editMeetingDate
+    ? new Date(editMeetingDate)
+    : new Date();
+  const editMeetingDateText = editMeetingDate
+    ? formatMeetingDayTitle(editMeetingDate, language, 'meetingDate')
+    : t('meetingDate');
+  const hasInvalidEditMeetingTime =
+    Boolean(editMeetingTime) &&
+    normalizeMeetingTime(editMeetingTime) !== editMeetingTime;
+  const hasPastEditMeetingTime = isMeetingDateTimeInPast(
+    editMeetingDate,
+    editMeetingTime,
+  );
+
+  const openEditMeeting = (meeting: MatchCardType) => {
+    if (!canEditMeetings) {
+      showMessage({type: 'error', message: t('errorProfileAccessDenied')});
+      return;
+    }
+
+    navigation.navigate('MatchCardsScreen', {
+      card: meeting,
+      openMeetingModal: true,
+      meetingEditToken: Date.now(),
+    });
+  };
+
+  const closeEditMeeting = () => {
+    setEditingMeeting(null);
+    setEditMeetingDate('');
+    setEditMeetingTime('');
+    setEditMeetingLocation('');
+    setIsEditDateOpen(false);
+  };
+
+  const saveEditMeeting = async () => {
+    if (!editingMeeting?.profileId) {
+      showMessage({type: 'error', message: t('errorGeneric')});
+      return;
+    }
+
+    const normalizedMeetingTime = normalizeMeetingTime(editMeetingTime);
+
+    if (!editMeetingDate) {
+      showMessage({type: 'error', message: t('meetingDateRequired')});
+      return;
+    }
+
+    if (!normalizedMeetingTime) {
+      showMessage({type: 'error', message: t('meetingTimeRequired')});
+      return;
+    }
+
+    if (isMeetingDateTimeInPast(editMeetingDate, normalizedMeetingTime)) {
+      showMessage({type: 'error', message: t('meetingTimeInPast')});
+      return;
+    }
+
+    if (!editMeetingLocation.trim()) {
+      showMessage({type: 'error', message: t('meetingLocationRequired')});
+      return;
+    }
+
+    try {
+      await api.put(`/api/profiles/${editingMeeting.profileId}`, {
+        meetingStatus: 'busy',
+        meetingDate: editMeetingDate,
+        meetingTime: normalizedMeetingTime,
+        meetingLocation: editMeetingLocation.trim(),
+      });
+
+      closeEditMeeting();
+      await fetchMeetings();
+    } catch (error) {
+      console.warn('Failed to update meeting from calendar', error);
+      showMessage({type: 'error', message: t('errorServer')});
+    }
+  };
+
   return (
     <HomeScreen>
       <View style={styles.container}>
@@ -234,12 +358,7 @@ const MeetingCalendarScreen = () => {
                     <CustomButton
                       customStyle={styles.editMeetingButton}
                       icon={<EditSvg width={18} height={18} />}
-                      onPress={() =>
-                        navigation.navigate('MatchCardsScreen', {
-                          card: meeting,
-                          openMeetingModal: true,
-                        })
-                      }
+                      onPress={() => openEditMeeting(meeting)}
                     />
 
                     <View style={styles.meetingMain}>
@@ -293,6 +412,151 @@ const MeetingCalendarScreen = () => {
           </WhiteCard>
         )}
       </View>
+
+      <Modal
+        transparent
+        animationType="fade"
+        visible={Boolean(editingMeeting)}
+        onRequestClose={closeEditMeeting}>
+        <View style={styles.modalOverlay}>
+          <ScrollView
+            style={styles.modalScroll}
+            contentContainerStyle={styles.modalScrollContent}
+            keyboardShouldPersistTaps="handled">
+            <View style={styles.editModal}>
+              <View
+                style={[
+                  styles.modalHeader,
+                  isRTL ? styles.modalHeaderRtl : styles.modalHeaderLtr,
+                ]}>
+                <CustomText
+                  text="meetingManagement"
+                  customStyle={styles.modalTitle}
+                />
+                <TouchableOpacity
+                  style={styles.modalCloseButton}
+                  onPress={closeEditMeeting}>
+                  <CustomText text="×" customStyle={styles.modalCloseText} />
+                </TouchableOpacity>
+              </View>
+
+              <View style={styles.modalField}>
+                <CustomText
+                  text="meetingDate"
+                  customStyle={[
+                    styles.modalFieldLabel,
+                    isRTL ? styles.textRtl : styles.textLtr,
+                  ]}
+                />
+                <TouchableOpacity
+                  activeOpacity={0.85}
+                  style={styles.modalInputBox}
+                  onPress={() => setIsEditDateOpen(true)}>
+                  <Text
+                    style={[
+                      styles.modalInputText,
+                      isRTL ? styles.textRtl : styles.textLtr,
+                    ]}>
+                    {editMeetingDateText}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+
+              <View style={styles.modalField}>
+                <CustomText
+                  text="meetingTime"
+                  customStyle={[
+                    styles.modalFieldLabel,
+                    isRTL ? styles.textRtl : styles.textLtr,
+                  ]}
+                />
+                <TextInput
+                  value={editMeetingTime}
+                  onChangeText={setEditMeetingTime}
+                  style={[
+                    styles.modalTextInput,
+                    isRTL ? styles.textRtl : styles.textLtr,
+                  ]}
+                  placeholder="HH:mm"
+                  placeholderTextColor="#9CA3AF"
+                  keyboardType="default"
+                />
+                {hasInvalidEditMeetingTime && (
+                  <CustomText
+                    text="invalidMeetingTime"
+                    customStyle={styles.validationText}
+                  />
+                )}
+                {hasPastEditMeetingTime && (
+                  <CustomText
+                    text="meetingTimeInPast"
+                    customStyle={styles.validationText}
+                  />
+                )}
+              </View>
+
+              <View style={styles.modalField}>
+                <CustomText
+                  text="meetingLocation"
+                  customStyle={[
+                    styles.modalFieldLabel,
+                    isRTL ? styles.textRtl : styles.textLtr,
+                  ]}
+                />
+                <TextInput
+                  value={editMeetingLocation}
+                  onChangeText={setEditMeetingLocation}
+                  style={[
+                    styles.modalTextInput,
+                    isRTL ? styles.textRtl : styles.textLtr,
+                  ]}
+                  placeholder={t('meetingLocation')}
+                  placeholderTextColor="#9CA3AF"
+                />
+              </View>
+
+              <View
+                style={[
+                  styles.modalActions,
+                  isRTL ? styles.modalActionsRtl : styles.modalActionsLtr,
+                ]}>
+                <CustomButton
+                  text="save"
+                  customStyle={styles.saveButton}
+                  customTextStyle={styles.saveButtonText}
+                  onPress={saveEditMeeting}
+                  isDisabled={
+                    hasInvalidEditMeetingTime || hasPastEditMeetingTime
+                  }
+                />
+                <CustomButton
+                  text="cancel"
+                  customStyle={styles.cancelButton}
+                  customTextStyle={styles.cancelButtonText}
+                  onPress={closeEditMeeting}
+                />
+              </View>
+
+              <DatePicker
+                modal
+                open={isEditDateOpen}
+                date={
+                  Number.isNaN(editMeetingDateValue.getTime())
+                    ? new Date()
+                    : editMeetingDateValue
+                }
+                minimumDate={today}
+                mode="date"
+                onConfirm={date => {
+                  setIsEditDateOpen(false);
+                  setEditMeetingDate(date.toISOString());
+                }}
+                onCancel={() => setIsEditDateOpen(false)}
+              />
+            </View>
+          </ScrollView>
+        </View>
+      </Modal>
     </HomeScreen>
   );
 };

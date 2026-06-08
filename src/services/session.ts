@@ -8,6 +8,7 @@ const SESSION_NAME_KEY = 'sessionName';
 const SESSION_EMAIL_KEY = 'sessionEmail';
 const SESSION_USER_ID_KEY = 'sessionUserId';
 const SESSION_DURATION_MS = 24 * 60 * 60 * 1000;
+const sessionListeners = new Set<() => void>();
 const SESSION_KEYS = [
   SESSION_EXPIRES_AT_KEY,
   SESSION_ROLE_KEY,
@@ -27,6 +28,18 @@ export type SessionUser = {
   email?: string;
 };
 
+const notifySessionChanged = () => {
+  sessionListeners.forEach(listener => listener());
+};
+
+export const subscribeSessionChanges = (listener: () => void) => {
+  sessionListeners.add(listener);
+
+  return () => {
+    sessionListeners.delete(listener);
+  };
+};
+
 export const saveSession = async (
   role: UserRole = 'user',
   user?: {id?: string; phone?: string; name?: string; email?: string},
@@ -35,25 +48,27 @@ export const saveSession = async (
   await AsyncStorage.setItem(SESSION_EXPIRES_AT_KEY, String(expiresAt));
   await AsyncStorage.setItem(SESSION_ROLE_KEY, role);
 
-  if (user?.id) {
-    await AsyncStorage.setItem(SESSION_USER_ID_KEY, user.id);
-  }
+  await Promise.all([
+    user?.id
+      ? AsyncStorage.setItem(SESSION_USER_ID_KEY, user.id)
+      : AsyncStorage.removeItem(SESSION_USER_ID_KEY),
+    user?.phone
+      ? AsyncStorage.setItem(SESSION_PHONE_KEY, user.phone)
+      : AsyncStorage.removeItem(SESSION_PHONE_KEY),
+    user?.name
+      ? AsyncStorage.setItem(SESSION_NAME_KEY, user.name)
+      : AsyncStorage.removeItem(SESSION_NAME_KEY),
+    user?.email
+      ? AsyncStorage.setItem(SESSION_EMAIL_KEY, user.email)
+      : AsyncStorage.removeItem(SESSION_EMAIL_KEY),
+  ]);
 
-  if (user?.phone) {
-    await AsyncStorage.setItem(SESSION_PHONE_KEY, user.phone);
-  }
-
-  if (user?.name) {
-    await AsyncStorage.setItem(SESSION_NAME_KEY, user.name);
-  }
-
-  if (user?.email) {
-    await AsyncStorage.setItem(SESSION_EMAIL_KEY, user.email);
-  }
+  notifySessionChanged();
 };
 
 export const clearSession = async () => {
   await Promise.all(SESSION_KEYS.map(key => AsyncStorage.removeItem(key)));
+  notifySessionChanged();
 };
 
 export const isSessionValid = async () => {

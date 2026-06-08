@@ -10,7 +10,23 @@ const parseImages = (value?: string): UploadedPicture[] => {
 
   try {
     const parsed = JSON.parse(value);
-    return Array.isArray(parsed) ? parsed : [];
+    if (!Array.isArray(parsed)) {
+      return [];
+    }
+
+    return parsed
+      .map(image => {
+        if (typeof image === 'string') {
+          return {uri: image};
+        }
+
+        if (image && typeof image === 'object' && 'uri' in image) {
+          return image as UploadedPicture;
+        }
+
+        return null;
+      })
+      .filter((image): image is UploadedPicture => Boolean(image?.uri));
   } catch {
     return [];
   }

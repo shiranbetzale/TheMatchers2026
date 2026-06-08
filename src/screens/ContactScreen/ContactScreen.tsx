@@ -1,6 +1,6 @@
 import React, {useState} from 'react';
 import {AxiosError} from 'axios';
-import {Alert, View} from 'react-native';
+import {View} from 'react-native';
 
 import CustomButton from '../../components/CustomButton/CustomButton';
 import CustomInput from '../../components/CustomInput/CustomInput';
@@ -9,12 +9,14 @@ import WhiteCard from '../../components/WhiteCard/WhiteCard';
 
 import api from '../../services/api';
 import {useLanguage} from '../../utils/LanguageProvider';
+import {useMessage} from '../../utils/MessageProvider';
 
 import HomeScreen from '../HomeScreen/HomeScreen';
 import {styles} from './ContactScreen.style';
 
 const ContactScreen = () => {
   const {t} = useLanguage();
+  const {showMessage} = useMessage();
 
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -53,17 +55,17 @@ const ContactScreen = () => {
     const trimmedMessage = message.trim();
 
     if (!trimmedName || !trimmedEmail || !trimmedMessage) {
-      Alert.alert(t('error'), t('errorRequiredFields'));
+      showMessage({type: 'error', message: t('errorRequiredFields')});
       return;
     }
 
     if (!isValidEmail(trimmedEmail)) {
-      Alert.alert(t('error'), t('invalidEmail'));
+      showMessage({type: 'error', message: t('invalidEmail')});
       return;
     }
 
     if (!isValidPhone(trimmedPhone)) {
-      Alert.alert(t('error'), t('invalidPhone'));
+      showMessage({type: 'error', message: t('invalidPhone')});
       return;
     }
 
@@ -79,7 +81,7 @@ const ContactScreen = () => {
 
       resetForm();
 
-      Alert.alert(t('success'), t('contactSent'));
+      showMessage({type: 'success', message: t('contactSent')});
     } catch (error) {
       const axiosError = error as AxiosError<{
         message?: string;
@@ -96,13 +98,14 @@ const ContactScreen = () => {
           ? `${payload.error}: ${payload.field}`
           : payload?.error;
 
-      Alert.alert(
-        t('error'),
-        serverMessage ||
+      showMessage({
+        type: 'error',
+        message:
+          serverMessage ||
           fallbackServerReason ||
           axiosError.message ||
           t('contactSendError'),
-      );
+      });
     } finally {
       setIsSubmitting(false);
     }

@@ -15,7 +15,25 @@ async function getMatchmakerTokens() {
     'token',
   );
 
-  return deviceTokens.map(device => device.token);
+  return Array.from(
+    new Set(
+      deviceTokens
+        .map(device => String(device.token || '').trim())
+        .filter(Boolean),
+    ),
+  );
+}
+
+async function getAllUserTokens() {
+  const deviceTokens = await DeviceToken.find({}).select('token');
+
+  return Array.from(
+    new Set(
+      deviceTokens
+        .map(device => String(device.token || '').trim())
+        .filter(Boolean),
+    ),
+  );
 }
 
 async function sendPushNotification({title, body, data = {}, tokens}) {
@@ -26,16 +44,48 @@ async function sendPushNotification({title, body, data = {}, tokens}) {
     return {successCount: 0, failureCount: 0};
   }
 
-  const targetTokens = tokens || (await getMatchmakerTokens());
+  const targetTokens = Array.from(
+    new Set(
+      (tokens || (await getMatchmakerTokens()))
+        .map(token => String(token || '').trim())
+        .filter(Boolean),
+    ),
+  );
 
   if (!targetTokens.length) {
+    console.warn('Push notification skipped: no device tokens found', {
+      type: data.type,
+    });
     return {successCount: 0, failureCount: 0};
   }
+
+  console.log('Sending push notification', {
+    type: data.type,
+    tokens: targetTokens.length,
+    title,
+  });
 
   const messaging = admin.messaging(app);
   const response = await messaging.sendEachForMulticast({
     tokens: targetTokens,
     notification: {title, body},
+    android: {
+      priority: 'high',
+      notification: {
+        sound: 'default',
+        priority: 'high',
+      },
+    },
+    apns: {
+      headers: {
+        'apns-priority': '10',
+      },
+      payload: {
+        aps: {
+          sound: 'default',
+        },
+      },
+    },
     data: Object.fromEntries(
       Object.entries(data).map(([key, value]) => [key, String(value)]),
     ),
@@ -56,17 +106,65 @@ async function sendPushNotification({title, body, data = {}, tokens}) {
     await DeviceToken.deleteMany({token: {$in: invalidTokens}});
   }
 
+  console.log('Push notification result', {
+    type: data.type,
+    successCount: response.successCount,
+    failureCount: response.failureCount,
+  });
+
+  if (response.failureCount > 0) {
+    console.warn(
+      'Push notification failures',
+      response.responses
+        .map((result, index) => ({
+          tokenPrefix: targetTokens[index]?.slice(0, 12),
+          code: result.error?.code,
+          message: result.error?.message,
+        }))
+        .filter(item => item.code || item.message),
+    );
+  }
+
   return response;
 }
 
 async function notifyProfileCreated(profile) {
+  const profileName = profile.fullName || profile.name || 'כרטיס חדש';
+
   return sendPushNotification({
     title: 'כרטיס חדש נוסף',
-    body: `${profile.fullName} נוסף/ה למאגר השידוכים`,
+    body: `${profileName} נוסף/ה למאגר השידוכים`,
     data: {
       type: 'profile_created',
       profileId: profile.id,
     },
+  });
+}
+
+async function notifyProfileRelationshipStatus(profile, status) {
+  const profileName = profile.fullName || profile.name || 'משודך/ת';
+  let partnerName = profile.partnerName || '';
+
+  if (!partnerName && profile.partnerProfileId) {
+    const partner = await Profile.findById(profile.partnerProfileId);
+    partnerName = partner?.fullName || partner?.name || '';
+  }
+
+  const statusText = status === 'married' ? 'התחתנו' : 'התארסו';
+  const body = partnerName
+    ? `${profileName} ו-${partnerName} ${statusText}`
+    : `${profileName} ${statusText}`;
+
+  return sendPushNotification({
+    title: 'מזל טוב!',
+    body,
+    data: {
+      type: 'relationship_status',
+      profileId: profile.id,
+      partnerProfileId: profile.partnerProfileId || '',
+      status,
+    },
+    tokens: await getAllUserTokens(),
   });
 }
 
@@ -93,11 +191,13 @@ async function notifyRelationshipStatus(match, status) {
       matchId: match.id,
       status,
     },
+    tokens: await getAllUserTokens(),
   });
 }
 
 module.exports = {
   notifyProfileCreated,
+  notifyProfileRelationshipStatus,
   notifyRelationshipStatus,
   sendPushNotification,
 };

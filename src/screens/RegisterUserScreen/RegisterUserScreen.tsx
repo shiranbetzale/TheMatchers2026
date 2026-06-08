@@ -1,5 +1,5 @@
 import React, {useState} from 'react';
-import {View, Alert} from 'react-native';
+import {View} from 'react-native';
 import {AxiosError} from 'axios';
 import {StackNavigationProp} from '@react-navigation/stack';
 import {useFocusEffect} from '@react-navigation/native';
@@ -14,6 +14,7 @@ import CustomRadioButton from '../../components/CustomRadioButton/CustomRadioBut
 import {styles} from './RegisterUserScreen.style';
 import {RootStackParamList} from '../../components/MainStackNavigation/MainStackNavigation.type';
 import {useLanguage} from '../../utils/LanguageProvider';
+import {useMessage} from '../../utils/MessageProvider';
 import api from '../../services/api';
 
 type NavigationProp = StackNavigationProp<
@@ -32,6 +33,7 @@ const RegisterUserScreen = ({navigation}: Props) => {
   const [password, setPassword] = useState<string>('');
   const [gender, setGender] = useState<'male' | 'female'>('female');
   const {t} = useLanguage();
+  const {showMessage} = useMessage();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useFocusEffect(
@@ -55,29 +57,29 @@ const RegisterUserScreen = ({navigation}: Props) => {
     const cleanPassword = password.trim();
 
     if (!cleanFullName || !cleanPhone || !cleanEmail || !cleanPassword) {
-      Alert.alert(t('error'), t('errorRequiredFields'));
+      showMessage({type: 'error', message: t('errorRequiredFields')});
       return;
     }
 
     if (!/^\d{9,10}$/.test(cleanPhone)) {
-      Alert.alert(t('error'), t('invalidPhone'));
+      showMessage({type: 'error', message: t('invalidPhone')});
       return;
     }
 
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) {
-      Alert.alert(t('error'), t('invalidEmail'));
+      showMessage({type: 'error', message: t('invalidEmail')});
       return;
     }
 
     if (cleanPassword.length < 6) {
-      Alert.alert(t('error'), t('passwordTooShort'));
+      showMessage({type: 'error', message: t('passwordTooShort')});
       return;
     }
 
     try {
       setIsSubmitting(true);
 
-      await api.post('/api/users/register-user', {
+      await api.post('/api/users/register', {
         fullName: cleanFullName,
         phone: cleanPhone,
         email: cleanEmail,
@@ -85,20 +87,23 @@ const RegisterUserScreen = ({navigation}: Props) => {
         password: cleanPassword,
       });
 
-      Alert.alert(t('success'), t('userRegistered'));
+      showMessage({type: 'success', message: t('matchmakerRegistered')});
       navigation.navigate('UsersList');
     } catch (err) {
       const error = err as AxiosError<{message?: string}>;
 
       if (error.response) {
-        Alert.alert(
-          t('error'),
-          error.response.data?.message || t('errorServer'),
-        );
+        showMessage({
+          type: 'error',
+          message: error.response.data?.message || t('errorServer'),
+        });
       } else if (error.request) {
-        Alert.alert(t('error'), t('errorNoResponse'));
+        showMessage({type: 'error', message: t('errorNoResponse')});
       } else {
-        Alert.alert(t('error'), error.message || t('errorGeneric'));
+        showMessage({
+          type: 'error',
+          message: error.message || t('errorGeneric'),
+        });
       }
     } finally {
       setIsSubmitting(false);

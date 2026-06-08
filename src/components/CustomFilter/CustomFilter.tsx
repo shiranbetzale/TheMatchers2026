@@ -13,6 +13,7 @@ const CustomFilter = (props: CustomFilterType) => {
     values = {},
     isMyCards = false,
     matcherName,
+    nameOptions = [],
     matcherOptions = [],
     onApply = () => {},
     onReset = () => {},
@@ -35,10 +36,14 @@ const CustomFilter = (props: CustomFilterType) => {
       {
         id: 'name',
         text: 'nameLabel',
-        keyboardTypeOption: 'default' as const,
-        fieldType: 'input' as const,
+        fieldType: 'select' as const,
         value: name,
-        onChangeText: setName,
+        options: nameOptions,
+        allowClear: true,
+        handlePress: (option?: Option | boolean) =>
+          setName(
+            option && typeof option !== 'boolean' ? option.label || '' : '',
+          ),
         isSmallSize: true,
       },
       {
@@ -58,9 +63,12 @@ const CustomFilter = (props: CustomFilterType) => {
         value: selectedMatcherName,
         isEditable: !matcherName,
         options: matcherOptions,
+        allowClear: true,
         handlePress: (option?: Option | boolean) =>
           setSelectedMatcherName(
-            option && typeof option !== 'boolean' ? option.label || '' : '',
+            option && typeof option !== 'boolean'
+              ? option.originalLabel || option.label || ''
+              : '',
           ),
         isSmallSize: true,
       },
@@ -106,6 +114,7 @@ const CustomFilter = (props: CustomFilterType) => {
       matcherName,
       matcherOptions,
       name,
+      nameOptions,
       selectedMatcherName,
     ],
   );

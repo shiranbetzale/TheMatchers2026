@@ -1,9 +1,10 @@
 import React, {useEffect, useMemo, useState} from 'react';
-import {Alert, TextInput, TouchableOpacity, View} from 'react-native';
+import {TextInput, TouchableOpacity, View} from 'react-native';
 import {RouteProp, useNavigation, useRoute} from '@react-navigation/native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 
 import CustomHeader from '../../components/CustomHeader/CustomHeader';
+import CustomSelect from '../../components/CustomSelect/CustomSelect';
 import CustomText from '../../components/CustomText/CustomText';
 import WhiteCard from '../../components/WhiteCard/WhiteCard';
 import SaveSvg from '../../assets/images/save.svg';
@@ -16,6 +17,7 @@ import {MatchCardType} from '../../components/MatchCard/MatchCard.type';
 import {Option} from '../../utils/FormFields.type';
 import {calculateAge, formatHebrewDate} from '../../utils/generalFunction';
 import {useLanguage} from '../../utils/LanguageProvider';
+import {useMessage} from '../../utils/MessageProvider';
 import api from '../../services/api';
 
 type EditFormRouteProp = RouteProp<RootStackParamList, 'EditFormScreen'>;
@@ -26,6 +28,8 @@ const normalizeStatus = (status?: string) => {
     single: 'singleStatus',
     divorced: 'divorcedStatus',
     widower: 'widowedStatus',
+    active: '',
+    archived: '',
   };
 
   return status ? (statusMap[status] ?? status) : '';
@@ -33,6 +37,7 @@ const normalizeStatus = (status?: string) => {
 
 const denormalizeStatus = (status?: string) => {
   const statusMap: Record<string, string> = {
+    '': '',
     singleStatus: 'single',
     divorcedStatus: 'divorced',
     widowedStatus: 'widower',
@@ -72,10 +77,89 @@ const normalizeName = (value?: string) =>
     .trim()
     .toLowerCase();
 
+const getGenderKey = (gender?: string) => {
+  const normalizedGender = denormalizeGender(gender);
+
+  return normalizedGender === 'male' || normalizedGender === 'female'
+    ? normalizedGender
+    : undefined;
+};
+
+const getOppositeGender = (gender?: string) => {
+  const genderKey = getGenderKey(gender);
+
+  return genderKey === 'male'
+    ? 'female'
+    : genderKey === 'female'
+      ? 'male'
+      : undefined;
+};
+
+const getRelationshipStatusTextKey = (
+  status: 'engaged' | 'married' | '',
+  gender?: string,
+) => {
+  const genderKey = getGenderKey(gender);
+
+  if (status === 'engaged') {
+    return genderKey === 'male'
+      ? 'engagedStatusMale'
+      : genderKey === 'female'
+        ? 'engagedStatusFemale'
+        : 'engagedStatus';
+  }
+
+  if (status === 'married') {
+    return genderKey === 'male'
+      ? 'marriedStatusMale'
+      : genderKey === 'female'
+        ? 'marriedStatusFemale'
+        : 'marriedStatus';
+  }
+
+  return '';
+};
+
 const safeNumber = (value?: string) => {
   const numberValue = Number(value);
 
   return Number.isFinite(numberValue) ? numberValue : 0;
+};
+
+const buildMatchmakerOptions = (users: any[], profiles: any[]): Option[] => {
+  const matchmakerMap = new Map<string, string>();
+
+  users.forEach(user => {
+    const userId = String(user.id || user._id || '').trim();
+    const userName = String(user.fullName || user.name || '').trim();
+    const userRole = String(user.role || '').trim();
+
+    if (
+      userId &&
+      userName &&
+      (userRole === 'matchmaker' || userRole === 'admin')
+    ) {
+      matchmakerMap.set(userId, userName);
+    }
+  });
+
+  profiles.forEach(profile => {
+    const assignedMatchmaker = String(profile.assignedMatchmaker || '').trim();
+    const matcherName = String(profile.matcherName || '').trim();
+
+    if (assignedMatchmaker && matcherName) {
+      matchmakerMap.set(assignedMatchmaker, matcherName);
+    }
+  });
+
+  return Array.from(matchmakerMap.entries()).map(
+    ([matchmakerId, matcherName], index) => ({
+      id: index + 1,
+      name: 'collaborationMatchmaker',
+      label: matcherName,
+      value: matchmakerId,
+    }),
+  );
 };
 
 const getInitialFormValues = (card?: MatchCardType) =>
@@ -93,7 +177,7 @@ const getInitialFormValues = (card?: MatchCardType) =>
       age: card?.age !== undefined ? String(card.age) : '',
       hight: card?.height ?? '',
       city: card?.city ?? '',
-      status: normalizeStatus(card?.status),
+      status: normalizeStatus((card as any)?.maritalStatus || card?.status),
       countOfChildren:
         card?.numOfChildren !== undefined ? String(card.numOfChildren) : '',
       phone: card?.phone ?? '',
@@ -102,12 +186,13 @@ const getInitialFormValues = (card?: MatchCardType) =>
       isMarried: String(card?.relationshipStatus === 'married'),
       partnerName: card?.partnerName ?? '',
       partnerOutsideApp: String(Boolean(card?.partnerOutsideApp)),
+      collaborationMatchmaker: card?.collaborationMatchmaker ?? '',
     },
   );
 
 const getProfileFormValues = (profile: Record<string, unknown>) => {
   const fieldIds = new Set(detailsFormArray.map(field => field.id));
-  const statusValue = String(profile.status || '');
+  const statusValue = String(profile.maritalStatus || profile.status || '');
   const relationshipStatus = String(profile.relationshipStatus || '');
   const values: Record<string, string> = {};
 
@@ -159,6 +244,7 @@ const getProfileFormValues = (profile: Record<string, unknown>) => {
       profile.partnerOutsideApp !== undefined
         ? String(Boolean(profile.partnerOutsideApp))
         : 'false',
+    collaborationMatchmaker: String(profile.collaborationMatchmaker || ''),
   };
 };
 
@@ -166,6 +252,7 @@ const EditFormScreen = () => {
   const route = useRoute<EditFormRouteProp>();
   const navigation = useNavigation<EditFormNavigationProp>();
   const {t, isRTL} = useLanguage();
+  const {showMessage} = useMessage();
 
   const card = route.params?.card;
   const isEditable = true;
@@ -173,6 +260,7 @@ const EditFormScreen = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [isPartnerSearchFocused, setIsPartnerSearchFocused] = useState(false);
   const [profilesCache, setProfilesCache] = useState<any[]>([]);
+  const [matchmakerOptions, setMatchmakerOptions] = useState<Option[]>([]);
   const [formValues, setFormValues] = useState<Record<string, string>>(() =>
     getInitialFormValues(card),
   );
@@ -186,9 +274,15 @@ const EditFormScreen = () => {
 
     const fetchProfile = async () => {
       try {
-        const response = await api.get('/api/profiles');
-        const profiles = Array.isArray(response.data?.profiles)
-          ? response.data.profiles
+        const [profilesResponse, matchmakersResponse] = await Promise.all([
+          api.get('/api/profiles'),
+          api.get('/api/users/matchmakers'),
+        ]);
+        const profiles = Array.isArray(profilesResponse.data?.profiles)
+          ? profilesResponse.data.profiles
+          : [];
+        const matchmakers = Array.isArray(matchmakersResponse.data?.users)
+          ? matchmakersResponse.data.users
           : [];
 
         let profile: Record<string, unknown> | undefined;
@@ -210,6 +304,7 @@ const EditFormScreen = () => {
         }
 
         setProfilesCache(profiles);
+        setMatchmakerOptions(buildMatchmakerOptions(matchmakers, profiles));
 
         if (profile) {
           setFormValues(prev => ({
@@ -260,6 +355,7 @@ const EditFormScreen = () => {
       updateField('isMarried', 'false');
       updateField('partnerName', '');
       updateField('partnerOutsideApp', 'false');
+      updateField('collaborationMatchmaker', '');
       return;
     }
 
@@ -304,6 +400,36 @@ const EditFormScreen = () => {
       .filter(Boolean);
   }, [card?.phone, card?.profileId, profilesCache]);
 
+  const partnerGenderByName = useMemo(
+    () =>
+      profilesCache.reduce<Record<string, string>>((profilesByName, profile) => {
+        const name = normalizeName(profile.fullName || profile.name);
+        const gender = getGenderKey(String(profile.gender || ''));
+
+        if (name && gender) {
+          profilesByName[name] = gender;
+        }
+
+        return profilesByName;
+      }, {}),
+    [profilesCache],
+  );
+
+  const partnerProfileByName = useMemo(
+    () =>
+      profilesCache.reduce<Record<string, string>>((profilesByName, profile) => {
+        const name = normalizeName(profile.fullName || profile.name);
+        const profileId = String(profile._id || profile.id || '');
+
+        if (name && profileId) {
+          profilesByName[name] = profileId;
+        }
+
+        return profilesByName;
+      }, {}),
+    [profilesCache],
+  );
+
   const checkPartnerOutsideApp = (
     relationshipStatus: string,
     partnerName: string,
@@ -331,7 +457,7 @@ const EditFormScreen = () => {
       const profileId = resolveProfileId();
 
       if (!profileId) {
-        Alert.alert(t('error'), t('profileNotFoundForUpdate'));
+        showMessage({type: 'error', message: t('profileNotFoundForUpdate')});
         return;
       }
 
@@ -345,7 +471,7 @@ const EditFormScreen = () => {
       const partnerName = String(formValues.partnerName || '').trim();
 
       if (relationshipStatus && !partnerName) {
-        Alert.alert(t('error'), t('partnerRequired'));
+        showMessage({type: 'error', message: t('partnerRequired')});
         return;
       }
 
@@ -353,17 +479,22 @@ const EditFormScreen = () => {
         relationshipStatus,
         partnerName,
       );
+      const partnerProfileId =
+        partnerProfileByName[normalizeName(partnerName)] || undefined;
 
       const payload: Record<string, unknown> = {
         ...formValues,
         fullName: formValues.fullName || '',
         gender: denormalizeGender(formValues.gender),
         status: denormalizeStatus(formValues.status),
+        maritalStatus: denormalizeStatus(formValues.status),
         countOfChildren: safeNumber(formValues.countOfChildren),
         age: safeNumber(formValues.age),
         relationshipStatus: relationshipStatus || undefined,
         partnerName: partnerName || '',
+        partnerProfileId,
         partnerOutsideApp,
+        collaborationMatchmaker: formValues.collaborationMatchmaker || undefined,
       };
 
       delete payload.isEngaged;
@@ -371,7 +502,7 @@ const EditFormScreen = () => {
 
       await api.put(`/api/profiles/${profileId}`, payload);
 
-      Alert.alert(t('success'), t('saveChangesSuccess'));
+      showMessage({type: 'success', message: t('saveChangesSuccess')});
 
       if (navigation.canGoBack()) {
         navigation.goBack();
@@ -381,7 +512,15 @@ const EditFormScreen = () => {
       navigation.navigate('MainScreen');
     } catch (error) {
       console.warn('Failed to save profile edit', error);
-      Alert.alert(t('error'), t('saveChangesError'));
+      const status = (error as any)?.response?.status;
+      const messageKey =
+        status === 403
+          ? 'errorProfileAccessDenied'
+          : status === 404
+            ? 'profileNotFoundForUpdate'
+            : 'saveChangesError';
+
+      showMessage({type: 'error', message: t(messageKey)});
     } finally {
       setIsSaving(false);
     }
@@ -390,6 +529,25 @@ const EditFormScreen = () => {
   const isEngaged = formValues.isEngaged === 'true';
   const isMarried = formValues.isMarried === 'true';
   const relationshipStatus = isMarried ? 'married' : isEngaged ? 'engaged' : '';
+  const selectedPartnerGender =
+    partnerGenderByName[normalizeName(formValues.partnerName)] ||
+    getOppositeGender(formValues.gender);
+  const relationshipStatusTextKey = getRelationshipStatusTextKey(
+    relationshipStatus,
+    selectedPartnerGender,
+  );
+  const engagedStatusTextKey = getRelationshipStatusTextKey(
+    'engaged',
+    selectedPartnerGender,
+  );
+  const marriedStatusTextKey = getRelationshipStatusTextKey(
+    'married',
+    selectedPartnerGender,
+  );
+  const selectedCollaborationMatchmakerLabel =
+    matchmakerOptions.find(
+      option => String(option.value || '') === formValues.collaborationMatchmaker,
+    )?.label || '';
   const shouldShowPartnerSearch = isEngaged || isMarried;
 
   const filteredPartnerSuggestions = partnerSuggestions.filter(partnerName => {
@@ -420,11 +578,7 @@ const EditFormScreen = () => {
 
           {relationshipStatus && (
             <CustomText
-              text={
-                relationshipStatus === 'married'
-                  ? 'marriedStatus'
-                  : 'engagedStatus'
-              }
+              text={relationshipStatusTextKey}
               customStyle={styles.relationshipBadge}
             />
           )}
@@ -445,7 +599,7 @@ const EditFormScreen = () => {
               (!isEditable || isSaving) && styles.disabledOption,
             ]}>
             <CustomText
-              text="engagedStatus"
+              text={engagedStatusTextKey}
               customStyle={[
                 styles.statusOptionText,
                 isEngaged && styles.statusOptionTextActive,
@@ -463,7 +617,7 @@ const EditFormScreen = () => {
               (!isEditable || isSaving) && styles.disabledOption,
             ]}>
             <CustomText
-              text="marriedStatus"
+              text={marriedStatusTextKey}
               customStyle={[
                 styles.statusOptionText,
                 isMarried && styles.statusOptionTextActive,
@@ -474,6 +628,19 @@ const EditFormScreen = () => {
 
         {shouldShowPartnerSearch && (
           <View style={styles.partnerSearchContainer}>
+            <CustomSelect
+              layout="column"
+              text="collaborationMatchmaker"
+              value={selectedCollaborationMatchmakerLabel}
+              options={matchmakerOptions}
+              onSelect={option =>
+                updateField(
+                  'collaborationMatchmaker',
+                  option?.value || '',
+                )
+              }
+            />
+
             <CustomText
               text="partnerLink"
               customStyle={[

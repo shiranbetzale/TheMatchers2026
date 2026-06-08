@@ -4,11 +4,13 @@ import {FontsStyle} from '../../utils/FontsStyle';
 import GeneralStyle from '../../utils/GeneralStyle';
 
 export const styles = StyleSheet.create({
+  fieldContainer: {
+    width: '100%',
+  },
   container: {
     width: '100%',
     alignItems: 'center',
     justifyContent: 'space-between',
-    position: 'relative',
     gap: GeneralStyle.spacing.sm,
   },
   row: {
@@ -21,15 +23,18 @@ export const styles = StyleSheet.create({
     width: '100%',
     alignItems: 'flex-end',
   },
-  input: {
+  inputWrapper: {
     flex: 1,
     minWidth: 0,
+    position: 'relative',
+  },
+  input: {
+    width: '100%',
     paddingHorizontal: GeneralStyle.spacing.md,
     paddingVertical: GeneralStyle.spacing.sm,
   },
   smallInput: {
-    flex: 1,
-    minWidth: 0,
+    width: '100%',
     paddingHorizontal: GeneralStyle.spacing.sm,
     paddingVertical: GeneralStyle.spacing.xs,
     marginTop: GeneralStyle.spacing.xs,
@@ -42,6 +47,10 @@ export const styles = StyleSheet.create({
     borderBottomColor: Colors.borderSoft,
     ...FontsStyle.text,
     color: Colors.black,
+  },
+  errorInput: {
+    borderColor: '#D65A50',
+    backgroundColor: '#FFF5F1',
   },
   readOnlyInput: {
     borderWidth: 0,
@@ -82,6 +91,14 @@ export const styles = StyleSheet.create({
     width: '100%',
     flexShrink: 0,
   },
+  errorText: {
+    ...FontsStyle.text,
+    width: '100%',
+    color: '#9F4239',
+    fontSize: 12,
+    lineHeight: 18,
+    marginTop: GeneralStyle.spacing.xs,
+  },
   textRight: {
     textAlign: 'right',
   },
@@ -91,6 +108,8 @@ export const styles = StyleSheet.create({
   toggleSecure: {
     position: 'absolute',
     right: GeneralStyle.spacing.lg,
+    top: 0,
+    bottom: 0,
     justifyContent: 'center',
     zIndex: 1,
   },

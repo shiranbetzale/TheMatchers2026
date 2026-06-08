@@ -5,5 +5,6 @@ export type CustomCheckBoxType = {
   isSmallSize?: boolean;
   isEditable?: boolean;
   options: Option[];
+  value?: string[];
   onChange?: (option: Option, value: boolean) => void;
 };

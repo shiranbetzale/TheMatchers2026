@@ -20,7 +20,11 @@ const SelectedCard = (props: SelectedCardType) => {
   const shouldShowMeetingButton = isShowMeetingButton || Boolean(onMeetingPress);
 
   const handlePress = () => {
-    navigation?.navigate('EditFormScreen', {card});
+    navigation?.navigate('Wizard', {
+      mode: 'edit',
+      profileId: card.profileId,
+      card,
+    });
   };
 
   return (
