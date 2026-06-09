@@ -95,6 +95,14 @@ const getOppositeGender = (gender?: string) => {
       : undefined;
 };
 
+const getProfileId = (profile?: Record<string, unknown> | MatchCardType) =>
+  String(
+    (profile as any)?.profileId ||
+      (profile as any)?._id ||
+      (profile as any)?.id ||
+      '',
+  ).trim();
+
 const getRelationshipStatusTextKey = (
   status: 'engaged' | 'married' | '',
   gender?: string,
@@ -258,6 +266,7 @@ const EditFormScreen = () => {
   const isEditable = true;
 
   const [isSaving, setIsSaving] = useState(false);
+  const [loadedProfileId, setLoadedProfileId] = useState('');
   const [isPartnerSearchFocused, setIsPartnerSearchFocused] = useState(false);
   const [profilesCache, setProfilesCache] = useState<any[]>([]);
   const [matchmakerOptions, setMatchmakerOptions] = useState<Option[]>([]);
@@ -287,10 +296,12 @@ const EditFormScreen = () => {
 
         let profile: Record<string, unknown> | undefined;
 
-        if (card?.profileId) {
+        const cardProfileId = getProfileId(card);
+
+        if (cardProfileId) {
           profile = profiles.find(
             (item: any) =>
-              String(item._id || item.id || '') === String(card.profileId),
+              String(item._id || item.id || '') === String(cardProfileId),
           );
         } else if (card?.phone) {
           profile = profiles.find(
@@ -307,6 +318,7 @@ const EditFormScreen = () => {
         setMatchmakerOptions(buildMatchmakerOptions(matchmakers, profiles));
 
         if (profile) {
+          setLoadedProfileId(getProfileId(profile));
           setFormValues(prev => ({
             ...prev,
             ...getProfileFormValues(profile),
@@ -322,7 +334,7 @@ const EditFormScreen = () => {
     return () => {
       isMounted = false;
     };
-  }, [card?.phone, card?.profileId]);
+  }, [card]);
 
   const updateField = (id: string, value: string) => {
     setFormValues(prev => ({
@@ -364,8 +376,14 @@ const EditFormScreen = () => {
   };
 
   const resolveProfileId = () => {
-    if (card?.profileId) {
-      return card.profileId;
+    const cardProfileId = getProfileId(card);
+
+    if (cardProfileId) {
+      return cardProfileId;
+    }
+
+    if (loadedProfileId) {
+      return loadedProfileId;
     }
 
     if (!card?.phone) {

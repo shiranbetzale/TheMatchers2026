@@ -88,6 +88,8 @@ const normalizeName = (value?: string) =>
     .trim()
     .toLowerCase();
 
+const normalizePhone = (value?: string) => String(value || '').replace(/\D/g, '');
+
 const buildMatchmakerOptions = (users: any[], profiles: any[]): Option[] => {
   const matchmakerMap = new Map<string, string>();
 
@@ -551,6 +553,14 @@ const validateWizardValues = (values: WizardFormValues) =>
     ]),
   );
 
+const getProfileId = (profile?: Record<string, unknown> | MatchCardType) =>
+  String(
+    (profile as any)?.profileId ||
+      (profile as any)?._id ||
+      (profile as any)?.id ||
+      '',
+  ).trim();
+
 const Wizard = () => {
   const navigation = useNavigation<WizardNavigationProp>();
   const route = useRoute<WizardRouteProp>();
@@ -559,7 +569,10 @@ const Wizard = () => {
   const routeParams = route.params;
   const isEditMode = routeParams?.mode === 'edit';
   const shouldRestoreToAvailable = Boolean(routeParams?.restoreToAvailable);
-  const editProfileId = routeParams?.profileId || routeParams?.card?.profileId || '';
+  const routeEditProfileId =
+    routeParams?.profileId || getProfileId(routeParams?.card);
+  const [loadedEditProfileId, setLoadedEditProfileId] = useState('');
+  const editProfileId = loadedEditProfileId || routeEditProfileId;
   const [wizardStep, setWizardStep] = useState<number>(1);
   const [submitErrorKey, setSubmitErrorKey] = useState<string | null>(null);
   const [formValues, setFormValues] = useState<WizardFormValues>(() =>
@@ -631,7 +644,12 @@ const Wizard = () => {
         ? clearRelationshipValues(getWizardValuesFromCard(routeParams?.card))
         : getWizardValuesFromCard(routeParams?.card)),
     }));
-  }, [isEditMode, routeParams?.card, editProfileId, shouldRestoreToAvailable]);
+  }, [
+    isEditMode,
+    routeParams?.card,
+    routeEditProfileId,
+    shouldRestoreToAvailable,
+  ]);
 
   useEffect(() => {
     if (!isEditMode || !editProfileId) {
@@ -649,6 +667,7 @@ const Wizard = () => {
           return;
         }
 
+        setLoadedEditProfileId(getProfileId(profile));
         setFormValues(currentValues => ({
           ...currentValues,
           ...(shouldRestoreToAvailable
@@ -693,6 +712,20 @@ const Wizard = () => {
         if (isMounted) {
           setProfilesCache(profiles);
           setMatchmakerOptions(buildMatchmakerOptions(matchmakers, profiles));
+
+          if (!editProfileId && routeParams?.card?.phone) {
+            const matchedProfile = profiles.find(
+              (profile: any) =>
+                normalizePhone(profile.phone) ===
+                normalizePhone(routeParams.card?.phone),
+            );
+
+            const matchedProfileId = getProfileId(matchedProfile);
+
+            if (matchedProfileId) {
+              setLoadedEditProfileId(matchedProfileId);
+            }
+          }
         }
       } catch (error) {
         console.warn('Failed to load profiles for partner search', error);
@@ -704,7 +737,7 @@ const Wizard = () => {
     return () => {
       isMounted = false;
     };
-  }, [isEditMode]);
+  }, [editProfileId, isEditMode, routeParams?.card?.phone]);
 
   useEffect(() => {
     setFieldErrors(validateWizardValues(formValues));
