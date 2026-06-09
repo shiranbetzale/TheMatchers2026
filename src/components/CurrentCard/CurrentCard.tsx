@@ -19,6 +19,7 @@ type CurrentCardProps = MatchCardType & {
   onMeetingPress?: () => void;
   isShowMeetingButton?: boolean;
   isShowInfoButtons?: boolean;
+  isShowCardActions?: boolean;
 };
 
 const cleanLine = (label: string, value?: string | number) => {
@@ -42,6 +43,7 @@ const CurrentCard = (props: CurrentCardProps) => {
     onMeetingPress,
     isShowMeetingButton,
     isShowInfoButtons = false,
+    isShowCardActions = true,
     matcherName,
     matcherPhone,
     matcherMail,
@@ -171,6 +173,7 @@ const CurrentCard = (props: CurrentCardProps) => {
       <SelectedCard
         card={props}
         details={details}
+        isShowActions={isShowCardActions}
         isShowMeetingButton={isShowMeetingButton}
         onMeetingPress={onMeetingPress}
       />

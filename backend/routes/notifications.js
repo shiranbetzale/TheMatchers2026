@@ -1,6 +1,7 @@
 const express = require('express');
 const DeviceToken = require('../models/DeviceToken');
 const {requireAuth} = require('../middleware/auth');
+const {processMeetingReminders} = require('../services/meetingReminders');
 const {sendPushNotification} = require('../services/pushNotifications');
 
 const router = express.Router();
@@ -113,5 +114,18 @@ router.post('/test', requireAuth(), async (req, res, next) => {
     next(error);
   }
 });
+
+router.post(
+  '/meeting-reminders/run',
+  requireAuth(['admin']),
+  async (_req, res, next) => {
+    try {
+      await processMeetingReminders();
+      res.json({ok: true});
+    } catch (error) {
+      next(error);
+    }
+  },
+);
 
 module.exports = router;

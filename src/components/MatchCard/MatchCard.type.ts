@@ -33,8 +33,12 @@ export type MatchCardType = {
   partnerImage?: string;
   partnerOutsideApp?: boolean;
   city?: string;
+  helpWithMoney?: string;
+  helpWithMoneyDetails?: string;
+  hobbies?: string;
   currentUserRole?: 'admin' | 'matchmaker' | 'user';
   currentUserId?: string;
+  pairedCard?: MatchCardType;
   aiMatchScore?: number;
   aiMatchReasons?: string[];
 };

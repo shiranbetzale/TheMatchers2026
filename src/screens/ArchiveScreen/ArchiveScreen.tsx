@@ -34,12 +34,15 @@ const ArchiveScreen = () => {
   const navigation = useNavigation<ArchiveNavigationProp>();
 
   const [archivedCards, setArchivedCards] = useState<MatchCardType[]>([]);
+  const [hasLoadedArchive, setHasLoadedArchive] = useState(false);
   const [isShowFilter, setIsShowFilter] = useState(false);
   const [isShowOrderBy, setIsShowOrderBy] = useState(false);
   const [filterValues, setFilterValues] = useState<CardsFilterValues>({});
   const [sortValue, setSortValue] = useState<CardsSortValue>('');
 
   const fetchArchivedProfiles = React.useCallback(async () => {
+    setHasLoadedArchive(false);
+
     try {
       const response = await api.get('/api/profiles', {
         params: {status: 'archived'},
@@ -52,6 +55,8 @@ const ArchiveScreen = () => {
       setArchivedCards(profiles.map(mapProfileToCard));
     } catch {
       setArchivedCards([]);
+    } finally {
+      setHasLoadedArchive(true);
     }
   }, []);
 
@@ -283,7 +288,7 @@ const ArchiveScreen = () => {
               </View>
             </View>
 
-            {filteredAndSortedCards.length ? (
+            {!hasLoadedArchive ? null : filteredAndSortedCards.length ? (
               filteredAndSortedCards.map((card, index) => (
                 <View
                   key={card.profileId || `${card.name}_${index}`}

@@ -18,6 +18,7 @@ const profilesRouter = require('./routes/profiles');
 const matchesRouter = require('./routes/matches');
 const contactRouter = require('./routes/contact');
 const notificationsRouter = require('./routes/notifications');
+const {startMeetingReminderScheduler} = require('./services/meetingReminders');
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -53,6 +54,7 @@ app.use((err, _req, res, _next) => {
 
 async function start(port = PORT) {
   await connectToDatabase();
+  startMeetingReminderScheduler();
 
   const server = http.createServer(app);
 

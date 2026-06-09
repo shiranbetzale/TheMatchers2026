@@ -25,6 +25,26 @@ const cleanLine = (label: string, value?: string | number) => {
   return cleanValue ? `${label}: ${cleanValue}` : '';
 };
 
+const formatMoney = (value?: string | number) => {
+  const cleanValue = String(value || '').replace(/[^\d]/g, '');
+
+  if (!cleanValue) {
+    return '';
+  }
+
+  return Number(cleanValue).toLocaleString('he-IL');
+};
+
+const getCardImages = (card: MatchCardType) => {
+  const normalizedImages = Array.isArray(card.images)
+    ? card.images.filter(image => typeof image === 'string' && image.trim())
+    : [];
+
+  return normalizedImages.length
+    ? normalizedImages
+    : [getDefaultProfileImage(card.gender)];
+};
+
 const MatchCard = (props: MatchCardType) => {
   const {isRTL, t} = useLanguage();
 
@@ -52,6 +72,7 @@ const MatchCard = (props: MatchCardType) => {
     currentUserRole,
     currentUserId,
     assignedMatchmaker,
+    pairedCard,
 
     // שדות נוספים לכרטיס שידוכים
     tribe,
@@ -67,13 +88,7 @@ const MatchCard = (props: MatchCardType) => {
 
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const displayImages = useMemo(() => {
-    const normalizedImages = Array.isArray(images)
-      ? images.filter(image => typeof image === 'string' && image.trim())
-      : [];
-
-    return normalizedImages.length
-      ? normalizedImages
-      : [getDefaultProfileImage(gender)];
+    return getCardImages(props);
   }, [gender, images]);
 
   const statusPillText = getCardStatusText(status, numOfChildren, t, gender);
@@ -131,58 +146,73 @@ const MatchCard = (props: MatchCardType) => {
     ],
   );
 
-  const profileMessage = useMemo(
-    () =>
-      [
-        'בס"ד',
-        '',
-        '💌 כרטיס שידוכים 💌',
-        '',
-        cleanLine('😊 שם', name),
-        cleanLine('🎂 גיל', age),
-        cleanLine('🌱 גובה', height),
-        cleanLine('👳 עדה', tribe),
-        cleanLine('🎗️ מצב משפחתי', statusPillText),
-        cleanLine('🏡 אזור מגורים', city),
-        cleanLine('🙏 רמה דתית', hashkafa),
-        cleanLine('🔧 מה עושה כרגע בחיים', whatWorks),
-        cleanLine('📖 לימודים', education),
-        importantInfo ? `🎭 מי אני / תכונות אופי:\n${importantInfo}` : '',
-        hobbies ? `🏓 תחביבים:\n${hobbies}` : '',
-        matchRangeAges ? `⛔ עד איזה גיל מתפשר/ת:\n${matchRangeAges}` : '',
-        familyInfo ? `👪 משפחה:\n${familyInfo}` : '',
-        matchImportantInfo ? `💍 מי אני מחפש/ת:\n${matchImportantInfo}` : '',
-        '',
-        '📞 לפרטים נוספים:',
-        cleanLine('שדכנית', matcherName),
-        cleanLine('נייד שדכנית', matcherPhone),
-        matcherMail ? cleanLine('מייל', matcherMail) : '',
-        '',
-        displayImages?.[0] ? `🖼️ תמונה:\n${displayImages[0]}` : '',
-      ]
-        .filter(Boolean)
-        .join('\n'),
-    [
-      name,
-      age,
-      height,
-      tribe,
-      statusPillText,
-      city,
-      hashkafa,
-      whatWorks,
-      education,
-      importantInfo,
-      hobbies,
-      matchRangeAges,
-      familyInfo,
-      matchImportantInfo,
-      matcherName,
-      matcherPhone,
-      matcherMail,
-      displayImages,
-    ],
-  );
+  const buildShareSection = (
+    title: string,
+    card: MatchCardType & Record<string, any>,
+  ) => {
+    const cardImages = getCardImages(card);
+    const cardStatus = getCardStatusText(
+      card.status,
+      card.numOfChildren || 0,
+      t,
+      card.gender,
+    );
+
+    return [
+      title,
+      cleanLine('😊 שם', card.name),
+      cleanLine('🎂 גיל', card.age),
+      cleanLine('🌱 גובה', card.height),
+      cleanLine('👳 עדה', card.tribe),
+      cleanLine('🎗️ מצב משפחתי', cardStatus),
+      cleanLine('🏡 אזור מגורים', card.city),
+      cleanLine('🙏 רמה דתית', card.hashkafa),
+      cleanLine('🔧 מה עושה כרגע בחיים', card.whatWorks),
+      cleanLine('📖 לימודים', card.education),
+      card.importantInfo ? `🎭 קצת עלי:\n${card.importantInfo}` : '',
+      card.hobbies ? `🏓 תחביבים:\n${card.hobbies}` : '',
+      card.matchRangeAges
+        ? `⛔ עד איזה גיל מתפשר/ת:\n${card.matchRangeAges}`
+        : '',
+      cleanLine('💰 כמה ההורים עוזרים', formatMoney(card.helpWithMoney)),
+      card.helpWithMoneyDetails
+        ? `🤝 במה עוד ההורים עוזרים:\n${card.helpWithMoneyDetails}`
+        : '',
+      card.familyInfo ? `👪 משפחה:\n${card.familyInfo}` : '',
+      card.matchImportantInfo
+        ? `💍 מי אני מחפש/ת:\n${card.matchImportantInfo}`
+        : '',
+      cardImages.length ? `🖼️ תמונות:\n${cardImages.join('\n')}` : '',
+    ].filter(Boolean);
+  };
+
+  const profileMessage = useMemo(() => {
+    const matchCard = props as MatchCardType & Record<string, any>;
+    const candidateCard = pairedCard as
+      | (MatchCardType & Record<string, any>)
+      | undefined;
+
+    return [
+      'בס"ד',
+      '',
+      candidateCard ? '💌 הצעת התאמה 💌' : '💌 כרטיס שידוכים 💌',
+      '',
+      ...(candidateCard
+        ? [
+            ...buildShareSection('המשודך/ת:', candidateCard),
+            '',
+            ...buildShareSection('ההתאמה:', matchCard),
+          ]
+        : buildShareSection('', matchCard)),
+      '',
+      '📞 לפרטים נוספים:',
+      cleanLine('שדכנית', matcherName),
+      cleanLine('נייד שדכנית', matcherPhone),
+      matcherMail ? cleanLine('מייל', matcherMail) : '',
+    ]
+      .filter(Boolean)
+      .join('\n');
+  }, [matcherMail, matcherName, matcherPhone, pairedCard, props, t]);
 
   const openURL = async (url: string, fallback?: () => void) => {
     try {

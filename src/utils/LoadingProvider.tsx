@@ -1,4 +1,5 @@
-import React, {createContext, useContext, useState} from 'react';
+import React, {createContext, useContext, useEffect, useMemo, useState} from 'react';
+import {clearLoadingHandlers, setLoadingHandlers} from './LoadingManager';
 
 type LoadingContextType = {
   isLoading: boolean;
@@ -14,14 +15,26 @@ const LoadingContext = createContext<LoadingContextType>({
 
 export const LoadingProvider = ({children}: {children: React.ReactNode}) => {
   const [isLoading, setIsLoading] = useState(false);
+  const value = useMemo(
+    () => ({
+      isLoading,
+      showLoader: () => setIsLoading(true),
+      hideLoader: () => setIsLoading(false),
+    }),
+    [isLoading],
+  );
+
+  useEffect(() => {
+    setLoadingHandlers({
+      show: value.showLoader,
+      hide: value.hideLoader,
+    });
+
+    return clearLoadingHandlers;
+  }, [value.hideLoader, value.showLoader]);
 
   return (
-    <LoadingContext.Provider
-      value={{
-        isLoading,
-        showLoader: () => setIsLoading(true),
-        hideLoader: () => setIsLoading(false),
-      }}>
+    <LoadingContext.Provider value={value}>
       {children}
     </LoadingContext.Provider>
   );

@@ -7,27 +7,14 @@ import {hideGlobalLoader, showGlobalLoader} from '../utils/LoadingManager';
 
 export const API_TOKEN_KEY = 'authToken';
 
-const DEV_SERVER_URL = 'http://192.168.223.147:4000';
+const DEV_SERVER_URL = 'https://thematchers-backend.onrender.com';
 const LOCALHOST_URL = 'http://localhost:4000';
 const ANDROID_EMULATOR_URL = 'http://10.0.2.2:4000';
 
 let activeRequests = 0;
 
 const api = axios.create({
-  baseURL: (() => {
-    if (Platform.OS === 'android') {
-      return DeviceInfo.isEmulatorSync()
-        ? ANDROID_EMULATOR_URL
-        : DEV_SERVER_URL;
-    }
-
-    if (Platform.OS === 'ios') {
-      return DeviceInfo.isEmulatorSync() ? LOCALHOST_URL : DEV_SERVER_URL;
-    }
-
-    return DEV_SERVER_URL;
-  })(),
-  timeout: 15000,
+  baseURL: DEV_SERVER_URL,
 });
 
 const startLoading = () => {

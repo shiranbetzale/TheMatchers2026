@@ -20,6 +20,7 @@ const CustomSelect = (props: CustomSelectType) => {
     layout = 'row',
     onSelect,
     options,
+    presentation = 'modal',
     text,
     value,
   } = props;
@@ -64,6 +65,27 @@ const CustomSelect = (props: CustomSelectType) => {
     onSelect(undefined);
     setIsOpen(false);
   };
+
+  const optionsList = (
+    <ScrollView
+      showsVerticalScrollIndicator={false}
+      keyboardShouldPersistTaps="always">
+      {options.map(option => (
+        <TouchableOpacity
+          key={`${option.name}_${option.id}_${option.value || option.label}`}
+          style={styles.option}
+          onPress={() => handleSelect(option)}>
+          <CustomText
+            text={option.label}
+            customStyle={[
+              styles.optionText,
+              isRTL ? styles.rtlText : styles.ltrText,
+            ]}
+          />
+        </TouchableOpacity>
+      ))}
+    </ScrollView>
+  );
 
   return (
     <View
@@ -113,37 +135,24 @@ const CustomSelect = (props: CustomSelectType) => {
         </View>
       </TouchableOpacity>
 
-      <Modal
-        transparent
-        visible={isEditable && isOpen}
-        animationType="fade"
-        onRequestClose={() => setIsOpen(false)}>
-        <TouchableOpacity
-          style={styles.overlay}
-          activeOpacity={1}
-          onPressOut={() => setIsOpen(false)}>
-          <View style={styles.optionsContainer}>
-            <ScrollView
-              showsVerticalScrollIndicator={false}
-              keyboardShouldPersistTaps="always">
-              {options.map(option => (
-                <TouchableOpacity
-                  key={`${option.name}_${option.id}`}
-                  style={styles.option}
-                  onPress={() => handleSelect(option)}>
-                  <CustomText
-                    text={option.label}
-                    customStyle={[
-                      styles.optionText,
-                      isRTL ? styles.rtlText : styles.ltrText,
-                    ]}
-                  />
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
-          </View>
-        </TouchableOpacity>
-      </Modal>
+      {presentation === 'inline' ? (
+        isEditable && isOpen ? (
+          <View style={styles.inlineOptionsContainer}>{optionsList}</View>
+        ) : null
+      ) : (
+        <Modal
+          transparent
+          visible={isEditable && isOpen}
+          animationType="fade"
+          onRequestClose={() => setIsOpen(false)}>
+          <TouchableOpacity
+            style={styles.overlay}
+            activeOpacity={1}
+            onPressOut={() => setIsOpen(false)}>
+            <View style={styles.optionsContainer}>{optionsList}</View>
+          </TouchableOpacity>
+        </Modal>
+      )}
     </View>
   );
 };

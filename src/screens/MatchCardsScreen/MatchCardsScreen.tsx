@@ -114,6 +114,7 @@ const MatchCardsScreen = () => {
   const [isMeetingModalOpen, setIsMeetingModalOpen] = useState(false);
   const [timePickerValue, setTimePickerValue] = useState('09:00');
   const [matchArray, setMatchArray] = useState<MatchCardType[]>([]);
+  const [hasLoadedMatches, setHasLoadedMatches] = useState(false);
   const [allProfiles, setAllProfiles] = useState<any[]>([]);
   const [matchmakerOptions, setMatchmakerOptions] = useState<
     SelectOptionWithValue[]
@@ -122,6 +123,9 @@ const MatchCardsScreen = () => {
   const [partnerByName, setPartnerByName] = useState<Record<string, string>>(
     {},
   );
+  const [partnerMatchmakerById, setPartnerMatchmakerById] = useState<
+    Record<string, string>
+  >({});
   const canManageMeetings = userRole === 'matchmaker' || userRole === 'admin';
 
   useEffect(() => {
@@ -225,6 +229,7 @@ const MatchCardsScreen = () => {
           id: index + 1,
           name: 'partner',
           label: String(profile.fullName || '—'),
+          value: String(profile._id || profile.id || ''),
         })),
       );
 
@@ -235,11 +240,28 @@ const MatchCardsScreen = () => {
           return acc;
         }, {}),
       );
+
+      setPartnerMatchmakerById(
+        filteredPartners.reduce((acc: Record<string, string>, profile: any) => {
+          const profileId = String(profile._id || profile.id || '');
+          const assignedMatchmaker = String(
+            profile.assignedMatchmaker || '',
+          ).trim();
+
+          if (profileId && assignedMatchmaker) {
+            acc[profileId] = assignedMatchmaker;
+          }
+
+          return acc;
+        }, {}),
+      );
     },
     [currentCard.profileId],
   );
 
   const fetchMatches = React.useCallback(async () => {
+    setHasLoadedMatches(false);
+
     try {
       const [profilesResponse, matchmakersResponse] = await Promise.all([
         api.get('/api/profiles'),
@@ -294,6 +316,8 @@ const MatchCardsScreen = () => {
       setMatchArray(mapped);
     } catch {
       setMatchArray([]);
+    } finally {
+      setHasLoadedMatches(true);
     }
   }, [
     buildPartnerOptions,
@@ -308,6 +332,47 @@ const MatchCardsScreen = () => {
       fetchMatches();
     }, [fetchMatches]),
   );
+
+  useEffect(() => {
+    if (
+      currentCard.collaborationMatchmaker ||
+      (!currentCard.partnerProfileId && !currentCard.partnerName) ||
+      allProfiles.length === 0
+    ) {
+      return;
+    }
+
+    const partnerProfile = allProfiles.find((profile: any) => {
+      const profileId = String(profile._id || profile.id || '');
+      const profileName = String(profile.fullName || '').trim();
+
+      return currentCard.partnerProfileId
+        ? profileId === currentCard.partnerProfileId
+        : profileName === String(currentCard.partnerName || '').trim();
+    });
+
+    const assignedMatchmaker = String(
+      partnerProfile?.assignedMatchmaker || '',
+    ).trim();
+
+    if (assignedMatchmaker) {
+      setCurrentCard(card => ({
+        ...card,
+        collaborationMatchmaker: assignedMatchmaker,
+        partnerProfileId:
+          card.partnerProfileId ||
+          String(partnerProfile?._id || partnerProfile?.id || '') ||
+          undefined,
+      }));
+      buildPartnerOptions(allProfiles, assignedMatchmaker);
+    }
+  }, [
+    allProfiles,
+    buildPartnerOptions,
+    currentCard.collaborationMatchmaker,
+    currentCard.partnerName,
+    currentCard.partnerProfileId,
+  ]);
 
   const isMeetingBusy = currentCard.meetingStatus === 'busy';
   const currentMeetingDate = currentCard.meetingDate
@@ -568,11 +633,11 @@ const MatchCardsScreen = () => {
           </View>
           <CurrentCard
             {...currentCard}
-            isShowMeetingButton={canManageMeetings}
-            isShowInfoButtons={true}
+            isShowCardActions={false}
+            isShowMeetingButton={false}
+            isShowInfoButtons={false}
             currentUserRole={userRole || undefined}
             currentUserId={currentUserId}
-            onMeetingPress={() => setIsMeetingModalOpen(true)}
           />
         </View>
       }>
@@ -637,6 +702,7 @@ const MatchCardsScreen = () => {
           </View>
           <MatchCard
             {...matchItem}
+            pairedCard={currentCard}
             isShowMoreInfo={false}
             isShowInfoButtons={true}
             isShowMeetingInfo={true}
@@ -646,7 +712,7 @@ const MatchCardsScreen = () => {
           />
         </TouchableOpacity>
       ))}
-      {matchArray.length === 0 && (
+      {hasLoadedMatches && matchArray.length === 0 && (
         <View
           style={[
             styles.sectionHeader,
@@ -916,6 +982,7 @@ const MatchCardsScreen = () => {
                   <View style={styles.selectFieldContainer}>
                     <CustomSelect
                       layout="column"
+                      presentation="inline"
                       text="collaborationMatchmaker"
                       value={
                         matchmakerOptions.find(
@@ -946,18 +1013,44 @@ const MatchCardsScreen = () => {
                   <View style={styles.selectFieldContainer}>
                     <CustomSelect
                       layout="column"
+                      presentation="inline"
                       text="partner"
-                      value={currentCard.partnerName || ''}
+                      value={
+                        currentCard.partnerProfileId ||
+                        currentCard.partnerName ||
+                        ''
+                      }
                       options={partnerOptions}
-                      onSelect={option =>
+                      onSelect={option => {
+                        const selectedOption = option as
+                          | SelectOptionWithValue
+                          | undefined;
+                        const partnerProfileId =
+                          selectedOption?.value ||
+                          (option?.label
+                            ? partnerByName[option.label] || ''
+                            : '');
+                        const collaborationMatchmaker =
+                          partnerProfileId
+                            ? partnerMatchmakerById[partnerProfileId] || ''
+                            : '';
+
                         setCurrentCard(card => ({
                           ...card,
                           partnerName: option?.label || '',
-                          partnerProfileId: option?.label
-                            ? partnerByName[option.label] || undefined
-                            : undefined,
-                        }))
-                      }
+                          partnerProfileId: partnerProfileId || undefined,
+                          collaborationMatchmaker:
+                            collaborationMatchmaker ||
+                            card.collaborationMatchmaker,
+                        }));
+
+                        if (collaborationMatchmaker) {
+                          buildPartnerOptions(
+                            allProfiles,
+                            collaborationMatchmaker,
+                          );
+                        }
+                      }}
                     />
                   </View>
                 </>

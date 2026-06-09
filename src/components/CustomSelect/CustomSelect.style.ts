@@ -110,6 +110,15 @@ export const styles = StyleSheet.create({
     backgroundColor: Colors.ivory,
     ...Colors.Shadow,
   },
+  inlineOptionsContainer: {
+    width: '100%',
+    maxHeight: 220,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: Colors.borderSoft,
+    borderRadius: GeneralStyle.radius.md,
+    backgroundColor: Colors.ivory,
+  },
   option: {
     paddingHorizontal: GeneralStyle.spacing.md,
     paddingVertical: GeneralStyle.spacing.sm,

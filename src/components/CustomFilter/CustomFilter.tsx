@@ -36,14 +36,15 @@ const CustomFilter = (props: CustomFilterType) => {
       {
         id: 'name',
         text: 'nameLabel',
-        fieldType: 'select' as const,
+        fieldType: 'autocomplete' as const,
         value: name,
         options: nameOptions,
-        allowClear: true,
-        handlePress: (option?: Option | boolean) =>
-          setName(
-            option && typeof option !== 'boolean' ? option.label || '' : '',
-          ),
+        onChangeText: setName,
+        handlePress: (option?: Option | boolean) => {
+          if (option && typeof option !== 'boolean') {
+            setName(option.label || '');
+          }
+        },
         isSmallSize: true,
       },
       {

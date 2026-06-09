@@ -10,6 +10,13 @@ const resources: Record<keyof typeof translations, {translation: any}> =
   {} as any;
 
 const supportedLanguages: string[] = Object.keys(translations);
+export const getDeviceLanguage = () => {
+  const deviceLang = RNLocalize.getLocales()[0]?.languageCode;
+  return deviceLang && supportedLanguages.includes(deviceLang)
+    ? deviceLang
+    : 'he';
+};
+
 Object.keys(translations).forEach(lang => {
   resources[lang as keyof typeof translations] = {
     translation: translations[lang as keyof typeof translations],
@@ -26,21 +33,14 @@ const languageDetector = {
         return callback(savedLang);
       }
 
-      const deviceLang = RNLocalize.getLocales()[0]?.languageCode;
-      if (deviceLang && supportedLanguages.includes(deviceLang)) {
-        return callback(deviceLang);
-      }
-
-      callback('en'); // ברירת מחדל
+      callback(getDeviceLanguage());
     } catch (err) {
       console.log('Language detection error', err);
-      callback('en');
+      callback('he');
     }
   },
   init: () => {},
-  cacheUserLanguage: async (lang: string) => {
-    await AsyncStorage.setItem(LANG_KEY, lang);
-  },
+  cacheUserLanguage: () => {},
 };
 
 i18n

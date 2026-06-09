@@ -611,6 +611,14 @@ const detailsFormArray: FormField[] = [
     collapseTitle: 'additionalDetails',
   },
   {
+    id: 'hobbies',
+    text: 'hobbies',
+    keyboardTypeOption: 'default',
+    fieldType: 'input',
+    isMultiline: true,
+    collapseTitle: 'additionalDetails',
+  },
+  {
     id: 'familyInfo',
     text: 'aboutFamily',
     keyboardTypeOption: 'default',

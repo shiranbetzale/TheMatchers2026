@@ -97,6 +97,7 @@ const MeetingCalendarScreen = () => {
   const {showMessage} = useMessage();
   const [sessionUser, setSessionUser] = useState<SessionUser | null>(null);
   const [meetings, setMeetings] = useState<MatchCardType[]>([]);
+  const [hasLoadedMeetings, setHasLoadedMeetings] = useState(false);
   const [editingMeeting, setEditingMeeting] = useState<MatchCardType | null>(
     null,
   );
@@ -112,6 +113,8 @@ const MeetingCalendarScreen = () => {
   }, []);
 
   const fetchMeetings = React.useCallback(async () => {
+    setHasLoadedMeetings(false);
+
     try {
       const response = await api.get('/api/profiles');
 
@@ -133,6 +136,8 @@ const MeetingCalendarScreen = () => {
     } catch (error) {
       console.log('CALENDAR FETCH ERROR:', error);
       setMeetings([]);
+    } finally {
+      setHasLoadedMeetings(true);
     }
   }, []);
 
@@ -335,7 +340,7 @@ const MeetingCalendarScreen = () => {
           </View>
         </View>
 
-        {meetingsByDate.length ? (
+        {!hasLoadedMeetings ? null : meetingsByDate.length ? (
           meetingsByDate.map(group => (
             <View key={group.dateKey} style={styles.dayGroup}>
               <CustomText

@@ -10,4 +10,5 @@ export type SelectedCardType = {
   details: detail[];
   onMeetingPress?: () => void;
   isShowMeetingButton?: boolean;
+  isShowActions?: boolean;
 };

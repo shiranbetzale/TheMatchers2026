@@ -41,6 +41,7 @@ const AllCardsScreen = () => {
   const [isShowOrderBy, setIsShowOrderBy] = useState(false);
   const [sessionUserId, setSessionUserId] = useState('');
   const [cards, setCards] = useState<MatchCardType[]>([]);
+  const [hasLoadedCards, setHasLoadedCards] = useState(false);
   const [filterValues, setFilterValues] = useState<CardsFilterValues>({});
   const [sortValue, setSortValue] = useState<CardsSortValue>('');
 
@@ -61,6 +62,8 @@ const AllCardsScreen = () => {
   );
 
   const fetchProfiles = React.useCallback(async () => {
+    setHasLoadedCards(false);
+
     try {
       const response = await api.get('/api/profiles', {
         params: onlyMine ? {scope: 'mine'} : undefined,
@@ -74,6 +77,8 @@ const AllCardsScreen = () => {
     } catch (error) {
       console.error('Failed to load profiles', error);
       setCards([]);
+    } finally {
+      setHasLoadedCards(true);
     }
   }, [onlyMine]);
 
@@ -263,7 +268,7 @@ const AllCardsScreen = () => {
       }>
       {!isMenuOpen && (
         <>
-          {filteredAndSortedCards.length === 0 ? (
+          {!hasLoadedCards ? null : filteredAndSortedCards.length === 0 ? (
             <CustomText text="noAssignedCards" customStyle={FontsStyle.text} />
           ) : (
             filteredAndSortedCards.map((matchItem, index) => (

@@ -7,5 +7,6 @@ export type CustomSelectType = {
   isEditable?: boolean;
   allowClear?: boolean;
   layout?: 'row' | 'column';
+  presentation?: 'modal' | 'inline';
   onSelect: (option?: Option) => void;
 };

@@ -9,6 +9,11 @@ export const setLoadingHandlers = (handlers: {
   hideLoader = handlers.hide;
 };
 
+export const clearLoadingHandlers = () => {
+  showLoader = null;
+  hideLoader = null;
+};
+
 export const showGlobalLoader = () => {
   showLoader?.();
 };

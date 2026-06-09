@@ -1,7 +1,7 @@
 import React, {createContext, useState, useEffect, ReactNode, useContext} from 'react';
 import {I18nManager} from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import i18n from './i18n';
+import i18n, {getDeviceLanguage} from './i18n';
 
 const LANG_KEY = 'appLanguage';
 
@@ -28,8 +28,9 @@ export const useLanguage = () => {
 };
 
 export const LanguageProvider = ({children}: {children: ReactNode}) => {
-  const [language, setLanguage] = useState<string>('en');
-  const [isRTL, setIsRTL] = useState<boolean>(false);
+  const initialLanguage = getDeviceLanguage();
+  const [language, setLanguage] = useState<string>(initialLanguage);
+  const [isRTL, setIsRTL] = useState<boolean>(initialLanguage === 'he');
 
   useEffect(() => {
     const loadLang = async () => {
@@ -38,7 +39,7 @@ export const LanguageProvider = ({children}: {children: ReactNode}) => {
       I18nManager.swapLeftAndRightInRTL(false);
 
       const savedLang = await AsyncStorage.getItem(LANG_KEY);
-      const lang = savedLang || 'en';
+      const lang = savedLang || getDeviceLanguage();
       await i18n.changeLanguage(lang);
       setLanguage(lang);
       setIsRTL(lang === 'he');

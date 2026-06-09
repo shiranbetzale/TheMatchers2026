@@ -14,7 +14,13 @@ import {RootStackParamList} from '../MainStackNavigation/MainStackNavigation.typ
 import {useLanguage} from '../../utils/LanguageProvider';
 
 const SelectedCard = (props: SelectedCardType) => {
-  const {card, details, isShowMeetingButton = false, onMeetingPress} = props;
+  const {
+    card,
+    details,
+    isShowActions = true,
+    isShowMeetingButton = false,
+    onMeetingPress,
+  } = props;
   const {isRTL} = useLanguage();
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
   const shouldShowMeetingButton = isShowMeetingButton || Boolean(onMeetingPress);
@@ -62,20 +68,22 @@ const SelectedCard = (props: SelectedCardType) => {
           );
         })}
       </View>
-      <View style={styles.actions}>
-        {shouldShowMeetingButton && (
+      {isShowActions && (
+        <View style={styles.actions}>
+          {shouldShowMeetingButton && (
+            <CustomButton
+              customStyle={styles.actionButton}
+              onPress={() => onMeetingPress?.()}
+              icon={<DatePickerSvg width={28} height={28} />}
+            />
+          )}
           <CustomButton
             customStyle={styles.actionButton}
-            onPress={() => onMeetingPress?.()}
-            icon={<DatePickerSvg width={28} height={28} />}
+            onPress={() => handlePress()}
+            icon={<EditSvg width={28} height={28} />}
           />
-        )}
-        <CustomButton
-          customStyle={styles.actionButton}
-          onPress={() => handlePress()}
-          icon={<EditSvg width={28} height={28} />}
-        />
-      </View>
+        </View>
+      )}
     </WhiteCard>
   );
 };

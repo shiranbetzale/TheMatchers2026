@@ -304,6 +304,17 @@ router.put(
 
       Object.assign(profile, req.body);
 
+      if (
+        Object.prototype.hasOwnProperty.call(req.body, 'meetingDate') ||
+        Object.prototype.hasOwnProperty.call(req.body, 'meetingTime') ||
+        Object.prototype.hasOwnProperty.call(req.body, 'meetingStatus')
+      ) {
+        profile.meetingReminderDayFor = '';
+        profile.meetingReminderDaySentAt = undefined;
+        profile.meetingReminderHourFor = '';
+        profile.meetingReminderHourSentAt = undefined;
+      }
+
       const relationshipStatus = String(profile.relationshipStatus || '');
 
       if (

@@ -541,6 +541,13 @@ export const mapProfileToCard = (profile: any): MatchCardType => {
     matcherName: profile.matcherName,
     mail: profile.mail,
     city: profile.city,
+    helpWithMoney: profile.helpWithMoney
+      ? String(profile.helpWithMoney)
+      : undefined,
+    helpWithMoneyDetails: profile.helpWithMoneyDetails
+      ? String(profile.helpWithMoneyDetails)
+      : undefined,
+    hobbies: profile.hobbies ? String(profile.hobbies) : undefined,
     relationshipStatus,
     partnerProfileId: profile.partnerProfileId
       ? String(profile.partnerProfileId)

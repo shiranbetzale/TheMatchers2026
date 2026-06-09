@@ -36,6 +36,26 @@ async function getAllUserTokens() {
   );
 }
 
+async function getUserTokens(userIds = []) {
+  const cleanUserIds = Array.from(
+    new Set(userIds.map(userId => String(userId || '').trim()).filter(Boolean)),
+  );
+
+  if (!cleanUserIds.length) {
+    return [];
+  }
+
+  const deviceTokens = await DeviceToken.find({user: {$in: cleanUserIds}});
+
+  return Array.from(
+    new Set(
+      deviceTokens
+        .map(device => String(device.token || '').trim())
+        .filter(Boolean),
+    ),
+  );
+}
+
 async function sendPushNotification({title, body, data = {}, tokens}) {
   const app = getFirebaseApp();
 
@@ -195,9 +215,38 @@ async function notifyRelationshipStatus(match, status) {
   });
 }
 
+async function notifyMeetingReminder(profile, reminderType, tokens) {
+  const profileName = profile.fullName || profile.name || 'משודך/ת';
+  const partnerName = profile.partnerName || '';
+  const meetingTime = profile.meetingTime || '';
+  const location = profile.meetingLocation || '';
+  const reminderText = reminderType === 'day' ? 'מחר' : 'בעוד שעה';
+  const coupleText = partnerName
+    ? `${profileName} ו-${partnerName}`
+    : profileName;
+  const details = [meetingTime, location].filter(Boolean).join(', ');
+
+  return sendPushNotification({
+    title: 'תזכורת לפגישה',
+    body: details
+      ? `${coupleText}: הפגישה ${reminderText} (${details})`
+      : `${coupleText}: הפגישה ${reminderText}`,
+    data: {
+      type: 'meeting_reminder',
+      reminderType,
+      profileId: profile.id,
+      meetingDate: profile.meetingDate || '',
+      meetingTime,
+    },
+    tokens,
+  });
+}
+
 module.exports = {
+  getUserTokens,
   notifyProfileCreated,
   notifyProfileRelationshipStatus,
+  notifyMeetingReminder,
   notifyRelationshipStatus,
   sendPushNotification,
 };
