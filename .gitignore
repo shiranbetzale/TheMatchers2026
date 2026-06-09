@@ -38,8 +38,6 @@ local.properties
 # node.js
 #
 node_modules/
-node_modules.stuck-trash/
-.node_modules.stuck-trash/
 npm-debug.log
 yarn-error.log
 
