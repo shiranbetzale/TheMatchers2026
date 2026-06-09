@@ -9,16 +9,26 @@ export const styles = StyleSheet.create({
   },
 
   restoreIconButton: {
-    marginTop: 12,
-    alignSelf: 'center',
-    width: 44,
-    height: 44,
+    position: 'absolute',
+    bottom: GeneralStyle.spacing.sm,
+    width: 40,
+    height: 40,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
     borderColor: Colors.color1Light,
-    borderRadius: 22,
+    borderRadius: 20,
     backgroundColor: Colors.champagne,
+    ...Colors.Shadow,
+  },
+  restoreIconButtonRtl: {
+    left: GeneralStyle.spacing.md,
+  },
+  restoreIconButtonLtr: {
+    right: GeneralStyle.spacing.md,
+  },
+  matchCardWithRestore: {
+    position: 'relative',
   },
   container: {
     gap: GeneralStyle.spacing.md,

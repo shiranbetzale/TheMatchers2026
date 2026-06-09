@@ -196,14 +196,8 @@ const getPartnerGenderFromValues = (values: WizardFormValues) => {
 
 const clearRelationshipValues = (values: WizardFormValues): WizardFormValues => ({
   ...values,
-  status:
-    values.status === 'archived' || values.status === 'ARCHIVED'
-      ? ''
-      : values.status || '',
-  statusOptionId:
-    values.status === 'archived' || values.status === 'ARCHIVED'
-      ? ''
-      : values.statusOptionId || '',
+  status: '',
+  statusOptionId: '',
   isEngaged: 'false',
   isMarried: 'false',
   partnerName: '',
@@ -234,6 +228,28 @@ const normalizeGenderForPayload = (values: WizardFormValues) => {
   }
 
   return values.gender;
+};
+
+const normalizeGenderForWizard = (gender?: string) => {
+  const normalizedGender = String(gender || '').trim().toLowerCase();
+
+  if (
+    normalizedGender === 'male' ||
+    normalizedGender === 'זכר' ||
+    normalizedGender === '1'
+  ) {
+    return 'male';
+  }
+
+  if (
+    normalizedGender === 'female' ||
+    normalizedGender === 'נקבה' ||
+    normalizedGender === '2'
+  ) {
+    return 'female';
+  }
+
+  return String(gender || '');
 };
 
 const normalizeStatusForPayload = (values: WizardFormValues) => {
@@ -267,6 +283,17 @@ const applyWizardOptionIds = (
 
     if (!value) {
       return;
+    }
+
+    if (field.id === 'gender') {
+      const normalizedGender = normalizeGenderForWizard(value);
+      const genderOptionId = normalizedGender === 'male' ? '1' : normalizedGender === 'female' ? '2' : '';
+
+      if (genderOptionId) {
+        nextValues.gender = normalizedGender;
+        nextValues.genderOptionId = genderOptionId;
+        return;
+      }
     }
 
     const selectedOption = field.options.find(
@@ -918,6 +945,56 @@ const Wizard = () => {
     return !partnerExists;
   };
 
+  const resolveEditProfileIdForSave = async () => {
+    if (!isEditMode) {
+      return '';
+    }
+
+    if (editProfileId) {
+      return editProfileId;
+    }
+
+    const profilePhone = normalizePhone(formValues.phone || routeParams?.card?.phone);
+
+    if (!profilePhone) {
+      return '';
+    }
+
+    const cachedProfile = profilesCache.find(
+      (profile: any) => normalizePhone(profile.phone) === profilePhone,
+    );
+    const cachedProfileId = getProfileId(cachedProfile);
+
+    if (cachedProfileId) {
+      setLoadedEditProfileId(cachedProfileId);
+      return cachedProfileId;
+    }
+
+    const [activeProfilesResponse, archivedProfilesResponse] =
+      await Promise.all([
+        api.get('/api/profiles'),
+        api.get('/api/profiles', {params: {status: 'archived'}}),
+      ]);
+    const activeProfiles = Array.isArray(activeProfilesResponse.data?.profiles)
+      ? activeProfilesResponse.data.profiles
+      : [];
+    const archivedProfiles = Array.isArray(
+      archivedProfilesResponse.data?.profiles,
+    )
+      ? archivedProfilesResponse.data.profiles
+      : [];
+    const matchedProfile = [...activeProfiles, ...archivedProfiles].find(
+      (profile: any) => normalizePhone(profile.phone) === profilePhone,
+    );
+    const matchedProfileId = getProfileId(matchedProfile);
+
+    if (matchedProfileId) {
+      setLoadedEditProfileId(matchedProfileId);
+    }
+
+    return matchedProfileId;
+  };
+
   const selectPartner = (partnerName: string) => {
     const partnerProfileId = partnerProfileByName[normalizeName(partnerName)] || '';
 
@@ -1245,6 +1322,14 @@ const Wizard = () => {
 
       const payload = buildProfilePayload(formValues);
 
+      const targetProfileId = isEditMode ? await resolveEditProfileIdForSave() : '';
+
+      if (isEditMode && !targetProfileId) {
+        setSubmitErrorKey('profileNotFoundForUpdate');
+        showMessage({type: 'error', message: t('profileNotFoundForUpdate')});
+        return;
+      }
+
       if (Array.isArray(payload.images) && payload.images.length) {
         payload.images = await uploadProfileImages(payload.images);
       }
@@ -1270,13 +1355,7 @@ const Wizard = () => {
       }
 
       if (isEditMode) {
-        if (!editProfileId) {
-          setSubmitErrorKey('profileNotFoundForUpdate');
-          showMessage({type: 'error', message: t('profileNotFoundForUpdate')});
-          return;
-        }
-
-        await api.put(`/api/profiles/${editProfileId}`, payload);
+        await api.put(`/api/profiles/${targetProfileId}`, payload);
       } else {
         await api.post('/api/profiles', payload);
       }

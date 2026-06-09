@@ -2,10 +2,11 @@ const admin = require('firebase-admin');
 
 let firebaseApp;
 
+const DEFAULT_STORAGE_BUCKET =
+  process.env.FIREBASE_STORAGE_BUCKET || 'thematchers-39ff5.appspot.com';
+
 function getFirebaseApp() {
-  if (firebaseApp) {
-    return firebaseApp;
-  }
+  if (firebaseApp) return firebaseApp;
 
   if (admin.apps.length) {
     firebaseApp = admin.app();
@@ -17,28 +18,15 @@ function getFirebaseApp() {
       credential: admin.credential.cert(
         JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_JSON),
       ),
-      storageBucket:
-        process.env.FIREBASE_STORAGE_BUCKET ||
-        'thematchers-39ff5.firebasestorage.app',
-    });
-    return firebaseApp;
-  }
-
-  if (process.env.GOOGLE_APPLICATION_CREDENTIALS) {
-    firebaseApp = admin.initializeApp({
-      credential: admin.credential.applicationDefault(),
-      storageBucket:
-        process.env.FIREBASE_STORAGE_BUCKET ||
-        'thematchers-39ff5.firebasestorage.app',
+      storageBucket: DEFAULT_STORAGE_BUCKET,
     });
     return firebaseApp;
   }
 
   firebaseApp = admin.initializeApp({
-    storageBucket:
-      process.env.FIREBASE_STORAGE_BUCKET ||
-      'thematchers-39ff5.firebasestorage.app',
+    storageBucket: DEFAULT_STORAGE_BUCKET,
   });
+
   return firebaseApp;
 }
 

@@ -5,7 +5,6 @@ const express = require('express');
 const http = require('http');
 let morgan;
 try {
-  // Optional logging dependency
   morgan = require('morgan');
 } catch (err) {
   morgan = null;
@@ -31,7 +30,10 @@ if (morgan) {
 }
 
 app.get('/health', (_req, res) => {
-  res.json({status: 'ok', timestamp: Date.now()});
+  res.json({
+    status: 'ok',
+    timestamp: Date.now(),
+  });
 });
 
 app.use('/auth', authRouter);
@@ -44,24 +46,33 @@ app.use('/api/notifications', notificationsRouter);
 app.use('/api/uploads', uploadsRouter);
 
 app.use((req, res) => {
-  res.status(404).json({error: 'not_found', path: req.originalUrl});
+  res.status(404).json({
+    error: 'not_found',
+    path: req.originalUrl,
+  });
 });
 
 app.use((err, _req, res, _next) => {
   console.error(err);
-  res
-    .status(err.status || 500)
-    .json({error: 'server_error', message: err.message || 'Unexpected error'});
+  res.status(err.status || 500).json({
+    error: 'server_error',
+    message: err.message || 'Unexpected error',
+  });
 });
 
 async function start(port = PORT) {
   await connectToDatabase();
-  startMeetingReminderScheduler();
+  try {
+    startMeetingReminderScheduler();
+  } catch (error) {
+    console.error('Failed to start meeting reminder scheduler', error);
+  }
 
   const server = http.createServer(app);
 
   return new Promise((resolve, reject) => {
     server.on('error', reject);
+
     server.listen(port, '0.0.0.0', () => {
       console.log(`Backend server listening on port ${port}`);
       resolve(server);
@@ -76,4 +87,7 @@ if (require.main === module) {
   });
 }
 
-module.exports = {app, start};
+module.exports = {
+  app,
+  start,
+};

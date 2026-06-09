@@ -32,7 +32,7 @@ const pickerOptions: ImageLibraryOptions = {
 };
 
 const UploadPictures = (props: UploadPicturesType) => {
-  const {images, maxImages = 6, onChange} = props;
+  const {images, maxImages = 2, onChange} = props;
   const [error, setError] = useState('');
   const [previewIndex, setPreviewIndex] = useState(0);
   const [isPreviewVisible, setIsPreviewVisible] = useState(false);

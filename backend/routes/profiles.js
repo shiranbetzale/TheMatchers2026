@@ -154,7 +154,7 @@ async function syncPartnerRelationship(profile, relationshipStatus) {
 
 async function notifyRelationshipStatusOnce(profile, relationshipStatus) {
   if (relationshipStatus !== 'engaged' && relationshipStatus !== 'married') {
-    return;
+    return {skipped: true, reason: 'not_relationship_status'};
   }
 
   if (String(profile.relationshipNotifiedStatus || '') === relationshipStatus) {
@@ -162,7 +162,7 @@ async function notifyRelationshipStatusOnce(profile, relationshipStatus) {
       profileId: profile.id,
       relationshipStatus,
     });
-    return;
+    return {skipped: true, reason: 'already_notified'};
   }
 
   const response = await notifyProfileRelationshipStatus(
@@ -182,6 +182,12 @@ async function notifyRelationshipStatusOnce(profile, relationshipStatus) {
     profile.relationshipNotifiedAt = new Date();
     await profile.save();
   }
+
+  return {
+    skipped: false,
+    successCount: response.successCount,
+    failureCount: response.failureCount,
+  };
 }
 
 router.get(
@@ -331,21 +337,31 @@ router.put(
         profile.partnerProfileId = '';
         profile.partnerOutsideApp = false;
         profile.collaborationMatchmaker = '';
+        profile.relationshipNotifiedStatus = '';
+        profile.relationshipNotifiedAt = undefined;
+      } else if (!relationshipStatus) {
+        profile.relationshipNotifiedStatus = '';
+        profile.relationshipNotifiedAt = undefined;
       }
 
       await profile.save();
       await syncPartnerRelationship(profile, relationshipStatus);
 
+      let notificationResult = null;
+
       if (
         relationshipStatus !== previousRelationshipStatus ||
         String(profile.relationshipNotifiedStatus || '') !== relationshipStatus
       ) {
-        await notifyRelationshipStatusOnce(profile, relationshipStatus);
+        notificationResult = await notifyRelationshipStatusOnce(
+          profile,
+          relationshipStatus,
+        );
       }
 
       const [enrichedProfile] = await enrichProfilesWithMatcher(profile);
 
-      res.json({profile: enrichedProfile});
+      res.json({profile: enrichedProfile, notification: notificationResult});
     } catch (error) {
       next(error);
     }
@@ -377,16 +393,21 @@ router.post(
       const relationshipStatus = String(profile.relationshipStatus || '');
       await syncPartnerRelationship(profile, relationshipStatus);
 
+      let notificationResult = null;
+
       if (
         relationshipStatus !== previousRelationshipStatus ||
         String(profile.relationshipNotifiedStatus || '') !== relationshipStatus
       ) {
-        await notifyRelationshipStatusOnce(profile, relationshipStatus);
+        notificationResult = await notifyRelationshipStatusOnce(
+          profile,
+          relationshipStatus,
+        );
       }
 
       const [enrichedProfile] = await enrichProfilesWithMatcher(profile);
 
-      res.json({profile: enrichedProfile});
+      res.json({profile: enrichedProfile, notification: notificationResult});
     } catch (error) {
       next(error);
     }

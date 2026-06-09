@@ -375,6 +375,21 @@ const MatchCardsScreen = () => {
   ]);
 
   const isMeetingBusy = currentCard.meetingStatus === 'busy';
+  const selectedPartnerLabel =
+    partnerOptions.find(
+      option =>
+        String((option as SelectOptionWithValue).value || '') ===
+        String(currentCard.partnerProfileId || ''),
+    )?.label ||
+    allProfiles
+      .map(profile => ({
+        id: String(profile._id || profile.id || ''),
+        name: String(profile.fullName || profile.name || '').trim(),
+      }))
+      .find(profile => profile.id === String(currentCard.partnerProfileId || ''))
+      ?.name ||
+    currentCard.partnerName ||
+    '';
   const currentMeetingDate = currentCard.meetingDate
     ? new Date(currentCard.meetingDate)
     : undefined;
@@ -420,20 +435,26 @@ const MatchCardsScreen = () => {
       return;
     }
 
-    setCurrentCard(card => ({
-      ...card,
-      meetingStatus,
-      ...(meetingStatus === 'available'
-        ? {
-            meetingDate: undefined,
-            meetingTime: undefined,
-            meetingLocation: undefined,
-            collaborationMatchmaker: undefined,
-            partnerName: undefined,
-            partnerProfileId: undefined,
-          }
-        : {}),
-    }));
+    setCurrentCard(card => {
+      const shouldResetMeetingForm =
+        meetingStatus === 'available' ||
+        (meetingStatus === 'busy' && card.meetingStatus !== 'busy');
+
+      return {
+        ...card,
+        meetingStatus,
+        ...(shouldResetMeetingForm
+          ? {
+              meetingDate: undefined,
+              meetingTime: undefined,
+              meetingLocation: undefined,
+              collaborationMatchmaker: undefined,
+              partnerName: undefined,
+              partnerProfileId: undefined,
+            }
+          : {}),
+      };
+    });
   };
 
   const updateCurrentMeetingDate = (meetingDate: Date) => {
@@ -558,27 +579,27 @@ const MatchCardsScreen = () => {
         meetingDate:
           currentCard.meetingStatus === 'busy'
             ? currentCard.meetingDate
-            : undefined,
+            : '',
         meetingTime:
           currentCard.meetingStatus === 'busy'
             ? normalizedMeetingTime
-            : undefined,
+            : '',
         meetingLocation:
           currentCard.meetingStatus === 'busy'
             ? currentCard.meetingLocation?.trim()
-            : undefined,
+            : '',
         collaborationMatchmaker:
           currentCard.meetingStatus === 'busy'
-            ? currentCard.collaborationMatchmaker || undefined
-            : undefined,
+            ? currentCard.collaborationMatchmaker || ''
+            : '',
         partnerName:
           currentCard.meetingStatus === 'busy'
             ? currentCard.partnerName?.trim()
-            : undefined,
+            : '',
         partnerProfileId:
           currentCard.meetingStatus === 'busy'
-            ? currentCard.partnerProfileId || undefined
-            : undefined,
+            ? currentCard.partnerProfileId || ''
+            : '',
       });
 
       await fetchCurrentCardDetails();
@@ -1016,11 +1037,7 @@ const MatchCardsScreen = () => {
                       layout="column"
                       presentation="inline"
                       text="partner"
-                      value={
-                        currentCard.partnerProfileId ||
-                        currentCard.partnerName ||
-                        ''
-                      }
+                      value={selectedPartnerLabel}
                       options={partnerOptions}
                       onSelect={option => {
                         const selectedOption = option as

@@ -331,21 +331,28 @@ const ArchiveScreen = () => {
                     </View>
                   </View>
 
-                  <MatchCard
-                    {...card}
-                    isSlide={false}
-                    isShowMeetingInfo={false}
-                    isShowInfoButtons={false}
-                  />
+                  <View style={styles.matchCardWithRestore}>
+                    <MatchCard
+                      {...card}
+                      isSlide={false}
+                      isShowMeetingInfo={false}
+                      isShowInfoButtons={false}
+                    />
 
-                  <TouchableOpacity
-                    activeOpacity={0.82}
-                    accessibilityRole="button"
-                    accessibilityLabel="חזר להיות פנוי"
-                    style={styles.restoreIconButton}
-                    onPress={() => restoreProfile(card)}>
-                    <RestoreSvg width={24} height={24} />
-                  </TouchableOpacity>
+                    <TouchableOpacity
+                      activeOpacity={0.82}
+                      accessibilityRole="button"
+                      accessibilityLabel="חזר להיות פנוי"
+                      style={[
+                        styles.restoreIconButton,
+                        isRTL
+                          ? styles.restoreIconButtonRtl
+                          : styles.restoreIconButtonLtr,
+                      ]}
+                      onPress={() => restoreProfile(card)}>
+                      <RestoreSvg width={22} height={22} />
+                    </TouchableOpacity>
+                  </View>
                 </View>
               ))
             ) : (

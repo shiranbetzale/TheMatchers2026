@@ -11,7 +11,7 @@ const upload = multer({
   storage: multer.memoryStorage(),
   limits: {
     fileSize: 5 * 1024 * 1024,
-    files: 6,
+    files: 2,
   },
 });
 
@@ -30,7 +30,7 @@ const getFileExtension = file => {
 router.post(
   '/profile-images',
   requireAuth(['admin', 'matchmaker']),
-  upload.array('images', 6),
+  upload.array('images', 2),
   async (req, res, next) => {
     try {
       const files = Array.isArray(req.files) ? req.files : [];
@@ -43,6 +43,11 @@ router.post(
       }
 
       const bucket = getStorageBucket();
+      console.log('[uploads] uploading profile images', {
+        bucket: bucket.name,
+        fileCount: files.length,
+        userId: req.user.id,
+      });
       const urls = await Promise.all(
         files.map(async file => {
           const token = crypto.randomUUID();
@@ -71,6 +76,12 @@ router.post(
 
       return res.status(201).json({urls});
     } catch (error) {
+      console.error('[uploads] profile image upload failed', {
+        message: error?.message,
+        code: error?.code,
+        status: error?.response?.status,
+        bucket: getStorageBucket().name,
+      });
       next(error);
     }
   },
