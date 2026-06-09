@@ -45,6 +45,9 @@ const getCardImages = (card: MatchCardType) => {
     : [getDefaultProfileImage(card.gender)];
 };
 
+const isShareableImageUri = (image: string) =>
+  /^https?:\/\//i.test(image) || /^data:image\//i.test(image);
+
 const MatchCard = (props: MatchCardType) => {
   const {isRTL, t} = useLanguage();
 
@@ -151,6 +154,7 @@ const MatchCard = (props: MatchCardType) => {
     card: MatchCardType & Record<string, any>,
   ) => {
     const cardImages = getCardImages(card);
+    const shareableImages = cardImages.filter(isShareableImageUri);
     const cardStatus = getCardStatusText(
       card.status,
       card.numOfChildren || 0,
@@ -182,7 +186,11 @@ const MatchCard = (props: MatchCardType) => {
       card.matchImportantInfo
         ? `💍 מי אני מחפש/ת:\n${card.matchImportantInfo}`
         : '',
-      cardImages.length ? `🖼️ תמונות:\n${cardImages.join('\n')}` : '',
+      shareableImages.length
+        ? `🖼️ תמונות:\n${shareableImages.join('\n')}`
+        : cardImages.length
+          ? '🖼️ תמונות קיימות בכרטיס, אבל אינן קישור ציבורי. צריך לשלוח אותן בנפרד.'
+          : '',
     ].filter(Boolean);
   };
 

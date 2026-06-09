@@ -461,6 +461,14 @@ export const getCardStatusText = (
 };
 
 export const normalizeImages = (images: unknown): string[] => {
+  if (typeof images === 'string') {
+    try {
+      return normalizeImages(JSON.parse(images));
+    } catch {
+      return images.trim() ? [images.trim()] : [];
+    }
+  }
+
   if (!Array.isArray(images)) {
     return [];
   }
@@ -468,11 +476,28 @@ export const normalizeImages = (images: unknown): string[] => {
   return images
     .map(image => {
       if (typeof image === 'string') {
-        return image;
+        return image.trim();
       }
 
-      if (image && typeof image === 'object' && 'uri' in image) {
-        return String((image as {uri?: string}).uri || '');
+      if (image && typeof image === 'object') {
+        const imageObject = image as {
+          uri?: string;
+          url?: string;
+          path?: string;
+          base64?: string;
+          type?: string;
+        };
+        const directUri = imageObject.uri || imageObject.url || imageObject.path;
+
+        if (directUri) {
+          return String(directUri).trim();
+        }
+
+        if (imageObject.base64) {
+          return `data:${imageObject.type || 'image/jpeg'};base64,${
+            imageObject.base64
+          }`;
+        }
       }
 
       return '';
@@ -541,6 +566,17 @@ export const mapProfileToCard = (profile: any): MatchCardType => {
     matcherName: profile.matcherName,
     mail: profile.mail,
     city: profile.city,
+    tribe: profile.tribe ? String(profile.tribe) : undefined,
+    hashkafa: profile.hashkafa ? String(profile.hashkafa) : undefined,
+    whatWorks: profile.whatWorks ? String(profile.whatWorks) : undefined,
+    education: profile.education ? String(profile.education) : undefined,
+    importantInfo: profile.importantInfo
+      ? String(profile.importantInfo)
+      : undefined,
+    familyInfo: profile.familyInfo ? String(profile.familyInfo) : undefined,
+    matchImportantInfo: profile.matchImportantInfo
+      ? String(profile.matchImportantInfo)
+      : undefined,
     helpWithMoney: profile.helpWithMoney
       ? String(profile.helpWithMoney)
       : undefined,

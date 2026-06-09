@@ -1,4 +1,4 @@
-import React, {useMemo} from 'react';
+import React, {useEffect, useMemo} from 'react';
 import matchFormArray from '../../utils/MatchFormFields';
 import CustomCollapse from '../../components/CustomCollapse/CustomCollapse';
 import {groupBy} from '../../utils/generalFunction';
@@ -27,6 +27,17 @@ const Step2Screen = (props: WizardStepComponentProps) => {
         genderLabelTarget: partnerGender,
       }
     : values;
+  const isFemale =
+    genderOptionId === '2' || gender === 'female' || gender === 'נקבה';
+  const statusOptionId = String(values.statusOptionId || '').trim();
+  const status = String(values.status || '').trim();
+  const isDivorcedOrDivorcedWithChildren =
+    statusOptionId === '3' ||
+    statusOptionId === '5' ||
+    status === 'divorcedStatus' ||
+    status === 'divorcedWithChildrenStatus';
+  const shouldHideCohenPreference =
+    isFemale && isDivorcedOrDivorcedWithChildren;
 
   const matchFormArrayBeforeFiltered: CollapseSingleType[] = useMemo(
     () => groupBy(matchFormArray, 'collapseTitle'),
@@ -37,10 +48,19 @@ const Step2Screen = (props: WizardStepComponentProps) => {
     () =>
       matchFormArrayBeforeFiltered.map(section => ({
         ...section,
-        data: getVisibleFields(section.data, values, matchFormArray),
+        data: getVisibleFields(section.data, values, matchFormArray).filter(
+          field =>
+            !(shouldHideCohenPreference && field.id === 'matchIsWantCohen'),
+        ),
       })),
-    [matchFormArrayBeforeFiltered, values],
+    [matchFormArrayBeforeFiltered, shouldHideCohenPreference, values],
   );
+
+  useEffect(() => {
+    if (shouldHideCohenPreference && values.matchIsWantCohen) {
+      onChange('matchIsWantCohen', '');
+    }
+  }, [onChange, shouldHideCohenPreference, values.matchIsWantCohen]);
 
   const lockedSectionTitles = useMemo(() => {
     const lockedTitles: string[] = [];

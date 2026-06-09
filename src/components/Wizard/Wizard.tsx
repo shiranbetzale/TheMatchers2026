@@ -4,6 +4,7 @@ import {AxiosError} from 'axios';
 import {
   CommonActions,
   RouteProp,
+  useFocusEffect,
   useNavigation,
   useRoute,
 } from '@react-navigation/native';
@@ -302,12 +303,73 @@ const stringifyProfileImages = (images: unknown) => {
   );
 };
 
+const parsePositiveInteger = (value?: string | number) => {
+  const numberValue = Number(String(value || '').replace(/[^\d]/g, ''));
+
+  return Number.isFinite(numberValue) && numberValue > 0 ? numberValue : null;
+};
+
+const parseHeightInCm = (value?: string | number) => {
+  const cleanValue = String(value || '').trim();
+
+  if (!cleanValue) {
+    return null;
+  }
+
+  if (/^\d{3}$/.test(cleanValue)) {
+    return Number(cleanValue);
+  }
+
+  if (/^[1-2]\.\d{1,2}$/.test(cleanValue)) {
+    return Math.round(Number(cleanValue) * 100);
+  }
+
+  const digits = cleanValue.replace(/[^\d]/g, '');
+
+  return digits.length === 3 ? Number(digits) : null;
+};
+
+const hasRangeValue = (value?: string) => {
+  if (!value) {
+    return false;
+  }
+
+  try {
+    const parsed = JSON.parse(value);
+
+    return Array.isArray(parsed) && parsed.length === 2;
+  } catch {
+    return String(value).trim().length > 0;
+  }
+};
+
+const applyCandidateRangeDefaults = (
+  values: WizardFormValues,
+): WizardFormValues => {
+  const nextValues = {...values};
+  const age = parsePositiveInteger(nextValues.age);
+  const heightInCm = parseHeightInCm(nextValues.hight);
+
+  if (age && !hasRangeValue(nextValues.matchRangeAges)) {
+    nextValues.matchRangeAges = JSON.stringify([age, Math.min(age + 10, 90)]);
+  }
+
+  if (heightInCm && !hasRangeValue(nextValues.matchRangeHeights)) {
+    nextValues.matchRangeHeights = JSON.stringify([
+      heightInCm,
+      Math.min(heightInCm + 10, 200),
+    ]);
+  }
+
+  return nextValues;
+};
+
 const getWizardValuesFromCard = (card?: MatchCardType): WizardFormValues => {
   if (!card) {
     return {};
   }
 
-  return applyWizardOptionIds({
+  return applyCandidateRangeDefaults(applyWizardOptionIds({
     fullName: card.name || '',
     age: card.age ? String(card.age) : '',
     hight: card.height || '',
@@ -324,10 +386,12 @@ const getWizardValuesFromCard = (card?: MatchCardType): WizardFormValues => {
     partnerProfileId: card.partnerProfileId || '',
     partnerOutsideApp: String(Boolean(card.partnerOutsideApp)),
     collaborationMatchmaker: card.collaborationMatchmaker || '',
+    matchRangeAges: card.matchRangeAges || '',
+    matchRangeHeights: card.matchRangeHeights || '',
     ...(stringifyProfileImages(card.images)
       ? {images: stringifyProfileImages(card.images)}
       : {}),
-  });
+  }));
 };
 
 const getWizardValuesFromProfile = (
@@ -358,7 +422,7 @@ const getWizardValuesFromProfile = (
     values[fieldId] = String(rawValue);
   });
 
-  return applyWizardOptionIds({
+  return applyCandidateRangeDefaults(applyWizardOptionIds({
     ...values,
     fullName: String(profile.fullName || profile.name || values.fullName || ''),
     gender: String(profile.gender || values.gender || ''),
@@ -389,7 +453,7 @@ const getWizardValuesFromProfile = (
     ...(stringifyProfileImages(profile.images)
       ? {images: stringifyProfileImages(profile.images)}
       : {}),
-  });
+  }));
 };
 
 type ProfilePayload = Record<string, unknown>;
@@ -498,7 +562,7 @@ const Wizard = () => {
   const [wizardStep, setWizardStep] = useState<number>(1);
   const [submitErrorKey, setSubmitErrorKey] = useState<string | null>(null);
   const [formValues, setFormValues] = useState<WizardFormValues>(() =>
-    ({
+    applyCandidateRangeDefaults({
       ...getInitialWizardValues(getAllWizardFields()),
       ...(routeParams?.restoreToAvailable
         ? clearRelationshipValues(getWizardValuesFromCard(routeParams?.card))
@@ -528,6 +592,12 @@ const Wizard = () => {
   const currentStep =
     wizardSteps.find(step => step.id === wizardStep) ?? wizardSteps[0];
 
+  useFocusEffect(
+    React.useCallback(() => {
+      setWizardStep(1);
+    }, []),
+  );
+
   useEffect(() => {
     if (!routeParams?.resetToken || isEditMode) {
       return;
@@ -537,11 +607,13 @@ const Wizard = () => {
     setSubmitErrorKey(null);
     setFieldErrors({});
     setFormValues({
-      ...getInitialWizardValues(getAllWizardFields()),
-      ...(routeParams?.candidatePhone ? {phone: routeParams.candidatePhone} : {}),
-      ...(routeParams?.matchmakerPhone
-        ? {matcherPhone: routeParams.matchmakerPhone}
-        : {}),
+      ...applyCandidateRangeDefaults({
+        ...getInitialWizardValues(getAllWizardFields()),
+        ...(routeParams?.candidatePhone ? {phone: routeParams.candidatePhone} : {}),
+        ...(routeParams?.matchmakerPhone
+          ? {matcherPhone: routeParams.matchmakerPhone}
+          : {}),
+      }),
     });
   }, [isEditMode, routeParams?.resetToken]);
 
@@ -658,10 +730,10 @@ const Wizard = () => {
   const updateFormValue = (id: string, value: string) => {
     setFormValues(currentValues => {
       const normalizedValue = normalizeWizardFieldValue(id, value);
-      const nextValues = {
+      const nextValues = applyCandidateRangeDefaults({
         ...currentValues,
         [id]: normalizedValue,
-      };
+      });
 
       return nextValues;
     });
@@ -676,10 +748,10 @@ const Wizard = () => {
         ]),
       );
 
-      const nextValues = {
+      const nextValues = applyCandidateRangeDefaults({
         ...currentValues,
         ...normalizedValues,
-      };
+      });
 
       return nextValues;
     });

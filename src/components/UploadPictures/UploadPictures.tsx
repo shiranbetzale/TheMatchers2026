@@ -13,12 +13,17 @@ import {UploadedPicture, UploadPicturesType} from './UploadPictures.type';
 import {styles} from './UploadPictures.style';
 
 const toUploadedPicture = (asset: Asset): UploadedPicture | null => {
-  if (!asset.uri) {
+  const uri =
+    asset.base64 && asset.type
+      ? `data:${asset.type};base64,${asset.base64}`
+      : asset.uri;
+
+  if (!uri) {
     return null;
   }
 
   return {
-    uri: asset.uri,
+    uri,
     fileName: asset.fileName,
     type: asset.type,
     fileSize: asset.fileSize,
@@ -29,6 +34,7 @@ const pickerOptions: ImageLibraryOptions = {
   mediaType: 'photo',
   selectionLimit: 0,
   quality: 0.8,
+  includeBase64: true,
 };
 
 const UploadPictures = (props: UploadPicturesType) => {
@@ -73,6 +79,7 @@ const UploadPictures = (props: UploadPicturesType) => {
     const response = await launchCamera({
       mediaType: 'photo',
       quality: 0.8,
+      includeBase64: true,
       saveToPhotos: false,
     });
 

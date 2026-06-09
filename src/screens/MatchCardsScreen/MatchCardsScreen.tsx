@@ -633,8 +633,9 @@ const MatchCardsScreen = () => {
           </View>
           <CurrentCard
             {...currentCard}
-            isShowCardActions={false}
-            isShowMeetingButton={false}
+            isShowCardActions={true}
+            isShowMeetingButton={canManageMeetings}
+            onMeetingPress={() => setIsMeetingModalOpen(true)}
             isShowInfoButtons={false}
             currentUserRole={userRole || undefined}
             currentUserId={currentUserId}

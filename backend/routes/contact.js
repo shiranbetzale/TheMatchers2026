@@ -8,18 +8,22 @@ const requiredFields = ['name', 'email', 'message'];
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 function createTransportConfig() {
-  console.log('SMTP_SERVICE:', process.env.SMTP_SERVICE);
-  console.log('SMTP_HOST:', process.env.SMTP_HOST);
-  console.log('SMTP_USER:', process.env.SMTP_USER);
-
   const smtpHost = String(process.env.SMTP_HOST || '').trim();
   const smtpPort = Number(process.env.SMTP_PORT || 587);
   const smtpSecure = String(process.env.SMTP_SECURE || 'false') === 'true';
   const smtpUser = String(process.env.SMTP_USER || '').trim();
   const smtpPass = String(process.env.SMTP_PASS || '').trim();
-  const smtpService = String(process.env.SMTP_SERVICE || '').trim();
+  const smtpService = String(process.env.SMTP_SERVICE || '')
+    .trim()
+    .toLowerCase();
 
   const hasAuth = Boolean(smtpUser && smtpPass);
+  const auth = hasAuth
+    ? {
+        user: smtpUser,
+        pass: smtpPass,
+      }
+    : undefined;
 
   if (smtpHost) {
     return {
@@ -30,18 +34,12 @@ function createTransportConfig() {
       connectionTimeout: 10000,
       greetingTimeout: 10000,
       socketTimeout: 15000,
-      auth: hasAuth
-        ? {
-            user: smtpUser,
-            pass: smtpPass,
-          }
-        : undefined,
+      auth,
     };
   }
 
-  if (smtpService) {
+  if (smtpService === 'gmail') {
     return {
-      service: smtpService,
       host: 'smtp.gmail.com',
       port: 465,
       secure: true,
@@ -49,7 +47,18 @@ function createTransportConfig() {
       connectionTimeout: 20000,
       greetingTimeout: 20000,
       socketTimeout: 30000,
-      auth: hasAuth ? {user: smtpUser, pass: smtpPass} : undefined,
+      auth,
+    };
+  }
+
+  if (smtpService) {
+    return {
+      service: smtpService,
+      family: 4,
+      connectionTimeout: 20000,
+      greetingTimeout: 20000,
+      socketTimeout: 30000,
+      auth,
     };
   }
 

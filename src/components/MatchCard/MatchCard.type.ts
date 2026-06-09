@@ -33,9 +33,18 @@ export type MatchCardType = {
   partnerImage?: string;
   partnerOutsideApp?: boolean;
   city?: string;
+  tribe?: string;
+  hashkafa?: string;
+  whatWorks?: string;
+  education?: string;
+  importantInfo?: string;
+  familyInfo?: string;
+  matchImportantInfo?: string;
   helpWithMoney?: string;
   helpWithMoneyDetails?: string;
   hobbies?: string;
+  matchRangeAges?: string;
+  matchRangeHeights?: string;
   currentUserRole?: 'admin' | 'matchmaker' | 'user';
   currentUserId?: string;
   pairedCard?: MatchCardType;
