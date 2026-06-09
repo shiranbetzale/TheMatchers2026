@@ -382,23 +382,36 @@ const EditFormScreen = () => {
   const partnerSuggestions = useMemo(() => {
     const currentProfileId = String(card?.profileId || '');
     const currentPhone = normalizePhone(card?.phone);
+    const selectedMatchmakerId = String(
+      formValues.collaborationMatchmaker || '',
+    ).trim();
 
     return profilesCache
       .filter(profile => {
         const profileId = String(profile._id || profile.id || '');
         const phone = normalizePhone(profile.phone);
         const relationshipStatus = String(profile.relationshipStatus || '');
+        const assignedMatchmaker = String(
+          profile.assignedMatchmaker || '',
+        ).trim();
 
         return (
           profileId !== currentProfileId &&
           phone !== currentPhone &&
+          (!selectedMatchmakerId ||
+            assignedMatchmaker === selectedMatchmakerId) &&
           relationshipStatus !== 'engaged' &&
           relationshipStatus !== 'married'
         );
       })
       .map(profile => String(profile.fullName || profile.name || '').trim())
       .filter(Boolean);
-  }, [card?.phone, card?.profileId, profilesCache]);
+  }, [
+    card?.phone,
+    card?.profileId,
+    formValues.collaborationMatchmaker,
+    profilesCache,
+  ]);
 
   const partnerGenderByName = useMemo(
     () =>
@@ -634,10 +647,13 @@ const EditFormScreen = () => {
               value={selectedCollaborationMatchmakerLabel}
               options={matchmakerOptions}
               onSelect={option =>
-                updateField(
-                  'collaborationMatchmaker',
-                  option?.value || '',
-                )
+                setFormValues(prev => ({
+                  ...prev,
+                  collaborationMatchmaker: option?.value || '',
+                  partnerName: '',
+                  partnerProfileId: '',
+                  partnerOutsideApp: 'false',
+                }))
               }
             />
 

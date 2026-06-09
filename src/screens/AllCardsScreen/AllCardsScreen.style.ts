@@ -1,7 +1,57 @@
+import {StyleSheet} from 'react-native';
 import Colors from '../../utils/Colors';
+import {FontsStyle} from '../../utils/FontsStyle';
 import GeneralStyle from '../../utils/GeneralStyle';
 
-export const styles = {
+export const styles = StyleSheet.create({
+  container: {
+    gap: GeneralStyle.spacing.md,
+  },
+  headerCard: {
+    gap: GeneralStyle.spacing.xs,
+    borderTopWidth: 3,
+    borderTopColor: Colors.premiumLine,
+  },
+  title: {
+    ...FontsStyle.menuTitle,
+    color: Colors.darkGreen,
+    fontSize: 24,
+  },
+  subtitle: {
+    ...FontsStyle.text,
+    color: Colors.slate,
+  },
+  textRtl: {
+    textAlign: 'right',
+  },
+  textLtr: {
+    textAlign: 'left',
+  },
+  statsRow: {
+    flexDirection: 'row-reverse',
+    gap: GeneralStyle.spacing.sm,
+  },
+  statChip: {
+    flex: 1,
+    alignItems: 'center',
+    paddingVertical: GeneralStyle.spacing.sm,
+    paddingHorizontal: GeneralStyle.spacing.sm,
+    borderWidth: 1,
+    borderColor: Colors.borderSoft,
+    borderRadius: GeneralStyle.radius.md,
+    backgroundColor: Colors.champagne,
+  },
+  statValue: {
+    ...FontsStyle.menuTitle,
+    color: Colors.color1,
+    fontSize: 20,
+  },
+  statLabel: {
+    ...FontsStyle.text,
+    color: Colors.darkGreen,
+    fontSize: 12,
+    textAlign: 'center',
+  },
   matchCard: {
     padding: 0,
     paddingHorizontal: 0,
@@ -20,4 +70,4 @@ export const styles = {
     borderBottomWidth: 1,
     borderBottomColor: Colors.borderSoft,
   },
-};
+});

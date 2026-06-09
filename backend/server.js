@@ -18,6 +18,7 @@ const profilesRouter = require('./routes/profiles');
 const matchesRouter = require('./routes/matches');
 const contactRouter = require('./routes/contact');
 const notificationsRouter = require('./routes/notifications');
+const uploadsRouter = require('./routes/uploads');
 const {startMeetingReminderScheduler} = require('./services/meetingReminders');
 
 const app = express();
@@ -40,6 +41,7 @@ app.use('/api/matches', matchesRouter);
 app.use('/api/users', usersRouter);
 app.use('/api/contact', contactRouter);
 app.use('/api/notifications', notificationsRouter);
+app.use('/api/uploads', uploadsRouter);
 
 app.use((req, res) => {
   res.status(404).json({error: 'not_found', path: req.originalUrl});

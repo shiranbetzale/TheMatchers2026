@@ -40,6 +40,7 @@ import CustomText from '../CustomText/CustomText';
 import RingImage from '../../assets/images/ring.png';
 import api from '../../services/api';
 import {clearSession, getSessionRole} from '../../services/session';
+import {uploadProfileImages} from '../../services/uploads';
 
 type WizardNavigationProp = NativeStackNavigationProp<RootStackParamList>;
 type WizardRouteProp = RouteProp<RootStackParamList, 'Wizard'>;
@@ -804,21 +805,29 @@ const Wizard = () => {
 
   const partnerSuggestions = useMemo(() => {
     const currentProfileId = String(editProfileId || '');
+    const selectedMatchmakerId = String(
+      relationshipDraft.collaborationMatchmaker || '',
+    ).trim();
 
     return profilesCache
       .filter(profile => {
         const profileId = String(profile._id || profile.id || '');
         const relationshipStatus = String(profile.relationshipStatus || '');
+        const assignedMatchmaker = String(
+          profile.assignedMatchmaker || '',
+        ).trim();
 
         return (
           profileId !== currentProfileId &&
+          (!selectedMatchmakerId ||
+            assignedMatchmaker === selectedMatchmakerId) &&
           relationshipStatus !== 'engaged' &&
           relationshipStatus !== 'married'
         );
       })
       .map(profile => String(profile.fullName || profile.name || '').trim())
       .filter(Boolean);
-  }, [editProfileId, profilesCache]);
+  }, [editProfileId, profilesCache, relationshipDraft.collaborationMatchmaker]);
 
   const filteredPartnerSuggestions = useMemo(() => {
     const searchValue = normalizeName(relationshipDraft.partnerName);
@@ -1019,6 +1028,9 @@ const Wizard = () => {
                     setRelationshipDraft(currentDraft => ({
                       ...currentDraft,
                       collaborationMatchmaker: option?.value || '',
+                      partnerName: '',
+                      partnerProfileId: '',
+                      partnerOutsideApp: 'false',
                     }))
                   }
                 />
@@ -1199,6 +1211,10 @@ const Wizard = () => {
       }
 
       const payload = buildProfilePayload(formValues);
+
+      if (Array.isArray(payload.images) && payload.images.length) {
+        payload.images = await uploadProfileImages(payload.images);
+      }
 
       if (isEditMode && currentRelationshipStatus) {
         const matchedPartnerProfileId =

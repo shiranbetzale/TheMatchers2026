@@ -12,6 +12,7 @@ import CustomButton from '../../components/CustomButton/CustomButton';
 import CustomFilter from '../../components/CustomFilter/CustomFilter';
 import CustomHeader from '../../components/CustomHeader/CustomHeader';
 import CustomOrderBy from '../../components/CustomOrderBy/CustomOrderBy';
+import WhiteCard from '../../components/WhiteCard/WhiteCard';
 import {CardsFilterValues} from '../../components/CustomFilter/CustomFilter.type';
 import {CardsSortValue} from '../../components/CustomOrderBy/CustomOrderBy.type';
 import MatchCard from '../../components/MatchCard/MatchCard';
@@ -26,6 +27,7 @@ import {RootStackParamList} from '../../components/MainStackNavigation/MainStack
 import {getSessionUser} from '../../services/session';
 import api from '../../services/api';
 import {mapProfileToCard} from '../../utils/generalFunction';
+import {useLanguage} from '../../utils/LanguageProvider';
 
 type NavigationProp = StackNavigationProp<RootStackParamList>;
 type AllCardsRouteProp = RouteProp<RootStackParamList, 'AllCardsScreen'>;
@@ -34,6 +36,7 @@ const NO_MATCHER_FILTER_VALUE = 'noMatcher';
 const AllCardsScreen = () => {
   const navigation = useNavigation<NavigationProp>();
   const route = useRoute<AllCardsRouteProp>();
+  const {isRTL} = useLanguage();
 
   const onlyMine = route.params?.onlyMine === true;
 
@@ -236,6 +239,17 @@ const AllCardsScreen = () => {
   ];
 
   const isMenuOpen = isShowFilter || isShowOrderBy;
+  const {maleCount, femaleCount} = useMemo(
+    () => ({
+      maleCount: filteredAndSortedCards.filter(
+        card => card.gender === 'male' || card.gender === 'זכר',
+      ).length,
+      femaleCount: filteredAndSortedCards.filter(
+        card => card.gender === 'female' || card.gender === 'נקבה',
+      ).length,
+    }),
+    [filteredAndSortedCards],
+  );
 
   return (
     <HomeScreen
@@ -266,8 +280,53 @@ const AllCardsScreen = () => {
           )}
         </View>
       }>
-      {!isMenuOpen && (
-        <>
+      <View style={styles.container}>
+        <WhiteCard customStyle={styles.headerCard}>
+          <CustomText
+            text={onlyMine ? 'myCardsTitle' : 'allMatchmakersCardsTitle'}
+            customStyle={[styles.title, isRTL ? styles.textRtl : styles.textLtr]}
+          />
+          <CustomText
+            text={
+              onlyMine
+                ? 'myCardsSubtitle'
+                : 'allMatchmakersCardsSubtitle'
+            }
+            customStyle={[
+              styles.subtitle,
+              isRTL ? styles.textRtl : styles.textLtr,
+            ]}
+          />
+        </WhiteCard>
+
+        {!isMenuOpen && (
+          <>
+            <View style={styles.statsRow}>
+              <View style={styles.statChip}>
+                <CustomText
+                  text={`${filteredAndSortedCards.length}`}
+                  customStyle={styles.statValue}
+                />
+                <CustomText text="cardsCount" customStyle={styles.statLabel} />
+              </View>
+
+              <View style={styles.statChip}>
+                <CustomText
+                  text={`${maleCount}`}
+                  customStyle={styles.statValue}
+                />
+                <CustomText text="male" customStyle={styles.statLabel} />
+              </View>
+
+              <View style={styles.statChip}>
+                <CustomText
+                  text={`${femaleCount}`}
+                  customStyle={styles.statValue}
+                />
+                <CustomText text="female" customStyle={styles.statLabel} />
+              </View>
+            </View>
+
           {!hasLoadedCards ? null : filteredAndSortedCards.length === 0 ? (
             <CustomText text="noAssignedCards" customStyle={FontsStyle.text} />
           ) : (
@@ -286,8 +345,9 @@ const AllCardsScreen = () => {
               </CustomButton>
             ))
           )}
-        </>
-      )}
+          </>
+        )}
+      </View>
     </HomeScreen>
   );
 };
