@@ -8,8 +8,6 @@ import {hideGlobalLoader, showGlobalLoader} from '../utils/LoadingManager';
 export const API_TOKEN_KEY = 'authToken';
 
 const DEV_SERVER_URL = 'https://thematchers-backend.onrender.com';
-const LOCALHOST_URL = 'http://localhost:4000';
-const ANDROID_EMULATOR_URL = 'http://10.0.2.2:4000';
 
 let activeRequests = 0;
 
