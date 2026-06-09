@@ -80,7 +80,21 @@ export const sendCandidateCode = async (
 
   assertFirebasePhoneAuthConfigured();
 
-  return auth().signInWithPhoneNumber(toFirebasePhoneNumber(phone));
+  const firebasePhone = toFirebasePhoneNumber(phone);
+
+  console.log('Sending Firebase SMS to:', firebasePhone);
+
+  try {
+    return await auth().signInWithPhoneNumber(firebasePhone);
+  } catch (error: any) {
+    console.log('Firebase SMS error:', {
+      code: error?.code,
+      message: error?.message,
+      nativeErrorMessage: error?.nativeErrorMessage,
+    });
+
+    throw error;
+  }
 };
 
 export const verifyCandidateCode = async ({

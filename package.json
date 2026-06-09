@@ -11,6 +11,7 @@
     "server": "node server/app.js",
     "dev": "nodemon server/app.js",
     "start:backend": "node backend/server.js",
+    "api:sanity": "node backend/scripts/apiSanityCheck.js",
     "seed:admin": "node backend/scripts/seedAdmin.js",
     "push:demo": "node backend/scripts/sendDemoPush.js",
     "postinstall": "node scripts/patch-react-native-date-picker.js"

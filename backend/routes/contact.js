@@ -7,6 +7,25 @@ const requiredFields = ['name', 'email', 'message'];
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+function getMailConfigStatus() {
+  const smtpService = String(process.env.SMTP_SERVICE || '').trim();
+  const smtpHost = String(process.env.SMTP_HOST || '').trim();
+  const smtpUser = String(process.env.SMTP_USER || '').trim();
+  const smtpPass = String(process.env.SMTP_PASS || '').trim();
+  const contactTo = String(process.env.CONTACT_TO || '').trim();
+
+  return {
+    hasSmtpService: Boolean(smtpService),
+    hasSmtpHost: Boolean(smtpHost),
+    hasSmtpUser: Boolean(smtpUser),
+    hasSmtpPass: Boolean(smtpPass),
+    hasContactTo: Boolean(contactTo),
+    isConfigured: Boolean(
+      contactTo && (smtpService || smtpHost) && smtpUser && smtpPass,
+    ),
+  };
+}
+
 function createTransportConfig() {
   const smtpHost = String(process.env.SMTP_HOST || '').trim();
   const smtpPort = Number(process.env.SMTP_PORT || 587);
@@ -65,6 +84,13 @@ function createTransportConfig() {
   return null;
 }
 
+router.get('/status', (_req, res) => {
+  res.json({
+    ok: true,
+    mail: getMailConfigStatus(),
+  });
+});
+
 router.post('/', async (req, res) => {
   try {
     const {name, email, phone = '', message} = req.body || {};
@@ -96,18 +122,14 @@ router.post('/', async (req, res) => {
       });
     }
 
-    const hasSmtpService = Boolean(
-      String(process.env.SMTP_SERVICE || '').trim(),
-    );
+    const mailConfigStatus = getMailConfigStatus();
 
-    const hasSmtpHost = Boolean(String(process.env.SMTP_HOST || '').trim());
-
-    const hasContactTo = Boolean(String(process.env.CONTACT_TO || '').trim());
-
-    if ((!hasSmtpService && !hasSmtpHost) || !hasContactTo) {
+    if (!mailConfigStatus.isConfigured) {
       return res.status(500).json({
         error: 'mail_not_configured',
-        message: 'Set CONTACT_TO and either SMTP_SERVICE or SMTP_HOST',
+        message:
+          'Set CONTACT_TO, SMTP_USER, SMTP_PASS and either SMTP_SERVICE or SMTP_HOST',
+        config: mailConfigStatus,
       });
     }
 
