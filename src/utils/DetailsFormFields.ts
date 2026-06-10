@@ -191,8 +191,8 @@ const detailsFormArray: FormField[] = [
   {
     id: 'phone',
     text: 'phoneLabel',
-    keyboardTypeOption: 'numeric',
-    inputMode: 'numeric',
+    keyboardTypeOption: 'phone-pad',
+    inputMode: 'tel',
     onlyDigits: true,
     fieldType: 'input',
     collapseTitle: 'contactDetails',
@@ -213,7 +213,8 @@ const detailsFormArray: FormField[] = [
   {
     id: 'mail',
     text: 'emailLabel',
-    keyboardTypeOption: 'default',
+    keyboardTypeOption: 'email-address',
+    inputMode: 'email',
     fieldType: 'input',
     collapseTitle: 'contactDetails',
   },
@@ -577,8 +578,8 @@ const detailsFormArray: FormField[] = [
   {
     id: 'rabbiPhone',
     text: 'rabbiPhoneNumber',
-    keyboardTypeOption: 'numeric',
-    inputMode: 'numeric',
+    keyboardTypeOption: 'phone-pad',
+    inputMode: 'tel',
     onlyDigits: true,
     fieldType: 'input',
     collapseTitle: 'additionalDetails',
@@ -629,7 +630,8 @@ const detailsFormArray: FormField[] = [
   {
     id: 'phonesForInquiries',
     text: 'referencePhonesLabel',
-    keyboardTypeOption: 'default',
+    keyboardTypeOption: 'phone-pad',
+    inputMode: 'tel',
     fieldType: 'input',
     isMultiline: true,
     collapseTitle: 'additionalDetails',

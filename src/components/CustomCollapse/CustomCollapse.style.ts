@@ -15,6 +15,13 @@ export const styles = StyleSheet.create({
     paddingBottom: GeneralStyle.spacing.xl * 4,
     overflow: 'visible',
   },
+  requiredFieldsNote: {
+    ...FontsStyle.text,
+    color: Colors.inkMuted,
+    fontSize: 14,
+    marginBottom: GeneralStyle.spacing.sm,
+    paddingHorizontal: GeneralStyle.spacing.xs,
+  },
   whiteCardContainer: {
     marginBottom: GeneralStyle.spacing.md,
     paddingHorizontal: GeneralStyle.spacing.md,

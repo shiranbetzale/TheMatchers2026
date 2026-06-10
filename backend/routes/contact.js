@@ -40,10 +40,13 @@ async function resolveIpv4Host(host) {
   }
 }
 
-async function createTransportConfig() {
+async function createTransportConfig(overrides = {}) {
   const smtpHost = String(process.env.SMTP_HOST || '').trim();
-  const smtpPort = Number(process.env.SMTP_PORT || 587);
-  const smtpSecure = String(process.env.SMTP_SECURE || 'false') === 'true';
+  const smtpPort = Number(overrides.port || process.env.SMTP_PORT || 587);
+  const smtpSecure =
+    overrides.secure !== undefined
+      ? Boolean(overrides.secure)
+      : String(process.env.SMTP_SECURE || 'false') === 'true';
   const smtpUser = String(process.env.SMTP_USER || '').trim();
   const smtpPass = String(process.env.SMTP_PASS || '').trim();
   const smtpService = String(process.env.SMTP_SERVICE || '')
@@ -105,6 +108,48 @@ async function createTransportConfig() {
   return null;
 }
 
+async function createTransportConfigs() {
+  const primaryConfig = await createTransportConfig();
+  const smtpService = String(process.env.SMTP_SERVICE || '')
+    .trim()
+    .toLowerCase();
+  const smtpHost = String(process.env.SMTP_HOST || '').trim().toLowerCase();
+  const isGmail =
+    smtpService === 'gmail' ||
+    smtpHost.includes('gmail.com') ||
+    String(process.env.SMTP_USER || '').trim().endsWith('@gmail.com');
+
+  if (!primaryConfig || !isGmail) {
+    return primaryConfig ? [primaryConfig] : [];
+  }
+
+  const gmailHost = 'smtp.gmail.com';
+  const resolvedHost = await resolveIpv4Host(gmailHost);
+  const fallbackConfig = {
+    host: resolvedHost,
+    port: 587,
+    secure: false,
+    family: 4,
+    connectionTimeout: 10000,
+    greetingTimeout: 10000,
+    socketTimeout: 15000,
+    tls: {
+      servername: gmailHost,
+    },
+    auth: {
+      user: String(process.env.SMTP_USER || '').trim(),
+      pass: String(process.env.SMTP_PASS || '').trim(),
+    },
+  };
+
+  const primaryKey = `${primaryConfig.host || primaryConfig.service}:${primaryConfig.port}:${primaryConfig.secure}`;
+  const fallbackKey = `${fallbackConfig.host}:${fallbackConfig.port}:${fallbackConfig.secure}`;
+
+  return primaryKey === fallbackKey
+    ? [primaryConfig]
+    : [primaryConfig, fallbackConfig];
+}
+
 const escapeHtml = value =>
   String(value || '')
     .replace(/&/g, '&amp;')
@@ -125,9 +170,9 @@ async function sendContactEmail({name, email, phone, message, contactId}) {
     };
   }
 
-  const transportConfig = await createTransportConfig();
+  const transportConfigs = await createTransportConfigs();
 
-  if (!transportConfig) {
+  if (!transportConfigs.length) {
     return {
       sent: false,
       skipped: true,
@@ -136,9 +181,7 @@ async function sendContactEmail({name, email, phone, message, contactId}) {
     };
   }
 
-  const transporter = nodemailer.createTransport(transportConfig);
-
-  await transporter.sendMail({
+  const mailOptions = {
     from:
       process.env.CONTACT_FROM ||
       process.env.SMTP_USER ||
@@ -167,9 +210,31 @@ async function sendContactEmail({name, email, phone, message, contactId}) {
         <p>${escapeHtml(message).replace(/\n/g, '<br />')}</p>
       </div>
     `,
-  });
+  };
 
-  return {sent: true, skipped: false};
+  let lastError;
+
+  for (const transportConfig of transportConfigs) {
+    try {
+      const transporter = nodemailer.createTransport(transportConfig);
+
+      await transporter.sendMail(mailOptions);
+
+      return {sent: true, skipped: false};
+    } catch (error) {
+      lastError = error;
+
+      console.warn('[contact] smtp attempt failed', {
+        host: transportConfig.host || transportConfig.service,
+        port: transportConfig.port,
+        secure: transportConfig.secure,
+        message: error?.message,
+        code: error?.code,
+      });
+    }
+  }
+
+  throw lastError || new Error('mail_send_failed');
 }
 
 router.get('/status', (_req, res) => {

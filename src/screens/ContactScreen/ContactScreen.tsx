@@ -14,6 +14,16 @@ import {useMessage} from '../../utils/MessageProvider';
 import HomeScreen from '../HomeScreen/HomeScreen';
 import {styles} from './ContactScreen.style';
 
+type ContactResponse = {
+  ok?: boolean;
+  saved?: boolean;
+  email?: {
+    sent?: boolean;
+    skipped?: boolean;
+    reason?: string;
+  };
+};
+
 const ContactScreen = () => {
   const {t} = useLanguage();
   const {showMessage} = useMessage();
@@ -72,12 +82,17 @@ const ContactScreen = () => {
     try {
       setIsSubmitting(true);
 
-      await api.post('/api/contact', {
+      const response = await api.post<ContactResponse>('/api/contact', {
         name: trimmedName,
         email: trimmedEmail.toLowerCase(),
         phone: trimmedPhone,
         message: trimmedMessage,
       });
+
+      if (response.data?.email && !response.data.email.sent) {
+        showMessage({type: 'error', message: t('contactEmailNotSent')});
+        return;
+      }
 
       resetForm();
 
@@ -121,6 +136,7 @@ const ContactScreen = () => {
         <WhiteCard customStyle={styles.card}>
           <View style={styles.field}>
             <CustomInput
+              text={`* ${t('fullName')}`}
               placeholder="fullName"
               value={name}
               onChangeText={setName}
@@ -129,6 +145,7 @@ const ContactScreen = () => {
 
           <View style={styles.field}>
             <CustomInput
+              text={`* ${t('email')}`}
               placeholder="email"
               keyboardType="email-address"
               inputMode="email"
@@ -140,9 +157,10 @@ const ContactScreen = () => {
 
           <View style={styles.field}>
             <CustomInput
+              text={`* ${t('phoneNumber')}`}
               placeholder="phoneNumber"
-              keyboardType="numeric"
-              inputMode="numeric"
+              keyboardType="phone-pad"
+              inputMode="tel"
               onlyDigits
               maxLength={10}
               value={phone}
@@ -152,6 +170,7 @@ const ContactScreen = () => {
 
           <View style={styles.field}>
             <CustomInput
+              text={`*${t('contactMessage')}`}
               placeholder="contactMessage"
               isMultiline
               value={message}

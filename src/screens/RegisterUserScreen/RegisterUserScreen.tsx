@@ -61,7 +61,7 @@ const RegisterUserScreen = ({navigation}: Props) => {
       return;
     }
 
-    if (!/^\d{9,10}$/.test(cleanPhone)) {
+    if (!/^05\d{8}$/.test(cleanPhone)) {
       showMessage({type: 'error', message: t('invalidPhone')});
       return;
     }
@@ -119,6 +119,7 @@ const RegisterUserScreen = ({navigation}: Props) => {
         <WhiteCard customStyle={styles.card}>
           <View style={styles.field}>
             <CustomInput
+              text={`* ${t('fullName')}`}
               placeholder="fullName"
               value={fullName}
               onChangeText={setFullName}
@@ -127,9 +128,10 @@ const RegisterUserScreen = ({navigation}: Props) => {
 
           <View style={styles.field}>
             <CustomInput
+              text={`* ${t('mobile')}`}
               placeholder="mobile"
-              keyboardType="numeric"
-              inputMode="numeric"
+              keyboardType="phone-pad"
+              inputMode="tel"
               onlyDigits
               maxLength={10}
               value={phone}
@@ -139,8 +141,11 @@ const RegisterUserScreen = ({navigation}: Props) => {
 
           <View style={styles.field}>
             <CustomInput
+              text={`* ${t('email')}`}
               placeholder="email"
               keyboardType="email-address"
+              inputMode="email"
+              autoCapitalize="none"
               value={email}
               onChangeText={setEmail}
             />
@@ -148,7 +153,7 @@ const RegisterUserScreen = ({navigation}: Props) => {
 
           <View style={styles.field}>
             <CustomInput
-              placeholder="password"
+              placeholder={`${t('password')} *`}
               secureTextEntry
               allowToggleSecure
               value={password}

@@ -57,6 +57,13 @@ const normalizeSearchValue = (value?: string) =>
 const normalizePhoneSearchValue = (value?: string) =>
   String(value || '').replace(/\D/g, '');
 
+const normalizePhoneInput = (value: string) =>
+  value.replace(/\D/g, '').slice(0, 10);
+
+const isValidMobilePhone = (value: string) => /^05\d{8}$/.test(value);
+
+const isValidEmail = (value: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+
 const getUserId = (user: Partial<User>) => String(user._id || user.id || '');
 
 const UsersListScreen = () => {
@@ -180,16 +187,30 @@ const UsersListScreen = () => {
 
     if (!editingUser || !editingUserId) return;
 
-    if (!editedUser.fullName || !editedUser.phone || !editedUser.email) {
+    const cleanFullName = editedUser.fullName.trim();
+    const cleanPhone = normalizePhoneInput(editedUser.phone);
+    const cleanEmail = editedUser.email.trim().toLowerCase();
+
+    if (!cleanFullName || !cleanPhone || !cleanEmail) {
       showMessage({type: 'error', message: t('errorRequiredFields')});
+      return;
+    }
+
+    if (!isValidMobilePhone(cleanPhone)) {
+      showMessage({type: 'error', message: t('invalidPhone')});
+      return;
+    }
+
+    if (!isValidEmail(cleanEmail)) {
+      showMessage({type: 'error', message: t('invalidEmail')});
       return;
     }
 
     try {
       await api.put(`/api/users/update/${editingUserId}`, {
-        fullName: editedUser.fullName.trim(),
-        email: editedUser.email.trim().toLowerCase(),
-        phone: editedUser.phone.trim(),
+        fullName: cleanFullName,
+        email: cleanEmail,
+        phone: cleanPhone,
         role: editedUser.role,
         gender: editedUser.gender,
         ...(editedUser.password ? {password: editedUser.password} : {}),
@@ -273,25 +294,28 @@ const UsersListScreen = () => {
             onChangeText={text =>
               setEditedUser(prev => ({
                 ...prev,
-                phone: /^\d{10}$/.test(text) ? text : '',
+                phone: normalizePhoneInput(text),
               }))
             }
             style={[styles.input, isRTL ? styles.inputRtl : styles.inputLtr]}
             placeholder={t('mobile')}
             placeholderTextColor="#8A94A6"
-            keyboardType="numeric"
-            inputMode="numeric"
+            keyboardType="phone-pad"
+            inputMode="tel"
+            maxLength={10}
           />
           <CustomText text="email" customStyle={styles.inputLabel} />
           <TextInput
             value={editedUser.email}
             onChangeText={text =>
-              setEditedUser(prev => ({...prev, email: text}))
+              setEditedUser(prev => ({...prev, email: text.trim()}))
             }
             style={[styles.input, isRTL ? styles.inputRtl : styles.inputLtr]}
             placeholder={t('email')}
             placeholderTextColor="#8A94A6"
             keyboardType="email-address"
+            inputMode="email"
+            autoCapitalize="none"
           />
           <CustomText text="password" customStyle={styles.inputLabel} />
           <TextInput

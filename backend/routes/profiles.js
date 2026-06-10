@@ -75,7 +75,8 @@ function canAccessProfile(user, profile) {
 
   return (
     user.role === 'admin' ||
-    String(profile.assignedMatchmaker || '') === String(user.id)
+    String(profile.assignedMatchmaker || '') === String(user.id) ||
+    String(profile.collaborationMatchmaker || '') === String(user.id)
   );
 }
 
@@ -149,6 +150,42 @@ async function syncPartnerRelationship(profile, relationshipStatus) {
   }
 
   await partner.save();
+  return partner;
+}
+
+async function syncPartnerMeeting(profile, previousPartner = null) {
+  const partner = (await resolvePartnerProfile(profile)) || previousPartner;
+
+  if (!partner) {
+    return null;
+  }
+
+  const meetingStatus = String(profile.meetingStatus || 'available');
+  const isBusy = meetingStatus === 'busy';
+
+  partner.meetingStatus = meetingStatus;
+  partner.meetingDate = isBusy ? profile.meetingDate || '' : '';
+  partner.meetingTime = isBusy ? profile.meetingTime || '' : '';
+  partner.meetingLocation = isBusy ? profile.meetingLocation || '' : '';
+  partner.partnerName = isBusy ? getProfileName(profile) : '';
+  partner.partnerProfileId = isBusy ? profile.id : '';
+  partner.partnerOutsideApp = false;
+  partner.collaborationMatchmaker = isBusy
+    ? profile.assignedMatchmaker || profile.collaborationMatchmaker || ''
+    : '';
+  partner.meetingReminderDayFor = '';
+  partner.meetingReminderDaySentAt = undefined;
+  partner.meetingReminderHourFor = '';
+  partner.meetingReminderHourSentAt = undefined;
+
+  await partner.save();
+
+  if (isBusy && !profile.partnerProfileId) {
+    profile.partnerProfileId = partner.id;
+    profile.partnerOutsideApp = false;
+    await profile.save();
+  }
+
   return partner;
 }
 
@@ -307,14 +344,17 @@ router.put(
       const previousRelationshipStatus = String(
         profile.relationshipStatus || '',
       );
+      const hasMeetingUpdate =
+        Object.prototype.hasOwnProperty.call(req.body, 'meetingDate') ||
+        Object.prototype.hasOwnProperty.call(req.body, 'meetingTime') ||
+        Object.prototype.hasOwnProperty.call(req.body, 'meetingStatus');
+      const previousMeetingPartner = hasMeetingUpdate
+        ? await resolvePartnerProfile(profile)
+        : null;
 
       Object.assign(profile, req.body);
 
-      if (
-        Object.prototype.hasOwnProperty.call(req.body, 'meetingDate') ||
-        Object.prototype.hasOwnProperty.call(req.body, 'meetingTime') ||
-        Object.prototype.hasOwnProperty.call(req.body, 'meetingStatus')
-      ) {
+      if (hasMeetingUpdate) {
         profile.meetingReminderDayFor = '';
         profile.meetingReminderDaySentAt = undefined;
         profile.meetingReminderHourFor = '';
@@ -346,6 +386,9 @@ router.put(
 
       await profile.save();
       await syncPartnerRelationship(profile, relationshipStatus);
+      const syncedMeetingPartner = hasMeetingUpdate
+        ? await syncPartnerMeeting(profile, previousMeetingPartner)
+        : null;
 
       let notificationResult = null;
 
@@ -361,7 +404,13 @@ router.put(
 
       const [enrichedProfile] = await enrichProfilesWithMatcher(profile);
 
-      res.json({profile: enrichedProfile, notification: notificationResult});
+      res.json({
+        profile: enrichedProfile,
+        notification: notificationResult,
+        syncedMeetingPartner: syncedMeetingPartner
+          ? syncedMeetingPartner.id
+          : null,
+      });
     } catch (error) {
       next(error);
     }

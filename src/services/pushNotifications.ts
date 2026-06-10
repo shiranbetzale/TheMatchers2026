@@ -78,6 +78,8 @@ const saveDeviceToken = async (token: string) => {
     await api.post('/api/notifications/device-token', {
       token,
       platform: Platform.OS,
+    }, {
+      skipLoader: true,
     });
   } catch (error: any) {
     const status = error?.response?.status;

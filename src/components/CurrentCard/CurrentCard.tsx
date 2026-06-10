@@ -14,6 +14,7 @@ import SelectedCard from '../SelectedCard/SelectedCard';
 import {useLanguage} from '../../utils/LanguageProvider';
 import {getCardStatusText} from '../../utils/generalFunction';
 import CustomButton from '../CustomButton/CustomButton';
+import {formatProfileOptionValue} from '../../utils/shareFormatting';
 
 type CurrentCardProps = MatchCardType & {
   onMeetingPress?: () => void;
@@ -106,14 +107,23 @@ const CurrentCard = (props: CurrentCardProps) => {
     cleanLine('👳 עדה', tribe),
     cleanLine('🎗️ מצב משפחתי', statusInfo),
     cleanLine('🏡 אזור מגורים', city),
-    cleanLine('🙏 רמה דתית', hashkafa),
-    cleanLine('🔧 מה עושה כרגע בחיים', whatWorks),
-    cleanLine('📖 לימודים', education),
+    cleanLine(
+      '🙏 רמה דתית',
+      formatProfileOptionValue('hashkafa', hashkafa, gender),
+    ),
+    cleanLine(
+      '🔧 מה עושה כרגע בחיים',
+      formatProfileOptionValue('whatWorks', whatWorks, gender),
+    ),
+    cleanLine(
+      '📖 לימודים',
+      formatProfileOptionValue('education', education, gender),
+    ),
     importantInfo ? `🎭 מי אני / תכונות אופי:\n${importantInfo}` : '',
     hobbies ? `🏓 תחביבים:\n${hobbies}` : '',
     matchRangeAges ? `⛔ עד איזה גיל מתפשר/ת:\n${matchRangeAges}` : '',
     familyInfo ? `👪 משפחה:\n${familyInfo}` : '',
-    matchImportantInfo ? `💍 מי אני מחפש/ת:\n${matchImportantInfo}` : '',
+    matchImportantInfo ? `💍 מה אני מחפש/ת:\n${matchImportantInfo}` : '',
     '',
     '📞 לפרטים נוספים:',
     cleanLine('שדכנית', matcherName),
@@ -138,10 +148,11 @@ const CurrentCard = (props: CurrentCardProps) => {
   };
 
   const handleSendEmail = () => {
+    const recipient = String(matcherMail || '').trim();
     const subject = encodeURIComponent(`${t('candidateDetails')}: ${name}`);
     const body = encodeURIComponent(profileMessage);
 
-    Linking.openURL(`mailto:?subject=${subject}&body=${body}`).catch(
+    Linking.openURL(`mailto:${recipient}?subject=${subject}&body=${body}`).catch(
       handleShare,
     );
   };

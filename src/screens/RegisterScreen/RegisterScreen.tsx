@@ -33,27 +33,37 @@ const RegisterScreen = ({navigation}: Props) => {
   const {showMessage} = useMessage();
 
   const handleSave = async () => {
+    const cleanFullName = fullName.trim();
+    const cleanPhone = phone.trim();
+    const cleanEmail = email.trim().toLowerCase();
+    const cleanPassword = password.trim();
+
     if (
-      !fullName.trim() ||
-      !phone.trim() ||
-      !email.trim() ||
-      !password.trim()
+      !cleanFullName ||
+      !cleanPhone ||
+      !cleanEmail ||
+      !cleanPassword
     ) {
       showMessage({type: 'error', message: t('errorRequiredFields')});
       return;
     }
 
-    if (!/^\d{9,10}$/.test(phone)) {
+    if (!/^05\d{8}$/.test(cleanPhone)) {
       showMessage({type: 'error', message: t('invalidPhone')});
+      return;
+    }
+
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) {
+      showMessage({type: 'error', message: t('invalidEmail')});
       return;
     }
 
     try {
       await api.post('/api/users/register', {
-        fullName,
-        phone,
-        email,
-        password,
+        fullName: cleanFullName,
+        phone: cleanPhone,
+        email: cleanEmail,
+        password: cleanPassword,
         gender,
       });
 
@@ -88,15 +98,17 @@ const RegisterScreen = ({navigation}: Props) => {
 
         <WhiteCard customStyle={styles.whiteCardContainer}>
           <CustomInput
+            text={`* ${t('fullName')}`}
             placeholder="fullName"
             value={fullName}
             onChangeText={setFullName}
           />
 
           <CustomInput
+            text={`* ${t('mobile')}`}
             placeholder="mobile"
-            keyboardType="numeric"
-            inputMode="numeric"
+            keyboardType="phone-pad"
+            inputMode="tel"
             onlyDigits
             maxLength={10}
             value={phone}
@@ -104,13 +116,17 @@ const RegisterScreen = ({navigation}: Props) => {
           />
 
           <CustomInput
+            text={`* ${t('email')}`}
             placeholder="email"
             keyboardType="email-address"
+            inputMode="email"
+            autoCapitalize="none"
             value={email}
             onChangeText={setEmail}
           />
 
           <CustomInput
+            text={`* ${t('password')}`}
             placeholder="password"
             secureTextEntry
             allowToggleSecure
@@ -120,7 +136,7 @@ const RegisterScreen = ({navigation}: Props) => {
 
           <View style={styles.space}>
             <CustomRadioButton
-              text="gender"
+              text={`* ${t('gender')}`}
               value={gender}
               radiosArray={[
                 {id: 1, name: 'male', label: 'male'},

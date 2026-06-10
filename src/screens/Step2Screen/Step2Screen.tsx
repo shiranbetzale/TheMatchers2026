@@ -8,6 +8,7 @@ import {WizardStepComponentProps} from '../../components/Wizard/Wizard.type';
 import {
   getVisibleOptions,
   getVisibleFields,
+  isRequiredFormField,
   isSectionComplete,
 } from '../../utils/formCompletion';
 
@@ -103,6 +104,7 @@ const Step2Screen = (props: WizardStepComponentProps) => {
         ...section,
         data: section.data.map(field => ({
           ...field,
+          isRequired: isRequiredFormField(field),
           errorText: fieldErrors[field.id],
           options: getVisibleOptions(field, values, matchFormArray),
           value: values[field.id] ?? '',
@@ -121,6 +123,7 @@ const Step2Screen = (props: WizardStepComponentProps) => {
       }}
       lockedSectionTitles={lockedSectionTitles}
       autoExpandUnlockedSection
+      showRequiredFieldsNote
     />
   );
 };

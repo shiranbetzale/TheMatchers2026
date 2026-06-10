@@ -28,7 +28,9 @@ const getGenderKey = (contextValues?: Record<string, string>) => {
     return targetGender;
   }
 
-  const gender = String(contextValues?.gender || '').trim().toLowerCase();
+  const gender = String(contextValues?.gender || '')
+    .trim()
+    .toLowerCase();
   const genderOptionId = String(contextValues?.genderOptionId || '').trim();
 
   if (
@@ -204,6 +206,7 @@ const generateField = (props: FormField) => {
     isSmallSize,
     defaultValue,
     value,
+    isRequired,
     maxDate,
     isEditable,
     allowClear,
@@ -226,7 +229,10 @@ const generateField = (props: FormField) => {
     onChangeDate,
     handlePress = () => {},
   } = props;
-  const translatedText = t(getFieldTextKey(text, genderTextLabels, contextValues));
+  const translatedText = t(
+    getFieldTextKey(text, genderTextLabels, contextValues),
+  );
+  const fieldText = isRequired ? `* ${translatedText} ` : translatedText;
   const translatedOptions = translateOptions(options, contextValues);
   const checkboxValue = parseArrayValue(value);
 
@@ -234,6 +240,7 @@ const generateField = (props: FormField) => {
     case 'input':
       return (
         <CustomInput
+          text={fieldText}
           maxLength={maxLength}
           isSmallSize={isSmallSize}
           isMultiline={isMultiline}
@@ -254,7 +261,7 @@ const generateField = (props: FormField) => {
       return (
         <CustomRadioButton
           isSmallSize={isSmallSize}
-          text={translatedText}
+          text={fieldText}
           radiosArray={translatedOptions}
           value={value}
           isEditable={isEditable}
@@ -265,7 +272,7 @@ const generateField = (props: FormField) => {
     case 'datePicker':
       return (
         <CustomDatePicker
-          text={translatedText}
+          text={fieldText}
           value={value}
           maxDate={maxDate}
           isEditable={isEditable}
@@ -276,7 +283,7 @@ const generateField = (props: FormField) => {
     case 'select':
       return (
         <CustomSelect
-          text={translatedText}
+          text={fieldText}
           value={value}
           isEditable={isEditable}
           allowClear={allowClear}
@@ -288,7 +295,7 @@ const generateField = (props: FormField) => {
     case 'autocomplete':
       return (
         <CustomAutocomplete
-          text={translatedText}
+          text={fieldText}
           value={value}
           isSmallSize={isSmallSize}
           isEditable={isEditable}
@@ -303,7 +310,7 @@ const generateField = (props: FormField) => {
       return (
         <CustomSwitch
           isSmallSize={isSmallSize}
-          text={translatedText}
+          text={fieldText}
           value={value}
           isEditable={isEditable}
           handleToggle={handlePress}
@@ -314,7 +321,7 @@ const generateField = (props: FormField) => {
       return (
         <CustomCheckBox
           isSmallSize={isSmallSize}
-          text={translatedText}
+          text={fieldText}
           options={translatedOptions}
           value={checkboxValue}
           isEditable={isEditable}

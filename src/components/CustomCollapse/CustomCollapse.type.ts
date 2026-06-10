@@ -16,4 +16,5 @@ export type CustomCollapseType = {
   handlePress: (option?: Option | boolean, fieldId?: string) => void;
   lockedSectionTitles?: string[];
   autoExpandUnlockedSection?: boolean;
+  showRequiredFieldsNote?: boolean;
 };

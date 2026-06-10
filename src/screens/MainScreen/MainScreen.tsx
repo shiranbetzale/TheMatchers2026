@@ -68,6 +68,7 @@ const MainScreen = () => {
   const [userRole, setUserRole] = useState<UserRole | null>(null);
   const [cards, setCards] = useState<MatchCardType[]>([]);
   const [matcherName, setMatcherName] = useState('');
+  const [hasLoadedProfiles, setHasLoadedProfiles] = useState(false);
 
   const shouldShowMyCards = userRole !== 'user';
 
@@ -82,6 +83,8 @@ const MainScreen = () => {
   }, []);
 
   const fetchProfiles = React.useCallback(async () => {
+    setHasLoadedProfiles(false);
+
     try {
       const [activeResponse, archivedResponse] = await Promise.all([
         api.get('/api/profiles'),
@@ -99,6 +102,8 @@ const MainScreen = () => {
     } catch (error) {
       console.warn('Failed to fetch main profiles', error);
       setCards([]);
+    } finally {
+      setHasLoadedProfiles(true);
     }
   }, []);
 
@@ -209,14 +214,24 @@ const MainScreen = () => {
           <View
             style={[styles.heroStats, isRTL ? styles.rowReverse : styles.row]}>
             {[
-              {value: String(activeCards.length), label: 'cardsCount'},
-              {value: String(addedThisWeekCount), label: 'newCards'},
               {
-                value: String(engagedThroughAppCount),
+                value: hasLoadedProfiles ? String(activeCards.length) : '...',
+                label: 'cardsCount',
+              },
+              {
+                value: hasLoadedProfiles ? String(addedThisWeekCount) : '...',
+                label: 'newCards',
+              },
+              {
+                value: hasLoadedProfiles
+                  ? String(engagedThroughAppCount)
+                  : '...',
                 label: 'engagedThroughApp',
               },
               {
-                value: String(marriedThroughAppCount),
+                value: hasLoadedProfiles
+                  ? String(marriedThroughAppCount)
+                  : '...',
                 label: 'marriedThroughApp',
               },
             ].map((stat, index, stats) => (
@@ -248,7 +263,15 @@ const MainScreen = () => {
           <CustomText text="lastCards" customStyle={styles.sectionTitle} />
         </View>
 
-        {lastCardsArray.length === 0 ? (
+        {!hasLoadedProfiles ? (
+          <CustomText
+            text="loading"
+            customStyle={[
+              styles.heroSubTitle,
+              isRTL ? styles.textRight : styles.textLeft,
+            ]}
+          />
+        ) : lastCardsArray.length === 0 ? (
           <CustomText
             text="noCardsYet"
             customStyle={[

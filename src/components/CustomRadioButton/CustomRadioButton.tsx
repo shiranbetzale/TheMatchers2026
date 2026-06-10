@@ -23,6 +23,10 @@ const CustomRadioButton = (props: CustomRadioButtonType) => {
         option =>
           option.name === value ||
           option.label === value ||
+          option.originalLabel === value ||
+          option.value === value ||
+          option.genderLabels?.male === value ||
+          option.genderLabels?.female === value ||
           String(option.id) === String(value),
       ),
     [radiosArray, value],

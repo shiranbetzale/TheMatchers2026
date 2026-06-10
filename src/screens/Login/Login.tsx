@@ -293,12 +293,12 @@ const Login = () => {
       return;
     }
 
-    if (!/^\d{10}$/.test(cleanMobile)) {
+    if (!/^05\d{8}$/.test(cleanMobile)) {
       showMessage({type: 'error', message: t('invalidPhone')});
       return;
     }
 
-    if (!isMatchmakerLogin && !/^\d{10}$/.test(cleanMatchmakerCode)) {
+    if (!isMatchmakerLogin && !/^05\d{8}$/.test(cleanMatchmakerCode)) {
       showMessage({type: 'error', message: t('invalidPhone')});
       return;
     }
@@ -522,8 +522,8 @@ const Login = () => {
               <View style={styles.space}>
                 <CustomInput
                   placeholder="phoneNumber"
-                  keyboardType="numeric"
-                  inputMode="numeric"
+                  keyboardType="phone-pad"
+                  inputMode="tel"
                   onlyDigits
                   maxLength={10}
                   value={mobile}
@@ -544,8 +544,8 @@ const Login = () => {
                 ) : (
                   <CustomInput
                     placeholder="matchmakerCode"
-                    keyboardType="numeric"
-                    inputMode="numeric"
+                    keyboardType="phone-pad"
+                    inputMode="tel"
                     onlyDigits
                     maxLength={10}
                     value={matchmakerCode}
@@ -634,7 +634,7 @@ const Login = () => {
             <View style={styles.space}>
               <CustomInput
                 placeholder="candidateCodePlaceholder"
-                keyboardType="numeric"
+                keyboardType="number-pad"
                 inputMode="numeric"
                 onlyDigits
                 maxLength={10}

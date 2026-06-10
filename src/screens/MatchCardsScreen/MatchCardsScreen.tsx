@@ -87,6 +87,18 @@ const buildMatchmakerOptions = (
   );
 };
 
+const buildMatchmakerEmailMap = (users: any[]) =>
+  users.reduce<Record<string, string>>((acc, user: any) => {
+    const userId = String(user.id || user._id || '').trim();
+    const userEmail = String(user.email || '').trim();
+
+    if (userId && userEmail) {
+      acc[userId] = userEmail;
+    }
+
+    return acc;
+  }, {});
+
 const DEFAULT_CURRENT_CARD: MatchCardType = {
   gender: 'female',
   name: 'XXX',
@@ -124,6 +136,9 @@ const MatchCardsScreen = () => {
     {},
   );
   const [partnerMatchmakerById, setPartnerMatchmakerById] = useState<
+    Record<string, string>
+  >({});
+  const [matchmakerEmailById, setMatchmakerEmailById] = useState<
     Record<string, string>
   >({});
   const canManageMeetings = userRole === 'matchmaker' || userRole === 'admin';
@@ -273,7 +288,9 @@ const MatchCardsScreen = () => {
       const matchmakers = Array.isArray(matchmakersResponse.data?.users)
         ? matchmakersResponse.data.users
         : [];
+      const matchmakerEmailMap = buildMatchmakerEmailMap(matchmakers);
       setAllProfiles(profiles);
+      setMatchmakerEmailById(matchmakerEmailMap);
 
       buildPartnerOptions(profiles, currentCard.collaborationMatchmaker);
       setMatchmakerOptions(buildMatchmakerOptions(profiles, matchmakers));
@@ -313,7 +330,15 @@ const MatchCardsScreen = () => {
         ? visibleMatches
         : eligibleMatches.slice(0, 1);
 
-      setMatchArray(mapped);
+      setMatchArray(
+        mapped.map(card => ({
+          ...card,
+          matcherMail:
+            card.matcherMail ||
+            matchmakerEmailMap[String(card.assignedMatchmaker || '')] ||
+            '',
+        })),
+      );
     } catch {
       setMatchArray([]);
     } finally {
@@ -724,6 +749,11 @@ const MatchCardsScreen = () => {
           </View>
           <MatchCard
             {...matchItem}
+            matcherMail={
+              matchItem.matcherMail ||
+              matchmakerEmailById[String(matchItem.assignedMatchmaker || '')] ||
+              ''
+            }
             pairedCard={currentCard}
             isShowMoreInfo={false}
             isShowInfoButtons={true}

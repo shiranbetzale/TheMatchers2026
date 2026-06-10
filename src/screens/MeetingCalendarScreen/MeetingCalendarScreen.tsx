@@ -165,7 +165,8 @@ const MeetingCalendarScreen = () => {
           if (sessionUser?.role === 'matchmaker') {
             return (
               matcherPhone === sessionPhone ||
-              meeting.assignedMatchmaker === sessionUser?.id
+              meeting.assignedMatchmaker === sessionUser?.id ||
+              meeting.collaborationMatchmaker === sessionUser?.id
             );
           }
 

@@ -33,9 +33,10 @@ export type FormField = {
   };
   isMultiline?: boolean;
   isEditable?: boolean;
+  isRequired?: boolean;
   allowClear?: boolean;
   errorText?: string;
-  keyboardTypeOption?: 'default' | 'numeric';
+  keyboardTypeOption?: TextInputProps['keyboardType'];
   inputMode?: TextInputProps['inputMode'];
   onlyDigits?: boolean;
   formatWithCommas?: boolean;

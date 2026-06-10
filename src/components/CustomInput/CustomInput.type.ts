@@ -4,6 +4,7 @@ export type CustomInputType = {
   maxLength?: number;
   isSmallSize?: boolean;
   placeholder: string;
+  text?: string;
   keyboardType?: KeyboardTypeOptions;
   inputMode?: TextInputProps['inputMode'];
   onlyDigits?: boolean;

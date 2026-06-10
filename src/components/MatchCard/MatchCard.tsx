@@ -19,6 +19,7 @@ import WhiteCard from '../WhiteCard/WhiteCard';
 import {styles} from './MatchCard.style';
 import {MatchCardType} from './MatchCard.type';
 import {useLanguage} from '../../utils/LanguageProvider';
+import {formatProfileOptionValue} from '../../utils/shareFormatting';
 
 const cleanLine = (label: string, value?: string | number) => {
   const cleanValue = String(value || '').trim();
@@ -170,9 +171,18 @@ const MatchCard = (props: MatchCardType) => {
       cleanLine('👳 עדה', card.tribe),
       cleanLine('🎗️ מצב משפחתי', cardStatus),
       cleanLine('🏡 אזור מגורים', card.city),
-      cleanLine('🙏 רמה דתית', card.hashkafa),
-      cleanLine('🔧 מה עושה כרגע בחיים', card.whatWorks),
-      cleanLine('📖 לימודים', card.education),
+      cleanLine(
+        '🙏 רמה דתית',
+        formatProfileOptionValue('hashkafa', card.hashkafa, card.gender),
+      ),
+      cleanLine(
+        '🔧 מה עושה כרגע בחיים',
+        formatProfileOptionValue('whatWorks', card.whatWorks, card.gender),
+      ),
+      cleanLine(
+        '📖 לימודים',
+        formatProfileOptionValue('education', card.education, card.gender),
+      ),
       card.importantInfo ? `🎭 קצת עלי:\n${card.importantInfo}` : '',
       card.hobbies ? `🏓 תחביבים:\n${card.hobbies}` : '',
       card.matchRangeAges
@@ -268,10 +278,11 @@ const MatchCard = (props: MatchCardType) => {
   };
 
   const handleSendEmail = () => {
+    const recipient = String(matcherMail || '').trim();
     const subject = encodeURIComponent(`${t('candidateDetails')}: ${name}`);
     const body = encodeURIComponent(profileMessage);
 
-    openURL(`mailto:?subject=${subject}&body=${body}`, handleShare);
+    openURL(`mailto:${recipient}?subject=${subject}&body=${body}`, handleShare);
   };
 
   const openImagePreview = () => {

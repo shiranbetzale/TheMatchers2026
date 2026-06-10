@@ -18,6 +18,8 @@ import {Option} from '../../utils/FormFields.type';
 import {calculateAge, formatHebrewDate} from '../../utils/generalFunction';
 import {useLanguage} from '../../utils/LanguageProvider';
 import {useMessage} from '../../utils/MessageProvider';
+import {isRequiredFormField} from '../../utils/formCompletion';
+import i18n from '../../utils/i18n';
 import api from '../../services/api';
 
 type EditFormRouteProp = RouteProp<RootStackParamList, 'EditFormScreen'>;
@@ -38,9 +40,16 @@ const normalizeStatus = (status?: string) => {
 const denormalizeStatus = (status?: string) => {
   const statusMap: Record<string, string> = {
     '': '',
+    '1': 'single',
+    '2': 'widower',
+    '3': 'divorced',
+    '4': 'widowerWithChildren',
+    '5': 'divorcedWithChildren',
     singleStatus: 'single',
     divorcedStatus: 'divorced',
     widowedStatus: 'widower',
+    widowedWithChildrenStatus: 'widowerWithChildren',
+    divorcedWithChildrenStatus: 'divorcedWithChildren',
     single: 'single',
     divorced: 'divorced',
     widower: 'widower',
@@ -60,6 +69,8 @@ const normalizeGender = (gender?: string) => {
 
 const denormalizeGender = (gender?: string) => {
   const genderMap: Record<string, string> = {
+    '1': 'male',
+    '2': 'female',
     male: 'male',
     female: 'female',
     זכר: 'male',
@@ -171,7 +182,7 @@ const buildMatchmakerOptions = (users: any[], profiles: any[]): Option[] => {
 };
 
 const getInitialFormValues = (card?: MatchCardType) =>
-  detailsFormArray.reduce<Record<string, string>>(
+  normalizeFormOptionValues(detailsFormArray.reduce<Record<string, string>>(
     (values, item) => {
       if (item.fieldType === 'input' && item.defaultValue !== undefined) {
         values[item.id] = String(item.defaultValue);
@@ -196,7 +207,108 @@ const getInitialFormValues = (card?: MatchCardType) =>
       partnerOutsideApp: String(Boolean(card?.partnerOutsideApp)),
       collaborationMatchmaker: card?.collaborationMatchmaker ?? '',
     },
-  );
+  ));
+
+const parseOptionValues = (value: unknown) => {
+  if (Array.isArray(value)) {
+    return value.map(item => String(item)).filter(Boolean);
+  }
+
+  const rawValue = String(value || '').trim();
+
+  if (!rawValue) {
+    return [];
+  }
+
+  try {
+    const parsed = JSON.parse(rawValue);
+
+    if (Array.isArray(parsed)) {
+      return parsed.map(item => String(item)).filter(Boolean);
+    }
+  } catch {
+    // Fall through to separator parsing.
+  }
+
+  return rawValue
+    .split(/[\n,;]+/)
+    .map(item => item.trim())
+    .filter(Boolean);
+};
+
+const getOptionComparableValues = (option: Option) =>
+  [
+    String(option.id),
+    option.label,
+    option.name,
+    option.genderLabels?.male,
+    option.genderLabels?.female,
+    i18n.t(option.label),
+    option.genderLabels?.male ? i18n.t(option.genderLabels.male) : undefined,
+    option.genderLabels?.female ? i18n.t(option.genderLabels.female) : undefined,
+  ]
+    .filter(Boolean)
+    .map(item => String(item));
+
+const normalizeFormOptionValues = (values: Record<string, string>) => {
+  const nextValues = {...values};
+
+  detailsFormArray.forEach(field => {
+    if (!field.options?.length) {
+      return;
+    }
+
+    if (field.fieldType === 'checkbox') {
+      const selectedValues = parseOptionValues(nextValues[field.id]);
+
+      if (!selectedValues.length) {
+        return;
+      }
+
+      const selectedOptionIds = selectedValues.map(value => {
+        const option = field.options?.find(
+          nextOption => getOptionComparableValues(nextOption).includes(value),
+        );
+
+        return option ? String(option.id) : value;
+      });
+
+      nextValues[field.id] = JSON.stringify(selectedOptionIds);
+      return;
+    }
+
+    if (field.fieldType !== 'select' && field.fieldType !== 'radioButton') {
+      return;
+    }
+
+    const value = String(nextValues[field.id] || '').trim();
+
+    if (!value) {
+      return;
+    }
+
+    const selectedOption = field.options.find(
+      option => getOptionComparableValues(option).includes(value),
+    );
+
+    if (selectedOption) {
+      nextValues[field.id] = String(selectedOption.id);
+      nextValues[`${field.id}OptionId`] = String(selectedOption.id);
+    }
+  });
+
+  if (nextValues.gender === '1') {
+    nextValues.gender = 'male';
+    nextValues.genderOptionId = '1';
+  }
+
+  if (nextValues.gender === '2') {
+    nextValues.gender = 'female';
+    nextValues.genderOptionId = '2';
+  }
+
+  return nextValues;
+};
 
 const getProfileFormValues = (profile: Record<string, unknown>) => {
   const fieldIds = new Set(detailsFormArray.map(field => field.id));
@@ -224,7 +336,7 @@ const getProfileFormValues = (profile: Record<string, unknown>) => {
     values[fieldId] = String(rawValue);
   });
 
-  return {
+  return normalizeFormOptionValues({
     ...values,
     fullName: String(profile.fullName || profile.name || ''),
     gender: normalizeGender(String(profile.gender || '')),
@@ -253,7 +365,7 @@ const getProfileFormValues = (profile: Record<string, unknown>) => {
         ? String(Boolean(profile.partnerOutsideApp))
         : 'false',
     collaborationMatchmaker: String(profile.collaborationMatchmaker || ''),
-  };
+  });
 };
 
 const EditFormScreen = () => {
@@ -528,6 +640,12 @@ const EditFormScreen = () => {
         collaborationMatchmaker: formValues.collaborationMatchmaker || undefined,
       };
 
+      Object.keys(payload).forEach(key => {
+        if (key.endsWith('OptionId')) {
+          delete payload[key];
+        }
+      });
+
       delete payload.isEngaged;
       delete payload.isMarried;
 
@@ -741,6 +859,7 @@ const EditFormScreen = () => {
           item.fieldType === 'input' || item.fieldType === 'autocomplete'
             ? {
                 ...item,
+                isRequired: isRequiredFormField(item),
                 value: formValues[item.id] ?? '',
                 isEditable: itemIsEditable,
                 onChangeText: (value: string) => updateField(item.id, value),
@@ -748,6 +867,7 @@ const EditFormScreen = () => {
             : item.fieldType === 'datePicker'
               ? {
                   ...item,
+                  isRequired: isRequiredFormField(item),
                   value: formValues[item.id] ?? '',
                   isEditable: itemIsEditable,
                   onChangeDate:
@@ -758,6 +878,7 @@ const EditFormScreen = () => {
                 }
               : {
                   ...item,
+                  isRequired: isRequiredFormField(item),
                   value: formValues[item.id] ?? '',
                   isEditable: itemIsEditable,
                   handlePress: (option?: Option | boolean) => {
@@ -771,7 +892,14 @@ const EditFormScreen = () => {
                     }
 
                     if (option && typeof option !== 'boolean') {
-                      updateField(item.id, option.label);
+                      setFormValues(prev => ({
+                        ...prev,
+                        [item.id]:
+                          item.id === 'gender'
+                            ? denormalizeGender(String(option.id))
+                            : String(option.id),
+                        [`${item.id}OptionId`]: String(option.id),
+                      }));
                     }
                   },
                 };

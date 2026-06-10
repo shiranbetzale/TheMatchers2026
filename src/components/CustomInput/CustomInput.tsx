@@ -26,6 +26,7 @@ const CustomInput = (props: CustomInputType) => {
     isMultiline = false,
     isEditable = true,
     errorText,
+    text,
     defaultValue,
     value, // הערך מגיע מהורה
     onChangeText = () => {},
@@ -47,6 +48,7 @@ const CustomInput = (props: CustomInputType) => {
   const displayDefaultValue = formatWithCommas
     ? formatDigitsWithCommas(defaultValue)
     : defaultValue?.toString();
+  const labelText = text || placeholder;
 
   const inputElement = (
     <TextInput
@@ -97,7 +99,7 @@ const CustomInput = (props: CustomInputType) => {
           isRTL ? styles.textAreaContainerRtl : styles.textAreaContainerLtr,
         ]}>
         <CustomText
-          text={placeholder}
+          text={labelText}
           customStyle={[
             styles.label,
             isRTL ? styles.textRight : styles.textLeft,
@@ -118,7 +120,7 @@ const CustomInput = (props: CustomInputType) => {
         ]}>
         <View style={!isMultiline ? styles.labelWrapper : undefined}>
           <CustomText
-            text={placeholder}
+            text={labelText}
             customStyle={[
               styles.label,
               isRTL ? styles.textRight : styles.textLeft,

@@ -1,6 +1,7 @@
 import React, {useEffect, useRef, useState} from 'react';
 import {SectionList} from 'react-native';
 import generateField from '../../utils/GenerateField';
+import CustomText from '../CustomText/CustomText';
 import WhiteCard from '../WhiteCard/WhiteCard';
 import {styles} from './CustomCollapse.style';
 import {CustomCollapseType} from './CustomCollapse.type';
@@ -12,6 +13,7 @@ const CustomCollapse = (props: CustomCollapseType) => {
     handlePress,
     lockedSectionTitles = [],
     autoExpandUnlockedSection = false,
+    showRequiredFieldsNote = false,
   } = props;
   const [expandedSections, setExpandedSections] = useState<Set<string>>(
     new Set(),
@@ -76,6 +78,14 @@ const CustomCollapse = (props: CustomCollapseType) => {
       keyboardShouldPersistTaps="always"
       stickySectionHeadersEnabled={false}
       showsVerticalScrollIndicator={false}
+      ListHeaderComponent={
+        showRequiredFieldsNote ? (
+          <CustomText
+            text="requiredFieldsNote"
+            customStyle={styles.requiredFieldsNote}
+          />
+        ) : null
+      }
       renderItem={({section: {title}, item}) => {
         const isExpanded = expandedSections.has(title);
         if (!isExpanded || lockedSectionTitles.includes(title)) return null;

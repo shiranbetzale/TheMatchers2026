@@ -19,6 +19,7 @@ import MatchCard from '../../components/MatchCard/MatchCard';
 import {MatchCardType} from '../../components/MatchCard/MatchCard.type';
 import FilterSvg from '../../assets/images/filter.svg';
 import OrderBySvg from '../../assets/images/orderBy.svg';
+import UserAddSvg from '../../assets/images/userAdd.svg';
 import HomeScreen from '../HomeScreen/HomeScreen';
 import {styles} from './AllCardsScreen.style';
 import CustomText from '../../components/CustomText/CustomText';
@@ -208,6 +209,14 @@ const AllCardsScreen = () => {
     setIsShowOrderBy(prev => !prev);
   };
 
+  const addNewCandidate = () => {
+    closeMenus();
+    navigation.navigate('Wizard', {
+      mode: 'create',
+      resetToken: Date.now(),
+    });
+  };
+
   const closeMenus = () => {
     setIsShowFilter(false);
     setIsShowOrderBy(false);
@@ -234,6 +243,7 @@ const AllCardsScreen = () => {
   };
 
   const headerBtns = [
+    {comp: <UserAddSvg />, onPress: addNewCandidate},
     {comp: <FilterSvg />, onPress: toggleFilter},
     {comp: <OrderBySvg />, onPress: toggleOrderBy},
   ];
