@@ -11,6 +11,7 @@ export type Option = {
     female: string;
   };
   isShow?: Condition[];
+  isShowMatch?: 'any' | 'all';
   hideWhen?: Condition[];
   isSmallSize?: boolean;
 };

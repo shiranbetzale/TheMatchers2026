@@ -75,7 +75,12 @@ export const getSelectedConditionValue = (
 
     if (
       selectedOption &&
-      !isConditionListMatched(selectedOption.isShow, values, fields)
+      !isConditionListMatched(
+        selectedOption.isShow,
+        values,
+        fields,
+        selectedOption.isShowMatch,
+      )
     ) {
       return '';
     }
@@ -118,14 +123,16 @@ export const isConditionListMatched = (
   conditions: FormField['condition'],
   values: Record<string, string>,
   fields: FormField[],
+  match: 'any' | 'all' = 'any',
 ) => {
   if (!conditions?.length) {
     return true;
   }
 
-  return conditions.some(condition =>
-    isSingleConditionMatched(condition, values, fields),
-  );
+  const matcher = (condition: NonNullable<FormField['condition']>[number]) =>
+    isSingleConditionMatched(condition, values, fields);
+
+  return match === 'all' ? conditions.every(matcher) : conditions.some(matcher);
 };
 
 export const isFieldVisible = (
@@ -146,7 +153,14 @@ export const getVisibleOptions = (
   fields: FormField[],
 ) =>
   field.options
-    ?.filter(option => isConditionListMatched(option.isShow, values, fields))
+    ?.filter(option =>
+      isConditionListMatched(
+        option.isShow,
+        values,
+        fields,
+        option.isShowMatch,
+      ),
+    )
     .filter(option => {
       if (!option.hideWhen?.length) {
         return true;

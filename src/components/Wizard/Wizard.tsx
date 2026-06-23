@@ -373,22 +373,71 @@ const hasRangeValue = (value?: string) => {
   }
 };
 
+const parseRangeValue = (value?: string) => {
+  if (!value) {
+    return null;
+  }
+
+  try {
+    const parsed = JSON.parse(value);
+
+    if (
+      Array.isArray(parsed) &&
+      parsed.length === 2 &&
+      parsed.every(item => Number.isFinite(Number(item)))
+    ) {
+      return parsed.map(item => Number(item));
+    }
+  } catch {
+    return null;
+  }
+
+  return null;
+};
+
+const buildHeightRangeDefault = (heightInCm: number) => [
+  heightInCm,
+  Math.min(heightInCm + 10, 200),
+];
+
+const isSameRange = (value: string | undefined, range: number[]) => {
+  const parsedRange = parseRangeValue(value);
+
+  return Boolean(
+    parsedRange &&
+      parsedRange.length === range.length &&
+      parsedRange.every((item, index) => item === range[index]),
+  );
+};
+
 const applyCandidateRangeDefaults = (
   values: WizardFormValues,
+  previousValues?: WizardFormValues,
 ): WizardFormValues => {
   const nextValues = {...values};
   const age = parsePositiveInteger(nextValues.age);
   const heightInCm = parseHeightInCm(nextValues.hight);
+  const previousHeightInCm = parseHeightInCm(previousValues?.hight);
 
   if (age && !hasRangeValue(nextValues.matchRangeAges)) {
     nextValues.matchRangeAges = JSON.stringify([age, Math.min(age + 10, 90)]);
   }
 
-  if (heightInCm && !hasRangeValue(nextValues.matchRangeHeights)) {
-    nextValues.matchRangeHeights = JSON.stringify([
-      heightInCm,
-      Math.min(heightInCm + 10, 200),
-    ]);
+  if (heightInCm) {
+    const nextHeightRange = buildHeightRangeDefault(heightInCm);
+    const previousHeightRange = previousHeightInCm
+      ? buildHeightRangeDefault(previousHeightInCm)
+      : null;
+    const shouldUpdateHeightRange =
+      !hasRangeValue(nextValues.matchRangeHeights) ||
+      Boolean(
+        previousHeightRange &&
+          isSameRange(nextValues.matchRangeHeights, previousHeightRange),
+      );
+
+    if (shouldUpdateHeightRange) {
+      nextValues.matchRangeHeights = JSON.stringify(nextHeightRange);
+    }
   }
 
   return nextValues;
@@ -791,10 +840,13 @@ const Wizard = () => {
   const updateFormValue = (id: string, value: string) => {
     setFormValues(currentValues => {
       const normalizedValue = normalizeWizardFieldValue(id, value);
-      const nextValues = applyCandidateRangeDefaults({
-        ...currentValues,
-        [id]: normalizedValue,
-      });
+      const nextValues = applyCandidateRangeDefaults(
+        {
+          ...currentValues,
+          [id]: normalizedValue,
+        },
+        currentValues,
+      );
 
       return nextValues;
     });
@@ -809,10 +861,13 @@ const Wizard = () => {
         ]),
       );
 
-      const nextValues = applyCandidateRangeDefaults({
-        ...currentValues,
-        ...normalizedValues,
-      });
+      const nextValues = applyCandidateRangeDefaults(
+        {
+          ...currentValues,
+          ...normalizedValues,
+        },
+        currentValues,
+      );
 
       return nextValues;
     });

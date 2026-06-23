@@ -18,10 +18,16 @@ type LoginResponse = {
 };
 
 export async function loginWithPassword(phone: string, password: string) {
-  const response = await api.post<LoginResponse>('/auth/login', {
-    phone,
-    password,
-  });
+  const response = await api.post<LoginResponse>(
+    '/auth/login',
+    {
+      phone,
+      password,
+    },
+    {
+      skipAuthToken: true,
+    },
+  );
 
   await AsyncStorage.setItem(API_TOKEN_KEY, response.data.token);
   await saveSession(response.data.user.role, {
@@ -73,10 +79,16 @@ export const sendCandidateCode = async (
   phone: string,
   matchmakerPhone: string,
 ): Promise<FirebaseAuthTypes.ConfirmationResult> => {
-  await api.post('/auth/candidate/send-code', {
-    phone,
-    matchmakerPhone,
-  });
+  await api.post(
+    '/auth/candidate/send-code',
+    {
+      phone,
+      matchmakerPhone,
+    },
+    {
+      skipAuthToken: true,
+    },
+  );
 
   assertFirebasePhoneAuthConfigured();
 
@@ -117,11 +129,17 @@ export const verifyCandidateCode = async ({
   }
 
   const firebaseIdToken = await credential.user.getIdToken(true);
-  const response = await api.post('/auth/candidate/verify-firebase', {
-    phone,
-    matchmakerPhone,
-    firebaseIdToken,
-  });
+  const response = await api.post(
+    '/auth/candidate/verify-firebase',
+    {
+      phone,
+      matchmakerPhone,
+      firebaseIdToken,
+    },
+    {
+      skipAuthToken: true,
+    },
+  );
 
   await AsyncStorage.setItem(API_TOKEN_KEY, response.data.token);
 

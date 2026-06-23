@@ -407,6 +407,26 @@ const detailsFormArray: FormField[] = [
         label: 'nationalService',
         isShow: [{fieldId: 'gender', value: '2'}],
       },
+      {
+        id: 9,
+        name: 'whatWorks',
+        label: 'seminaryStudent',
+        isShowMatch: 'all',
+        isShow: [
+          {fieldId: 'gender', value: '2'},
+          {fieldId: 'hashkafa', value: '2'},
+        ],
+      },
+      {
+        id: 10,
+        name: 'whatWorks',
+        label: 'ulpanaStudent',
+        isShowMatch: 'all',
+        isShow: [
+          {fieldId: 'gender', value: '2'},
+          {fieldId: 'hashkafa', value: '5'},
+        ],
+      },
     ],
     collapseTitle: 'workAndEducation',
   },

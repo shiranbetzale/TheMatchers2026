@@ -25,6 +25,11 @@ export const styles = StyleSheet.create({
     zIndex: 10,
     backgroundColor: Colors.ivory,
   },
+  keyboardAvoidingContainer: {
+    flex: 1,
+    minHeight: 0,
+    zIndex: 1,
+  },
   bgContainer: {
     position: 'absolute',
     top: 0,
@@ -110,7 +115,7 @@ export const styles = StyleSheet.create({
   scrollContent: {
     paddingTop: GeneralStyle.spacing.md,
     paddingHorizontal: GeneralStyle.spacing.md,
-    paddingBottom: GeneralStyle.spacing.xl,
+    paddingBottom: GeneralStyle.spacing.xl * 3,
   },
   staticContainer: {
     flex: 1,
@@ -121,7 +126,7 @@ export const styles = StyleSheet.create({
     flex: 1,
     paddingTop: GeneralStyle.spacing.md,
     paddingHorizontal: GeneralStyle.spacing.md,
-    paddingBottom: GeneralStyle.spacing.xl,
+    paddingBottom: GeneralStyle.spacing.xl * 2,
   },
 
 });

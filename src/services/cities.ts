@@ -21,6 +21,8 @@ type GovCitiesResponse = {
 let cachedCities: Option[] = [];
 
 const normalizeCityName = (value: string) => value.replace(/\s+/g, ' ').trim();
+const stripCityQualifier = (value: string) =>
+  normalizeCityName(value).replace(/\s*\([^)]*\)\s*$/u, '').trim();
 
 const buildCityUrl = (limit: number, offset: number) =>
   `${GOV_DATA_API_URL}?resource_id=${ISRAEL_CITIES_RESOURCE_ID}&limit=${limit}&offset=${offset}`;
@@ -57,7 +59,8 @@ const loadAllIsraelCities = async (): Promise<Option[]> => {
   const seenCities = new Set<string>();
 
   cachedCities = records.reduce<Option[]>((items, record, index) => {
-    const cityName = normalizeCityName(record[CITY_NAME_FIELD] || '');
+    const originalCityName = normalizeCityName(record[CITY_NAME_FIELD] || '');
+    const cityName = stripCityQualifier(originalCityName);
 
     if (!cityName || seenCities.has(cityName)) {
       return items;
@@ -69,6 +72,7 @@ const loadAllIsraelCities = async (): Promise<Option[]> => {
       id: record._id || index + 1,
       name: 'city',
       label: cityName,
+      originalLabel: originalCityName,
     });
 
     return items;

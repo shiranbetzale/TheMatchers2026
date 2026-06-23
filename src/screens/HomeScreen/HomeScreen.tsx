@@ -1,5 +1,12 @@
 import React, {useEffect, useRef} from 'react';
-import {Animated, SafeAreaView, ScrollView, View} from 'react-native';
+import {
+  Animated,
+  KeyboardAvoidingView,
+  Platform,
+  SafeAreaView,
+  ScrollView,
+  View,
+} from 'react-native';
 import {HomeScreenType} from './HomeScreen.type';
 import {styles} from './HomeScreen.style';
 
@@ -43,33 +50,39 @@ const HomeScreen = ({
       {/* תוכן מקובע מעל הרקע */}
       {pinChildren && <View style={styles.pinChildren}>{pinChildren}</View>}
 
-      {disableScroll ? (
-        <Animated.View
-          style={[
-            styles.staticContainer,
-            styles.staticContent,
-            {
-              opacity: contentOpacity,
-              transform: [{translateY: contentTranslateY}],
-            },
-          ]}>
-          {children}
-        </Animated.View>
-      ) : (
-        <ScrollView
-          style={styles.scrollContainer}
-          contentContainerStyle={styles.scrollContent}
-          showsVerticalScrollIndicator={false}
-          keyboardShouldPersistTaps="handled">
+      <KeyboardAvoidingView
+        style={styles.keyboardAvoidingContainer}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+        {disableScroll ? (
           <Animated.View
-            style={{
-              opacity: contentOpacity,
-              transform: [{translateY: contentTranslateY}],
-            }}>
+            style={[
+              styles.staticContainer,
+              styles.staticContent,
+              {
+                opacity: contentOpacity,
+                transform: [{translateY: contentTranslateY}],
+              },
+            ]}>
             {children}
           </Animated.View>
-        </ScrollView>
-      )}
+        ) : (
+          <ScrollView
+            style={styles.scrollContainer}
+            contentContainerStyle={styles.scrollContent}
+            showsVerticalScrollIndicator={false}
+            keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'}
+            keyboardShouldPersistTaps="handled"
+            automaticallyAdjustKeyboardInsets>
+            <Animated.View
+              style={{
+                opacity: contentOpacity,
+                transform: [{translateY: contentTranslateY}],
+              }}>
+              {children}
+            </Animated.View>
+          </ScrollView>
+        )}
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 };

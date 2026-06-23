@@ -2,7 +2,6 @@ import React, { useRef, useState } from 'react';
 import {
   View,
   FlatList,
-  Image,
   Dimensions,
   TouchableOpacity,
 } from 'react-native';
@@ -21,6 +20,83 @@ type NavigationProp = StackNavigationProp<
 >;
 
 const { width } = Dimensions.get('window');
+
+const Preview = ({type}: {type: 'profile' | 'preferences' | 'matches' | 'calendar'}) => {
+  if (type === 'profile') {
+    return (
+      <View style={styles.previewCard}>
+        <View style={styles.previewHeader}>
+          <View style={styles.avatar}>
+            <CustomText text="ש" customStyle={styles.avatarText} />
+          </View>
+          <View style={styles.previewTitleBlock}>
+            <CustomText text="onboardDemoName" customStyle={styles.previewName} />
+            <CustomText text="onboardDemoMeta" customStyle={styles.previewMeta} />
+          </View>
+        </View>
+        <View style={styles.infoGrid}>
+          {['onboardDemoCity', 'onboardDemoHeight', 'onboardDemoOccupation'].map(item => (
+            <View key={item} style={styles.infoChip}>
+              <CustomText text={item} customStyle={styles.infoChipText} />
+            </View>
+          ))}
+        </View>
+        <View style={styles.profileLine} />
+        <View style={[styles.profileLine, styles.profileLineShort]} />
+      </View>
+    );
+  }
+
+  if (type === 'preferences') {
+    return (
+      <View style={styles.previewCard}>
+        {[
+          ['onboardPreferenceAge', 'onboardPreferenceAgeValue'],
+          ['onboardPreferenceHeight', 'onboardPreferenceHeightValue'],
+          ['onboardPreferenceWorldview', 'onboardPreferenceWorldviewValue'],
+        ].map(([label, value]) => (
+          <View key={label} style={styles.preferenceRow}>
+            <CustomText text={label} customStyle={styles.preferenceLabel} />
+            <CustomText text={value} customStyle={styles.preferenceValue} />
+          </View>
+        ))}
+      </View>
+    );
+  }
+
+  if (type === 'matches') {
+    return (
+      <View style={styles.previewCard}>
+        <View style={styles.matchScore}>
+          <CustomText text="92%" customStyle={styles.matchScoreText} />
+          <CustomText text="onboardMatchRecommended" customStyle={styles.matchScoreLabel} />
+        </View>
+        {['matchReasonAge', 'matchReasonHeight', 'matchReasonHashkafa'].map(item => (
+          <View key={item} style={styles.reasonRow}>
+            <View style={styles.reasonDot} />
+            <CustomText text={item} customStyle={styles.reasonText} />
+          </View>
+        ))}
+      </View>
+    );
+  }
+
+  return (
+    <View style={styles.previewCard}>
+      <View style={styles.calendarTop}>
+        <CustomText text="onboardCalendarDay" customStyle={styles.calendarDay} />
+        <CustomText text="onboardCalendarTime" customStyle={styles.calendarTime} />
+      </View>
+      <View style={styles.meetingCard}>
+        <CustomText text="meetingManagement" customStyle={styles.meetingTitle} />
+        <CustomText text="onboardCalendarPlace" customStyle={styles.meetingMeta} />
+      </View>
+      <View style={styles.statusPill}>
+        <CustomText text="onboardCalendarStatus" customStyle={styles.statusPillText} />
+      </View>
+    </View>
+  );
+};
 
 const OnBoardingScreen = () => {
   const navigation = useNavigation<NavigationProp>();
@@ -78,8 +154,10 @@ const OnBoardingScreen = () => {
         renderItem={({ item }) => (
           <View style={[styles.slide, { width }]}>
             <View style={styles.slideCard}>
-              <Image source={{ uri: item.image }} style={styles.image} />
+              <CustomText text={item.eyebrow} customStyle={styles.eyebrow} />
+              <Preview type={item.previewType} />
               <CustomText text={item.title} customStyle={styles.title} />
+              <CustomText text={item.subtitle} customStyle={styles.subtitle} />
             </View>
           </View>
         )}
@@ -109,7 +187,7 @@ const OnBoardingScreen = () => {
           </TouchableOpacity>
         )}
 
-        <TouchableOpacity onPress={handleSkip}>
+        <TouchableOpacity onPress={handleSkip} style={styles.skipButton}>
           <CustomText text="skip" customStyle={styles.skipText} />
         </TouchableOpacity>
 

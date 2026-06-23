@@ -56,10 +56,12 @@ const stopLoading = () => {
 declare module 'axios' {
   export interface InternalAxiosRequestConfig {
     skipLoader?: boolean;
+    skipAuthToken?: boolean;
   }
 
   export interface AxiosRequestConfig {
     skipLoader?: boolean;
+    skipAuthToken?: boolean;
   }
 }
 
@@ -69,7 +71,9 @@ api.interceptors.request.use(
       startLoading();
     }
 
-    const token = await AsyncStorage.getItem(API_TOKEN_KEY);
+    const token = config.skipAuthToken
+      ? null
+      : await AsyncStorage.getItem(API_TOKEN_KEY);
 
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;

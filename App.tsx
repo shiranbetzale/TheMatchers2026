@@ -6,6 +6,7 @@ import {
   StyleSheet,
   View,
   Animated,
+  Easing,
 } from 'react-native';
 import 'react-native-gesture-handler';
 import {NavigationContainer} from '@react-navigation/native';
@@ -39,6 +40,7 @@ const AppContent = () => {
   const [initialRoute, setInitialRoute] = useState<Route | null>(null);
   const [sessionVersion, setSessionVersion] = useState(0);
   const fadeAnim = useRef(new Animated.Value(0)).current;
+  const loaderAnim = useRef(new Animated.Value(0)).current;
   const {isRTL} = useLanguage();
 
   const resolveInitialRoute = useCallback(async (): Promise<Route> => {
@@ -111,28 +113,69 @@ const AppContent = () => {
     }
   }, [fadeAnim, initialRoute]);
 
+  useEffect(() => {
+    if (initialRoute !== null) {
+      return;
+    }
+
+    const animation = Animated.loop(
+      Animated.sequence([
+        Animated.timing(loaderAnim, {
+          toValue: 1,
+          duration: 950,
+          easing: Easing.inOut(Easing.ease),
+          useNativeDriver: true,
+        }),
+        Animated.timing(loaderAnim, {
+          toValue: 0,
+          duration: 950,
+          easing: Easing.inOut(Easing.ease),
+          useNativeDriver: true,
+        }),
+      ]),
+    );
+
+    animation.start();
+
+    return () => animation.stop();
+  }, [initialRoute, loaderAnim]);
+
   if (initialRoute === null) {
-    // Loader מותאם אישית עם לוגו
+    const iconScale = loaderAnim.interpolate({
+      inputRange: [0, 1],
+      outputRange: [0.96, 1.05],
+    });
+    const haloScale = loaderAnim.interpolate({
+      inputRange: [0, 1],
+      outputRange: [1, 1.32],
+    });
+    const haloOpacity = loaderAnim.interpolate({
+      inputRange: [0, 1],
+      outputRange: [0.26, 0],
+    });
+
     return (
       <View style={styles.loaderContainer}>
+        <Animated.View
+          style={[
+            styles.loaderHalo,
+            {
+              opacity: haloOpacity,
+              transform: [{scale: haloScale}],
+            },
+          ]}
+        />
         <Animated.Image
-          source={require('./src/assets/images/logo.png')} // החליפי בנתיב ללוגו שלך
+          source={require('./assets/app-icon/app-icon-1024.png')}
           style={[
             styles.logo,
             {
-              opacity: fadeAnim,
-              transform: [
-                {
-                  scale: fadeAnim.interpolate({
-                    inputRange: [0, 1],
-                    outputRange: [0.8, 1],
-                  }),
-                },
-              ],
+              transform: [{scale: iconScale}],
             },
           ]}
-          resizeMode="contain"
+          resizeMode="cover"
         />
+        <View style={styles.loaderLine} />
       </View>
     );
   }
@@ -183,11 +226,31 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#fff',
+    backgroundColor: '#FFFCF7',
   },
   logo: {
-    width: 150,
-    height: 150,
+    width: 116,
+    height: 116,
+    borderRadius: 28,
+    shadowColor: 'rgba(6, 26, 54, 0.22)',
+    shadowOffset: {width: 0, height: 10},
+    shadowOpacity: 1,
+    shadowRadius: 18,
+  },
+  loaderHalo: {
+    position: 'absolute',
+    width: 138,
+    height: 138,
+    borderRadius: 69,
+    borderWidth: 1,
+    borderColor: '#C59B45',
+  },
+  loaderLine: {
+    width: 42,
+    height: 3,
+    marginTop: 18,
+    borderRadius: 999,
+    backgroundColor: '#C59B45',
   },
 });
 

@@ -110,26 +110,73 @@ async function findAllUsers() {
   return User.find({});
 }
 
-async function findUserByPhone(phone) {
-  const normalizedPhone = normalizeLocalPhone(phone);
-  const users = await findAllUsers();
+function buildPhoneLookupValues(phone) {
+  const digits = normalizePhone(phone);
+  const values = new Set();
 
-  return users.find(
-    user => normalizeLocalPhone(user.phone) === normalizedPhone,
+  if (digits) {
+    values.add(digits);
+  }
+
+  if (digits.startsWith('972')) {
+    const localPhone = `0${digits.slice(3)}`;
+    values.add(localPhone);
+    values.add(`+${digits}`);
+  } else if (digits.startsWith('0')) {
+    const internationalPhone = `972${digits.slice(1)}`;
+    values.add(internationalPhone);
+    values.add(`+${internationalPhone}`);
+  } else if (digits.startsWith('5')) {
+    values.add(`0${digits}`);
+    values.add(`972${digits}`);
+    values.add(`+972${digits}`);
+  }
+
+  return Array.from(values).filter(Boolean);
+}
+
+async function findUserByPhoneFast(phone) {
+  const phoneValues = buildPhoneLookupValues(phone);
+
+  if (!phoneValues.length) {
+    return null;
+  }
+
+  const snapshot = await User.collection
+    .where('phone', 'in', phoneValues.slice(0, 30))
+    .get();
+
+  const users = snapshot.docs.map(doc => User._fromSnapshot(doc)).filter(Boolean);
+  const normalizedPhone = normalizeLocalPhone(phone);
+
+  return (
+    users.find(user => normalizeLocalPhone(user.phone) === normalizedPhone) ||
+    users[0] ||
+    null
   );
 }
 
+async function findUserByPhone(phone) {
+  return findUserByPhoneFast(phone);
+}
+
 async function findUserByPhoneOrEmail(phone, email) {
-  const normalizedPhone = normalizePhone(phone);
   const normalizedEmail = normalizeEmail(email);
-  const users = await findAllUsers();
+  const [userByPhone, emailSnapshot] = await Promise.all([
+    findUserByPhoneFast(phone),
+    normalizedEmail
+      ? User.collection.where('email', '==', normalizedEmail).get()
+      : Promise.resolve({docs: []}),
+  ]);
+  const userByEmail =
+    emailSnapshot.docs.map(doc => User._fromSnapshot(doc)).filter(Boolean)[0] ||
+    null;
 
-  return users.find(user => {
-    const samePhone = normalizePhone(user.phone) === normalizedPhone;
-    const sameEmail = normalizeEmail(user.email) === normalizedEmail;
+  if (userByPhone || userByEmail) {
+    return userByPhone || userByEmail;
+  }
 
-    return samePhone || sameEmail;
-  });
+  return null;
 }
 
 function requireFields(fields, body) {
