@@ -18,7 +18,11 @@ import {Option} from '../../utils/FormFields.type';
 import {calculateAge, formatHebrewDate} from '../../utils/generalFunction';
 import {useLanguage} from '../../utils/LanguageProvider';
 import {useMessage} from '../../utils/MessageProvider';
-import {isRequiredFormField} from '../../utils/formCompletion';
+import {
+  getVisibleFields,
+  getVisibleOptions,
+  isRequiredFormField,
+} from '../../utils/formCompletion';
 import i18n from '../../utils/i18n';
 import api from '../../services/api';
 
@@ -698,6 +702,10 @@ const EditFormScreen = () => {
       option => String(option.value || '') === formValues.collaborationMatchmaker,
     )?.label || '';
   const shouldShowPartnerSearch = isEngaged || isMarried;
+  const visibleDetailsFields = useMemo(
+    () => getVisibleFields(detailsFormArray, formValues, detailsFormArray),
+    [formValues],
+  );
 
   const filteredPartnerSuggestions = partnerSuggestions.filter(partnerName => {
     const searchValue = normalizeName(formValues.partnerName);
@@ -851,15 +859,21 @@ const EditFormScreen = () => {
         )}
       </WhiteCard>
 
-      {detailsFormArray.map((item, index) => {
+      {visibleDetailsFields.map((item, index) => {
         const itemIsEditable =
           item.isEditable === false ? false : isEditable && !isSaving;
+        const visibleOptions = getVisibleOptions(
+          item,
+          formValues,
+          detailsFormArray,
+        );
 
         const fieldProps =
           item.fieldType === 'input' || item.fieldType === 'autocomplete'
             ? {
                 ...item,
                 isRequired: isRequiredFormField(item),
+                options: visibleOptions,
                 value: formValues[item.id] ?? '',
                 isEditable: itemIsEditable,
                 onChangeText: (value: string) => updateField(item.id, value),
@@ -868,6 +882,7 @@ const EditFormScreen = () => {
               ? {
                   ...item,
                   isRequired: isRequiredFormField(item),
+                  options: visibleOptions,
                   value: formValues[item.id] ?? '',
                   isEditable: itemIsEditable,
                   onChangeDate:
@@ -879,6 +894,7 @@ const EditFormScreen = () => {
               : {
                   ...item,
                   isRequired: isRequiredFormField(item),
+                  options: visibleOptions,
                   value: formValues[item.id] ?? '',
                   isEditable: itemIsEditable,
                   handlePress: (option?: Option | boolean) => {

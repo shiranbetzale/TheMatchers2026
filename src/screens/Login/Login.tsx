@@ -327,9 +327,11 @@ const Login = () => {
       }
 
       if (hasBackendSession) {
-        const pushResult = await registerForPushNotifications();
+        registerForPushNotifications().then(pushResult => {
+          if (!__DEV__) {
+            return;
+          }
 
-        if (__DEV__) {
           const platformLabel = Platform.OS;
 
           const message = pushResult.ok
@@ -343,7 +345,7 @@ const Login = () => {
                   }`;
 
           console.log('Push Debug', message);
-        }
+        });
       } else if (__DEV__) {
         console.warn(
           'Skipping push registration because no backend session exists',

@@ -167,6 +167,10 @@ const sheet = StyleSheet.create({
   meetingStatusRow: {
     gap: GeneralStyle.spacing.xs,
   },
+  trackingPanel: {
+    gap: GeneralStyle.spacing.xs,
+    paddingVertical: GeneralStyle.spacing.xs,
+  },
   statusButton: {
     flex: 1,
     minHeight: 44,
@@ -185,6 +189,9 @@ const sheet = StyleSheet.create({
   statusButtonActive: {
     backgroundColor: Colors.darkGreen,
     borderColor: Colors.color1,
+  },
+  statusButtonReadonly: {
+    opacity: 0.75,
   },
   statusButtonText: {
     ...FontsStyle.text,

@@ -4,7 +4,6 @@ const isFilled = (value: unknown) =>
   value !== undefined && value !== null && String(value).trim().length > 0;
 
 const PHONE_FIELD_IDS = new Set(['phone', 'rabbiPhone']);
-const MULTI_PHONE_FIELD_IDS = new Set(['phonesForInquiries']);
 const EMAIL_FIELD_IDS = new Set(['mail', 'email']);
 
 const normalizePhoneDigits = (value: string) => value.replace(/\D/g, '');
@@ -14,12 +13,6 @@ const isValidIsraeliMobilePhone = (value: string) => {
 
   return /^05\d{8}$/.test(digits) || /^9725\d{8}$/.test(digits);
 };
-
-const splitPhoneList = (value: string) =>
-  value
-    .split(/[\n,;]+/)
-    .map(item => item.trim())
-    .filter(Boolean);
 
 const isSingleConditionMatched = (
   condition: NonNullable<FormField['condition']>[number],
@@ -218,14 +211,6 @@ export const validateWizardField = (
     return isValidIsraeliMobilePhone(cleanValue) ? '' : 'invalidPhone';
   }
 
-  if (MULTI_PHONE_FIELD_IDS.has(id)) {
-    const phones = splitPhoneList(cleanValue);
-
-    return phones.length > 0 && phones.every(isValidIsraeliMobilePhone)
-      ? ''
-      : 'invalidPhone';
-  }
-
   if (EMAIL_FIELD_IDS.has(id)) {
     const normalizedEmail = cleanValue.toLowerCase();
 
@@ -274,12 +259,6 @@ export const normalizeWizardFieldValue = (id: string, value: string) => {
 
   if (PHONE_FIELD_IDS.has(id)) {
     return normalizePhoneDigits(cleanValue);
-  }
-
-  if (MULTI_PHONE_FIELD_IDS.has(id)) {
-    const normalizedPhones = splitPhoneList(cleanValue).map(normalizePhoneDigits);
-
-    return normalizedPhones.length ? normalizedPhones.join(', ') : cleanValue;
   }
 
   if (EMAIL_FIELD_IDS.has(id)) {

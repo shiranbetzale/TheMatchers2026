@@ -1,5 +1,5 @@
 import React, {useEffect, useMemo, useState} from 'react';
-import {View} from 'react-native';
+import {TouchableOpacity, View} from 'react-native';
 import {
   RouteProp,
   useFocusEffect,
@@ -10,7 +10,6 @@ import {StackNavigationProp} from '@react-navigation/stack';
 
 import CustomButton from '../../components/CustomButton/CustomButton';
 import CustomFilter from '../../components/CustomFilter/CustomFilter';
-import CustomHeader from '../../components/CustomHeader/CustomHeader';
 import CustomOrderBy from '../../components/CustomOrderBy/CustomOrderBy';
 import WhiteCard from '../../components/WhiteCard/WhiteCard';
 import {CardsFilterValues} from '../../components/CustomFilter/CustomFilter.type';
@@ -242,12 +241,6 @@ const AllCardsScreen = () => {
     closeMenus();
   };
 
-  const headerBtns = [
-    {comp: <UserAddSvg />, onPress: addNewCandidate},
-    {comp: <FilterSvg />, onPress: toggleFilter},
-    {comp: <OrderBySvg />, onPress: toggleOrderBy},
-  ];
-
   const isMenuOpen = isShowFilter || isShowOrderBy;
   const {maleCount, femaleCount} = useMemo(
     () => ({
@@ -265,7 +258,64 @@ const AllCardsScreen = () => {
     <HomeScreen
       pinChildren={
         <View style={styles.pinChildrenContainer}>
-          <CustomHeader headerBtns={headerBtns} actionsPosition="left" />
+          <View
+            style={[
+              styles.actionsBar,
+              isRTL ? styles.actionsBarRtl : styles.actionsBarLtr,
+            ]}>
+            <TouchableOpacity
+              activeOpacity={0.84}
+              style={[
+                styles.actionButton,
+                styles.actionButtonPrimary,
+                isRTL ? styles.actionButtonRtl : styles.actionButtonLtr,
+              ]}
+              onPress={addNewCandidate}>
+              <View style={styles.actionIconPrimary}>
+                <UserAddSvg width={18} height={18} />
+              </View>
+              <CustomText
+                text="addCandidate"
+                customStyle={[styles.actionText, styles.actionTextPrimary]}
+              />
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              activeOpacity={0.84}
+              style={[
+                styles.actionButton,
+                isShowFilter && styles.actionButtonActive,
+                isRTL ? styles.actionButtonRtl : styles.actionButtonLtr,
+              ]}
+              onPress={toggleFilter}>
+              <FilterSvg width={20} height={20} />
+              <CustomText
+                text="filter"
+                customStyle={[
+                  styles.actionText,
+                  isShowFilter && styles.actionTextActive,
+                ]}
+              />
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              activeOpacity={0.84}
+              style={[
+                styles.actionButton,
+                isShowOrderBy && styles.actionButtonActive,
+                isRTL ? styles.actionButtonRtl : styles.actionButtonLtr,
+              ]}
+              onPress={toggleOrderBy}>
+              <OrderBySvg width={20} height={20} />
+              <CustomText
+                text="sort"
+                customStyle={[
+                  styles.actionText,
+                  isShowOrderBy && styles.actionTextActive,
+                ]}
+              />
+            </TouchableOpacity>
+          </View>
 
           {isShowFilter && (
             <CustomFilter
@@ -338,7 +388,10 @@ const AllCardsScreen = () => {
             </View>
 
           {!hasLoadedCards ? null : filteredAndSortedCards.length === 0 ? (
-            <CustomText text="noAssignedCards" customStyle={FontsStyle.text} />
+            <CustomText
+              text={onlyMine ? 'noAssignedCards' : 'noCardsYet'}
+              customStyle={FontsStyle.text}
+            />
           ) : (
             filteredAndSortedCards.map((matchItem, index) => (
               <CustomButton

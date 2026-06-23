@@ -593,8 +593,8 @@ export const mapProfileToCard = (profile: any): MatchCardType => {
     assignedMatchmaker: profile.assignedMatchmaker
       ? String(profile.assignedMatchmaker)
       : undefined,
-    offered: false,
-    met: false,
+    offered: Boolean(profile.offered),
+    met: Boolean(profile.met),
     isShowInfoButtons: false,
     isShowMeetingInfo: false,
     collaborationMatchmaker: profile.collaborationMatchmaker

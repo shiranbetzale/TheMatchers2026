@@ -13,15 +13,18 @@ function getMailConfigStatus() {
   const smtpUser = String(process.env.SMTP_USER || '').trim();
   const smtpPass = String(process.env.SMTP_PASS || '').trim();
   const contactTo = String(process.env.CONTACT_TO || '').trim();
+  const resendApiKey = String(process.env.RESEND_API_KEY || '').trim();
 
   return {
+    hasResendApiKey: Boolean(resendApiKey),
     hasSmtpService: Boolean(smtpService),
     hasSmtpHost: Boolean(smtpHost),
     hasSmtpUser: Boolean(smtpUser),
     hasSmtpPass: Boolean(smtpPass),
     hasContactTo: Boolean(contactTo),
     isConfigured: Boolean(
-      contactTo && (smtpService || smtpHost) && smtpUser && smtpPass,
+      contactTo &&
+        (resendApiKey || ((smtpService || smtpHost) && smtpUser && smtpPass)),
     ),
   };
 }
@@ -65,9 +68,9 @@ async function createTransportConfig(overrides = {}) {
       port: smtpPort,
       secure: smtpSecure,
       family: 4,
-      connectionTimeout: 10000,
-      greetingTimeout: 10000,
-      socketTimeout: 15000,
+      connectionTimeout: 5000,
+      greetingTimeout: 5000,
+      socketTimeout: 8000,
       tls: {
         servername: smtpHost,
       },
@@ -84,9 +87,9 @@ async function createTransportConfig(overrides = {}) {
       port: 465,
       secure: true,
       family: 4,
-      connectionTimeout: 20000,
-      greetingTimeout: 20000,
-      socketTimeout: 30000,
+      connectionTimeout: 5000,
+      greetingTimeout: 5000,
+      socketTimeout: 8000,
       tls: {
         servername: gmailHost,
       },
@@ -98,9 +101,9 @@ async function createTransportConfig(overrides = {}) {
     return {
       service: smtpService,
       family: 4,
-      connectionTimeout: 20000,
-      greetingTimeout: 20000,
-      socketTimeout: 30000,
+      connectionTimeout: 5000,
+      greetingTimeout: 5000,
+      socketTimeout: 8000,
       auth,
     };
   }
@@ -130,9 +133,9 @@ async function createTransportConfigs() {
     port: 587,
     secure: false,
     family: 4,
-    connectionTimeout: 10000,
-    greetingTimeout: 10000,
-    socketTimeout: 15000,
+    connectionTimeout: 5000,
+    greetingTimeout: 5000,
+    socketTimeout: 8000,
     tls: {
       servername: gmailHost,
     },
@@ -158,34 +161,14 @@ const escapeHtml = value =>
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#039;');
 
-async function sendContactEmail({name, email, phone, message, contactId}) {
-  const mailConfig = getMailConfigStatus();
+function buildContactMail({name, email, phone, message, contactId}) {
+  const from =
+    process.env.CONTACT_FROM ||
+    process.env.SMTP_USER ||
+    'noreply@thematchers.app';
 
-  if (!mailConfig.isConfigured) {
-    return {
-      sent: false,
-      skipped: true,
-      reason: 'mail_not_configured',
-      config: mailConfig,
-    };
-  }
-
-  const transportConfigs = await createTransportConfigs();
-
-  if (!transportConfigs.length) {
-    return {
-      sent: false,
-      skipped: true,
-      reason: 'transport_not_configured',
-      config: mailConfig,
-    };
-  }
-
-  const mailOptions = {
-    from:
-      process.env.CONTACT_FROM ||
-      process.env.SMTP_USER ||
-      'noreply@thematchers.app',
+  return {
+    from,
     to: process.env.CONTACT_TO,
     replyTo: email,
     subject: `TheMatchers Contact Form - ${name}`,
@@ -211,6 +194,75 @@ async function sendContactEmail({name, email, phone, message, contactId}) {
       </div>
     `,
   };
+}
+
+async function sendResendEmail(mailOptions) {
+  const resendApiKey = String(process.env.RESEND_API_KEY || '').trim();
+
+  if (!resendApiKey) {
+    return null;
+  }
+
+  const response = await fetch('https://api.resend.com/emails', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${resendApiKey}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      from: mailOptions.from,
+      to: [mailOptions.to],
+      reply_to: mailOptions.replyTo,
+      subject: mailOptions.subject,
+      text: mailOptions.text,
+      html: mailOptions.html,
+    }),
+  });
+
+  const data = await response.json().catch(() => ({}));
+
+  if (!response.ok) {
+    const error = new Error(
+      data?.message || data?.error || `Resend failed with ${response.status}`,
+    );
+    error.status = response.status;
+    error.code = data?.name || 'RESEND_SEND_FAILED';
+    throw error;
+  }
+
+  return {sent: true, skipped: false, provider: 'resend', id: data?.id || ''};
+}
+
+async function sendContactEmail({name, email, phone, message, contactId}) {
+  const mailConfig = getMailConfigStatus();
+
+  if (!mailConfig.isConfigured) {
+    return {
+      sent: false,
+      skipped: true,
+      reason: 'mail_not_configured',
+      config: mailConfig,
+    };
+  }
+
+  const mailOptions = buildContactMail({name, email, phone, message, contactId});
+
+  const resendResult = await sendResendEmail(mailOptions);
+
+  if (resendResult) {
+    return resendResult;
+  }
+
+  const transportConfigs = await createTransportConfigs();
+
+  if (!transportConfigs.length) {
+    return {
+      sent: false,
+      skipped: true,
+      reason: 'transport_not_configured',
+      config: mailConfig,
+    };
+  }
 
   let lastError;
 

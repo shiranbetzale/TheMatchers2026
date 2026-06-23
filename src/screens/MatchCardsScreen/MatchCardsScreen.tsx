@@ -505,12 +505,29 @@ const MatchCardsScreen = () => {
     setCurrentCard(card => ({...card, [field]: value}));
   };
 
+  const updateCurrentTrackingField = (
+    field: 'offered',
+    value: boolean,
+  ) => {
+    if (!canManageMeetings) {
+      return;
+    }
+
+    setCurrentCard(card => ({...card, [field]: value}));
+  };
+
   const hasInvalidMeetingTime =
     Boolean(currentCard.meetingTime) &&
     !isValidMeetingTime(currentCard.meetingTime);
   const hasPastMeetingDateTime =
     currentCard.meetingStatus === 'busy' &&
     isMeetingDateTimeInPast(currentCard.meetingDate, currentCard.meetingTime);
+  const hasMeetingTogether =
+    currentCard.meetingStatus === 'busy' &&
+    Boolean(
+      String(currentCard.partnerProfileId || '').trim() ||
+        String(currentCard.partnerName || '').trim(),
+    );
   const currentMeetingTimeText =
     normalizeMeetingTime(currentCard.meetingTime) ?? 'meetingTime';
   const [selectedHour, selectedMinute] = timePickerValue.split(':').map(Number);
@@ -600,6 +617,8 @@ const MatchCardsScreen = () => {
       }
 
       await api.put(`/api/profiles/${profileId}`, {
+        offered: Boolean(currentCard.offered),
+        met: hasMeetingTogether,
         meetingStatus: currentCard.meetingStatus || 'available',
         meetingDate:
           currentCard.meetingStatus === 'busy'
@@ -854,6 +873,60 @@ const MatchCardsScreen = () => {
                     ]}
                   />
                 </TouchableOpacity>
+              </View>
+
+              <View style={styles.trackingPanel}>
+                <CustomText
+                  text="matchTracking"
+                  customStyle={[
+                    styles.fieldLabel,
+                    isRTL ? styles.textRight : styles.textLeft,
+                  ]}
+                />
+                <View
+                  style={[
+                    styles.meetingStatusRow,
+                    isRTL ? styles.rowReverse : styles.row,
+                  ]}>
+                  <TouchableOpacity
+                    activeOpacity={0.85}
+                    style={[
+                      styles.statusButton,
+                      currentCard.offered && styles.statusButtonActive,
+                    ]}
+                    onPress={() =>
+                      updateCurrentTrackingField(
+                        'offered',
+                        !currentCard.offered,
+                      )
+                    }>
+                    <View style={styles.statusDot} />
+                    <CustomText
+                      text="cardOffered"
+                      customStyle={[
+                        styles.statusButtonText,
+                        currentCard.offered && styles.statusButtonTextActive,
+                      ]}
+                    />
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    activeOpacity={0.85}
+                    style={[
+                      styles.statusButton,
+                      styles.statusButtonReadonly,
+                      hasMeetingTogether && styles.statusButtonActive,
+                    ]}
+                    disabled>
+                    <View style={styles.statusDot} />
+                    <CustomText
+                      text="cardMet"
+                      customStyle={[
+                        styles.statusButtonText,
+                        hasMeetingTogether && styles.statusButtonTextActive,
+                      ]}
+                    />
+                  </TouchableOpacity>
+                </View>
               </View>
 
               {isMeetingBusy ? (

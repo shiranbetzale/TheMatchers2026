@@ -6,6 +6,53 @@ import GeneralStyle from '../../utils/GeneralStyle';
 export const styles = StyleSheet.create({
   pinChildrenContainer: {
     width: '100%',
+    backgroundColor: Colors.surface,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.borderSoft,
+  },
+  actionsBar: {
+    alignItems: 'center',
+    gap: GeneralStyle.spacing.xs,
+    paddingHorizontal: GeneralStyle.spacing.md,
+    paddingVertical: GeneralStyle.spacing.sm,
+    backgroundColor: Colors.ivory,
+  },
+  actionsBarRtl: {
+    flexDirection: 'row-reverse',
+  },
+  actionsBarLtr: {
+    flexDirection: 'row',
+  },
+  actionButton: {
+    minHeight: 42,
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: GeneralStyle.spacing.xs,
+    paddingHorizontal: GeneralStyle.spacing.sm,
+    borderWidth: 1,
+    borderColor: Colors.borderSoft,
+    borderRadius: GeneralStyle.radius.md,
+    backgroundColor: Colors.surfaceElevated,
+  },
+  actionButtonActive: {
+    borderColor: Colors.color1,
+    backgroundColor: Colors.goldWash,
+  },
+  actionButtonRtl: {
+    flexDirection: 'row-reverse',
+  },
+  actionButtonLtr: {
+    flexDirection: 'row',
+  },
+  actionText: {
+    ...FontsStyle.text,
+    color: Colors.darkGreen,
+    fontSize: 13,
+    textAlign: 'center',
+  },
+  actionTextActive: {
+    color: Colors.goldDark,
   },
 
   restoreIconButton: {

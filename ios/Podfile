@@ -50,6 +50,17 @@ target 'TheMatchers' do
     installer.pods_project.targets.each do |target|
       target.build_configurations.each do |build_config|
         build_config.build_settings['CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES'] = 'YES'
+        header_search_paths = build_config.build_settings['HEADER_SEARCH_PATHS'] ||= ['$(inherited)']
+        react_native_dependencies_headers = '"$(PODS_ROOT)/ReactNativeDependencies/framework/packages/react-native/ReactNativeDependencies.xcframework/Headers"'
+        header_search_paths << react_native_dependencies_headers unless header_search_paths.include?(react_native_dependencies_headers)
+        if target.name == 'RNNotifee'
+          [
+            '"$(PODS_ROOT)/Headers/Private/React-Core"',
+            '"$(PODS_ROOT)/Headers/Public/React-Core-prebuilt/React_Core"',
+          ].each do |path|
+            header_search_paths << path unless header_search_paths.include?(path)
+          end
+        end
         if target.name == 'RNFBMessaging'
           build_config.build_settings['CLANG_ENABLE_MODULES'] = 'NO'
         end

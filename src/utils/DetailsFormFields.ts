@@ -630,8 +630,7 @@ const detailsFormArray: FormField[] = [
   {
     id: 'phonesForInquiries',
     text: 'referencePhonesLabel',
-    keyboardTypeOption: 'phone-pad',
-    inputMode: 'tel',
+    keyboardTypeOption: 'default',
     fieldType: 'input',
     isMultiline: true,
     collapseTitle: 'additionalDetails',

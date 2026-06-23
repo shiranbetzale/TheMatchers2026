@@ -9,7 +9,6 @@ import CustomText from '../../components/CustomText/CustomText';
 import CustomButton from '../../components/CustomButton/CustomButton';
 import WhiteCard from '../../components/WhiteCard/WhiteCard';
 import HomeScreen from '../HomeScreen/HomeScreen';
-import CustomHeader from '../../components/CustomHeader/CustomHeader';
 import CustomFilter from '../../components/CustomFilter/CustomFilter';
 import CustomOrderBy from '../../components/CustomOrderBy/CustomOrderBy';
 
@@ -213,18 +212,53 @@ const ArchiveScreen = () => {
     closeMenus();
   };
 
-  const headerBtns = [
-    {comp: <FilterSvg />, onPress: toggleFilter},
-    {comp: <OrderBySvg />, onPress: toggleOrderBy},
-  ];
-
   const isMenuOpen = isShowFilter || isShowOrderBy;
 
   return (
     <HomeScreen
       pinChildren={
         <View style={styles.pinChildrenContainer}>
-          <CustomHeader headerBtns={headerBtns} actionsPosition="left" />
+          <View
+            style={[
+              styles.actionsBar,
+              isRTL ? styles.actionsBarRtl : styles.actionsBarLtr,
+            ]}>
+            <TouchableOpacity
+              activeOpacity={0.84}
+              style={[
+                styles.actionButton,
+                isShowFilter && styles.actionButtonActive,
+                isRTL ? styles.actionButtonRtl : styles.actionButtonLtr,
+              ]}
+              onPress={toggleFilter}>
+              <FilterSvg width={20} height={20} />
+              <CustomText
+                text="filter"
+                customStyle={[
+                  styles.actionText,
+                  isShowFilter && styles.actionTextActive,
+                ]}
+              />
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              activeOpacity={0.84}
+              style={[
+                styles.actionButton,
+                isShowOrderBy && styles.actionButtonActive,
+                isRTL ? styles.actionButtonRtl : styles.actionButtonLtr,
+              ]}
+              onPress={toggleOrderBy}>
+              <OrderBySvg width={20} height={20} />
+              <CustomText
+                text="sort"
+                customStyle={[
+                  styles.actionText,
+                  isShowOrderBy && styles.actionTextActive,
+                ]}
+              />
+            </TouchableOpacity>
+          </View>
 
           {isShowFilter && (
             <CustomFilter

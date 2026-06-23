@@ -1389,7 +1389,7 @@ const Wizard = () => {
     } catch (error) {
       const axiosError = error as AxiosError<{message?: string}>;
 
-      if (!isEditMode && axiosError.response?.status === 409) {
+      if (axiosError.response?.status === 409) {
         setSubmitErrorKey('candidateAlreadyExists');
         showMessage({type: 'error', message: t('candidateAlreadyExists')});
         return;

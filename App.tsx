@@ -19,13 +19,14 @@ import {
   subscribeSessionChanges,
 } from './src/services/session';
 import {
+  displayForegroundNotification,
   handleForegroundPushNotifications,
   registerForPushNotifications,
   setupBackgroundPushNotifications,
 } from './src/services/pushNotifications';
 import {LoadingProvider} from './src/utils/LoadingProvider';
 import GlobalLoader from './src/utils/GlobalLoader';
-import {MessageProvider, useMessage} from './src/utils/MessageProvider';
+import {MessageProvider} from './src/utils/MessageProvider';
 import firebase from '@react-native-firebase/app';
 
 console.log('Firebase Apps:', firebase.apps.length);
@@ -39,7 +40,6 @@ const AppContent = () => {
   const [sessionVersion, setSessionVersion] = useState(0);
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const {isRTL} = useLanguage();
-  const {showMessage} = useMessage();
 
   const resolveInitialRoute = useCallback(async (): Promise<Route> => {
     const seen = await AsyncStorage.getItem('hasSeenOnboarding');
@@ -77,21 +77,11 @@ const AppContent = () => {
 
   useEffect(() => {
     return handleForegroundPushNotifications(message => {
-      const title = message.notification?.title || '';
-      const body = message.notification?.body || '';
-
-      if (!title && !body) {
-        return;
-      }
-
-      showMessage({
-        type: message.data?.type === 'relationship_status' ? 'success' : 'info',
-        title: title || undefined,
-        message: body || title,
-        autoDismissMs: 5000,
+      displayForegroundNotification(message).catch(error => {
+        console.warn('Failed to display foreground notification', error);
       });
     });
-  }, [showMessage]);
+  }, []);
 
   useEffect(
     () =>

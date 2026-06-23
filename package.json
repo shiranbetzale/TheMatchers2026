@@ -17,6 +17,7 @@
     "postinstall": "node scripts/patch-react-native-date-picker.js"
   },
   "dependencies": {
+    "@notifee/react-native": "^9.1.8",
     "@ptomasroos/react-native-multi-slider": "2.2.2",
     "@react-native-async-storage/async-storage": "3.0.3",
     "@react-native-community/checkbox": "0.5.20",

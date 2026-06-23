@@ -11,6 +11,7 @@ import {
   requestPermission,
   setBackgroundMessageHandler,
 } from '@react-native-firebase/messaging';
+import notifee, {AndroidImportance} from '@notifee/react-native';
 import { PermissionsAndroid, Platform } from 'react-native';
 import api from './api';
 
@@ -26,6 +27,61 @@ export type PushRegistrationResult =
     };
 
 const getMessagingInstance = async () => getMessaging(getApp());
+const FOREGROUND_CHANNEL_ID = 'thematchers_foreground';
+
+const getNotificationText = (message: FirebaseMessagingTypes.RemoteMessage) => {
+  const title =
+    message.notification?.title ||
+    String(message.data?.title || '') ||
+    'TheMatchers';
+  const body =
+    message.notification?.body || String(message.data?.body || '');
+
+  return {title, body};
+};
+
+export const displayForegroundNotification = async (
+  message: FirebaseMessagingTypes.RemoteMessage,
+) => {
+  const {title, body} = getNotificationText(message);
+
+  if (!title && !body) {
+    return;
+  }
+
+  const channelId =
+    Platform.OS === 'android'
+      ? await notifee.createChannel({
+          id: FOREGROUND_CHANNEL_ID,
+          name: 'TheMatchers',
+          importance: AndroidImportance.HIGH,
+          sound: 'default',
+        })
+      : undefined;
+
+  await notifee.displayNotification({
+    title,
+    body,
+    data: Object.fromEntries(
+      Object.entries(message.data || {}).map(([key, value]) => [
+        key,
+        String(value),
+      ]),
+    ),
+    android: channelId
+      ? {
+          channelId,
+          pressAction: {
+            id: 'default',
+          },
+          sound: 'default',
+        }
+      : undefined,
+    ios: {
+      sound: 'default',
+    },
+  });
+};
 
 export const setupBackgroundPushNotifications = () => {
   const messaging = getMessaging(getApp());

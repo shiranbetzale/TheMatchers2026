@@ -153,6 +153,7 @@ function createFirestoreModel(collectionName, options = {}) {
 
     static async _assertUnique(data, currentId) {
       const fields = options.uniqueFields || [];
+      const cleanCurrentId = currentId ? String(currentId) : '';
 
       for (const field of fields) {
         if (!data[field]) {
@@ -161,11 +162,13 @@ function createFirestoreModel(collectionName, options = {}) {
 
         const snapshot = await this.collection
           .where(field, '==', data[field])
-          .limit(1)
           .get();
 
-        const existing = snapshot.docs[0];
-        if (existing && existing.id !== currentId) {
+        const duplicate = snapshot.docs.find(
+          existing => String(existing.id) !== cleanCurrentId,
+        );
+
+        if (duplicate) {
           throw createDuplicateError(field);
         }
       }

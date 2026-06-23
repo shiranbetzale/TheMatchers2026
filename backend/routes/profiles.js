@@ -163,6 +163,7 @@ async function syncPartnerMeeting(profile, previousPartner = null) {
   const meetingStatus = String(profile.meetingStatus || 'available');
   const isBusy = meetingStatus === 'busy';
 
+  partner.met = isBusy;
   partner.meetingStatus = meetingStatus;
   partner.meetingDate = isBusy ? profile.meetingDate || '' : '';
   partner.meetingTime = isBusy ? profile.meetingTime || '' : '';
@@ -355,6 +356,13 @@ router.put(
       Object.assign(profile, req.body);
 
       if (hasMeetingUpdate) {
+        const meetingStatus = String(profile.meetingStatus || 'available');
+        const hasMeetingPartner = Boolean(
+          String(profile.partnerProfileId || '').trim() ||
+            String(profile.partnerName || '').trim(),
+        );
+
+        profile.met = meetingStatus === 'busy' && hasMeetingPartner;
         profile.meetingReminderDayFor = '';
         profile.meetingReminderDaySentAt = undefined;
         profile.meetingReminderHourFor = '';

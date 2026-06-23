@@ -54,7 +54,9 @@ app.use((req, res) => {
 
 app.use((err, _req, res, _next) => {
   console.error(err);
-  res.status(err.status || 500).json({
+  const status = err.status || (err.code === 11000 ? 409 : 500);
+
+  res.status(status).json({
     error: 'server_error',
     message: err.message || 'Unexpected error',
   });
