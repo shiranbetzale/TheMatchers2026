@@ -128,29 +128,46 @@ async function createTransportConfigs() {
 
   const gmailHost = 'smtp.gmail.com';
   const resolvedHost = await resolveIpv4Host(gmailHost);
-  const fallbackConfig = {
-    host: resolvedHost,
-    port: 587,
-    secure: false,
-    family: 4,
-    connectionTimeout: 5000,
-    greetingTimeout: 5000,
-    socketTimeout: 8000,
-    tls: {
-      servername: gmailHost,
-    },
-    auth: {
-      user: String(process.env.SMTP_USER || '').trim(),
-      pass: String(process.env.SMTP_PASS || '').trim(),
-    },
+  const gmailAuth = {
+    user: String(process.env.SMTP_USER || '').trim(),
+    pass: String(process.env.SMTP_PASS || '').trim(),
   };
+  const gmailFallbackConfigs = [
+    {
+      host: resolvedHost,
+      port: 587,
+      secure: false,
+      family: 4,
+      connectionTimeout: 5000,
+      greetingTimeout: 5000,
+      socketTimeout: 8000,
+      tls: {
+        servername: gmailHost,
+      },
+      auth: gmailAuth,
+    },
+    {
+      host: resolvedHost,
+      port: 465,
+      secure: true,
+      family: 4,
+      connectionTimeout: 5000,
+      greetingTimeout: 5000,
+      socketTimeout: 8000,
+      tls: {
+        servername: gmailHost,
+      },
+      auth: gmailAuth,
+    },
+  ];
+  const configsByKey = new Map();
 
-  const primaryKey = `${primaryConfig.host || primaryConfig.service}:${primaryConfig.port}:${primaryConfig.secure}`;
-  const fallbackKey = `${fallbackConfig.host}:${fallbackConfig.port}:${fallbackConfig.secure}`;
+  [primaryConfig, ...gmailFallbackConfigs].forEach(config => {
+    const key = `${config.host || config.service}:${config.port}:${config.secure}`;
+    configsByKey.set(key, config);
+  });
 
-  return primaryKey === fallbackKey
-    ? [primaryConfig]
-    : [primaryConfig, fallbackConfig];
+  return Array.from(configsByKey.values());
 }
 
 const escapeHtml = value =>

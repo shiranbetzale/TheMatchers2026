@@ -69,9 +69,10 @@ export const styles = StyleSheet.create({
     zIndex: 20,
   },
   relationshipFloatingImage: {
-    width: 40,
-    height: 40,
-    resizeMode: 'contain',
+    width: 42,
+    height: 42,
+    borderRadius: 12,
+    resizeMode: 'cover',
   },
   relationshipFloatingButtonActive: {
     borderColor: Colors.premiumLine,

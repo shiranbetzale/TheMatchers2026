@@ -41,39 +41,38 @@ const GlobalLoader = () => {
 
   const haloScale = pulseAnim.interpolate({
     inputRange: [0, 1],
-    outputRange: [1, 1.35],
+    outputRange: [0.98, 1.12],
   });
 
   const haloOpacity = pulseAnim.interpolate({
     inputRange: [0, 1],
-    outputRange: [0.2, 0],
+    outputRange: [0.32, 0.08],
   });
 
   return (
     <Modal transparent visible={isLoading} animationType="fade">
       <View style={styles.overlay}>
-        <View style={styles.loaderCard}>
-          <Animated.View
-            style={[
-              styles.halo,
-              {
-                opacity: haloOpacity,
-                transform: [{scale: haloScale}],
-              },
-            ]}
-          />
-          <Animated.Image
-            source={require('../../assets/app-icon/app-icon-1024.png')}
-            style={[
-              styles.icon,
-              {
-                transform: [{scale: iconScale}],
-              },
-            ]}
-            resizeMode="cover"
-          />
-          <View style={styles.goldLine} />
-        </View>
+        <Animated.Image
+          source={require('../../assets/app-icon/app-icon-1024.png')}
+          style={[
+            styles.iconGlow,
+            {
+              opacity: haloOpacity,
+              transform: [{scale: haloScale}],
+            },
+          ]}
+          resizeMode="cover"
+        />
+        <Animated.Image
+          source={require('../../assets/app-icon/app-icon-1024.png')}
+          style={[
+            styles.icon,
+            {
+              transform: [{scale: iconScale}],
+            },
+          ]}
+          resizeMode="cover"
+        />
       </View>
     </Modal>
   );
@@ -84,42 +83,23 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(6, 26, 54, 0.42)',
-  },
-  loaderCard: {
-    width: 132,
-    height: 132,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: 28,
-    borderWidth: 1,
-    borderColor: 'rgba(197, 155, 69, 0.42)',
-    backgroundColor: '#FFFCF7',
-    shadowColor: 'rgba(6, 26, 54, 0.24)',
-    shadowOffset: {width: 0, height: 12},
-    shadowOpacity: 1,
-    shadowRadius: 22,
-    elevation: 12,
-  },
-  halo: {
-    position: 'absolute',
-    width: 96,
-    height: 96,
-    borderRadius: 48,
-    borderWidth: 1,
-    borderColor: '#C59B45',
+    backgroundColor: 'rgba(6, 26, 54, 0.28)',
   },
   icon: {
-    width: 82,
-    height: 82,
-    borderRadius: 22,
+    width: 86,
+    height: 86,
+    borderRadius: 24,
+    shadowColor: 'rgba(6, 26, 54, 0.28)',
+    shadowOffset: {width: 0, height: 10},
+    shadowOpacity: 1,
+    shadowRadius: 18,
+    elevation: 10,
   },
-  goldLine: {
-    width: 34,
-    height: 3,
-    marginTop: 12,
-    borderRadius: 999,
-    backgroundColor: '#C59B45',
+  iconGlow: {
+    position: 'absolute',
+    width: 86,
+    height: 86,
+    borderRadius: 24,
   },
 });
 

@@ -10,6 +10,10 @@ function toMillis(value) {
 }
 
 function normalizeValue(value) {
+  if (value === undefined) {
+    return undefined;
+  }
+
   if (value instanceof Date) {
     return value;
   }
@@ -19,15 +23,14 @@ function normalizeValue(value) {
   }
 
   if (Array.isArray(value)) {
-    return value.map(normalizeValue);
+    return value.map(normalizeValue).filter(item => item !== undefined);
   }
 
   if (value && typeof value === 'object') {
     return Object.fromEntries(
-      Object.entries(value).map(([key, nextValue]) => [
-        key,
-        normalizeValue(nextValue),
-      ]),
+      Object.entries(value)
+        .map(([key, nextValue]) => [key, normalizeValue(nextValue)])
+        .filter(([, nextValue]) => nextValue !== undefined),
     );
   }
 

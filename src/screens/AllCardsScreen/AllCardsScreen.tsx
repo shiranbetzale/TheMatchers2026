@@ -267,16 +267,13 @@ const AllCardsScreen = () => {
               activeOpacity={0.84}
               style={[
                 styles.actionButton,
-                styles.actionButtonPrimary,
                 isRTL ? styles.actionButtonRtl : styles.actionButtonLtr,
               ]}
               onPress={addNewCandidate}>
-              <View style={styles.actionIconPrimary}>
-                <UserAddSvg width={18} height={18} />
-              </View>
+              <UserAddSvg width={20} height={20} />
               <CustomText
                 text="addCandidate"
-                customStyle={[styles.actionText, styles.actionTextPrimary]}
+                customStyle={styles.actionText}
               />
             </TouchableOpacity>
 

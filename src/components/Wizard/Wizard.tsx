@@ -37,7 +37,7 @@ import {useLanguage} from '../../utils/LanguageProvider';
 import {useMessage} from '../../utils/MessageProvider';
 import CustomSelect from '../CustomSelect/CustomSelect';
 import CustomText from '../CustomText/CustomText';
-import RingImage from '../../assets/images/ring.png';
+import AppIconImage from '../../../assets/app-icon/app-icon-1024.png';
 import api from '../../services/api';
 import {clearSession, getSessionRole} from '../../services/session';
 import {uploadProfileImages} from '../../services/uploads';
@@ -1329,7 +1329,7 @@ const Wizard = () => {
           relationshipStatus && styles.relationshipFloatingButtonActive,
         ]}
         onPress={openRelationshipModal}>
-        <Image source={RingImage} style={styles.relationshipFloatingImage} />
+        <Image source={AppIconImage} style={styles.relationshipFloatingImage} />
         {relationshipStatus ? <View style={styles.relationshipFloatingDot} /> : null}
       </TouchableOpacity>
     );
@@ -1443,6 +1443,7 @@ const Wizard = () => {
       navigation.navigate('AllCardsScreen');
     } catch (error) {
       const axiosError = error as AxiosError<{message?: string}>;
+      const serverMessage = axiosError.response?.data?.message;
 
       if (axiosError.response?.status === 409) {
         setSubmitErrorKey('candidateAlreadyExists');
@@ -1458,7 +1459,10 @@ const Wizard = () => {
 
       const messageKey = isEditMode ? 'saveChangesError' : 'errorServer';
       setSubmitErrorKey(messageKey);
-      showMessage({type: 'error', message: t(messageKey)});
+      showMessage({
+        type: 'error',
+        message: __DEV__ && serverMessage ? serverMessage : t(messageKey),
+      });
     } finally {
       setIsSubmitting(false);
     }

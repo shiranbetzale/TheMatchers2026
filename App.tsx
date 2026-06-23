@@ -147,23 +147,25 @@ const AppContent = () => {
     });
     const haloScale = loaderAnim.interpolate({
       inputRange: [0, 1],
-      outputRange: [1, 1.32],
+      outputRange: [0.98, 1.12],
     });
     const haloOpacity = loaderAnim.interpolate({
       inputRange: [0, 1],
-      outputRange: [0.26, 0],
+      outputRange: [0.34, 0.08],
     });
 
     return (
       <View style={styles.loaderContainer}>
-        <Animated.View
+        <Animated.Image
+          source={require('./assets/app-icon/app-icon-1024.png')}
           style={[
-            styles.loaderHalo,
+            styles.logoGlow,
             {
               opacity: haloOpacity,
               transform: [{scale: haloScale}],
             },
           ]}
+          resizeMode="cover"
         />
         <Animated.Image
           source={require('./assets/app-icon/app-icon-1024.png')}
@@ -175,7 +177,6 @@ const AppContent = () => {
           ]}
           resizeMode="cover"
         />
-        <View style={styles.loaderLine} />
       </View>
     );
   }
@@ -229,28 +230,19 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFCF7',
   },
   logo: {
-    width: 116,
-    height: 116,
-    borderRadius: 28,
+    width: 112,
+    height: 112,
+    borderRadius: 30,
     shadowColor: 'rgba(6, 26, 54, 0.22)',
     shadowOffset: {width: 0, height: 10},
     shadowOpacity: 1,
     shadowRadius: 18,
   },
-  loaderHalo: {
+  logoGlow: {
     position: 'absolute',
-    width: 138,
-    height: 138,
-    borderRadius: 69,
-    borderWidth: 1,
-    borderColor: '#C59B45',
-  },
-  loaderLine: {
-    width: 42,
-    height: 3,
-    marginTop: 18,
-    borderRadius: 999,
-    backgroundColor: '#C59B45',
+    width: 112,
+    height: 112,
+    borderRadius: 30,
   },
 });
 

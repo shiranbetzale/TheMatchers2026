@@ -25,6 +25,25 @@ function getProfileName(profile) {
   return profile?.fullName || profile?.name || '';
 }
 
+function validateProfilePayload(payload) {
+  const fullName = String(payload.fullName || payload.name || '').trim();
+  const phone = String(payload.phone || '').trim();
+
+  if (!fullName) {
+    const error = new Error('Missing required field: fullName');
+    error.status = 400;
+    error.field = 'fullName';
+    throw error;
+  }
+
+  if (!phone) {
+    const error = new Error('Missing required field: phone');
+    error.status = 400;
+    error.field = 'phone';
+    throw error;
+  }
+}
+
 async function enrichProfilesWithMatcher(profiles) {
   const list = Array.isArray(profiles) ? profiles : [profiles];
 
@@ -300,6 +319,8 @@ router.post(
         matcherPhone: req.user.phone || req.body.matcherPhone || '',
         matcherMail: req.user.email || req.body.matcherMail || '',
       };
+
+      validateProfilePayload(payload);
 
       const profile = await Profile.create(payload);
       const [enrichedProfile] = await enrichProfilesWithMatcher(profile);

@@ -84,7 +84,7 @@ export const styles = StyleSheet.create({
     flexDirection: 'row',
   },
   actionButton: {
-    minHeight: 42,
+    minHeight: 44,
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
@@ -94,18 +94,6 @@ export const styles = StyleSheet.create({
     borderColor: Colors.borderSoft,
     borderRadius: GeneralStyle.radius.md,
     backgroundColor: Colors.surfaceElevated,
-  },
-  actionButtonPrimary: {
-    minHeight: 46,
-    flex: 1.25,
-    borderColor: Colors.premiumLine,
-    borderRadius: GeneralStyle.radius.lg,
-    backgroundColor: Colors.navyDeep,
-    shadowColor: 'rgba(8, 24, 52, 0.18)',
-    shadowOffset: {width: 0, height: 6},
-    shadowOpacity: 1,
-    shadowRadius: 12,
-    elevation: 5,
   },
   actionButtonActive: {
     borderColor: Colors.color1,
@@ -122,18 +110,6 @@ export const styles = StyleSheet.create({
     color: Colors.darkGreen,
     fontSize: 13,
     textAlign: 'center',
-  },
-  actionTextPrimary: {
-    color: Colors.ivory,
-    fontSize: 14,
-  },
-  actionIconPrimary: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: Colors.goldWash,
   },
   actionTextActive: {
     color: Colors.goldDark,
