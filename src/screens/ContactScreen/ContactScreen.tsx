@@ -17,11 +17,6 @@ import {styles} from './ContactScreen.style';
 type ContactResponse = {
   ok?: boolean;
   saved?: boolean;
-  email?: {
-    sent?: boolean;
-    skipped?: boolean;
-    reason?: string;
-  };
 };
 
 const ContactScreen = () => {
@@ -82,17 +77,12 @@ const ContactScreen = () => {
     try {
       setIsSubmitting(true);
 
-      const response = await api.post<ContactResponse>('/api/contact', {
+      await api.post<ContactResponse>('/api/contact', {
         name: trimmedName,
         email: trimmedEmail.toLowerCase(),
         phone: trimmedPhone,
         message: trimmedMessage,
       });
-
-      if (response.data?.email && !response.data.email.sent) {
-        showMessage({type: 'error', message: t('contactEmailNotSent')});
-        return;
-      }
 
       resetForm();
 

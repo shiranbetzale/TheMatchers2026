@@ -29,5 +29,6 @@ export type RootStackParamList = {
   AllCardsScreen: {onlyMine?: boolean} | undefined;
   ArchiveScreen: undefined;
   ContactScreen: undefined;
+  ContactRequestsScreen: undefined;
   OnBoarding: undefined;
 };

@@ -27,6 +27,18 @@ const getFileExtension = file => {
     .toLowerCase();
 };
 
+const isStorageCredentialError = error => {
+  const message = String(error?.message || '').toLowerCase();
+
+  return (
+    error?.code === 'invalid_firebase_service_account' ||
+    message.includes('googleapis.com/oauth2') ||
+    message.includes('application default credentials') ||
+    message.includes('could not load the default credentials') ||
+    message.includes('premature close')
+  );
+};
+
 router.post(
   '/profile-images',
   requireAuth(['admin', 'matchmaker']),
@@ -76,12 +88,23 @@ router.post(
 
       return res.status(201).json({urls});
     } catch (error) {
+      const isCredentialError = isStorageCredentialError(error);
+
       console.error('[uploads] profile image upload failed', {
         message: error?.message,
         code: error?.code,
         status: error?.response?.status,
-        bucket: getStorageBucket().name,
+        storageConfigured: !isCredentialError,
       });
+
+      if (isCredentialError) {
+        return res.status(503).json({
+          error: 'storage_not_configured',
+          message:
+            'Image upload storage is not configured. Check FIREBASE_SERVICE_ACCOUNT_JSON and FIREBASE_STORAGE_BUCKET.',
+        });
+      }
+
       next(error);
     }
   },

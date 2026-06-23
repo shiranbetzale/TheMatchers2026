@@ -21,8 +21,14 @@ type GovCitiesResponse = {
 let cachedCities: Option[] = [];
 
 const normalizeCityName = (value: string) => value.replace(/\s+/g, ' ').trim();
+const parentheticalSegmentRegex = /\s*[\(\)（）][^()（）]*[\(\)（）]\s*/gu;
+const trailingParentheticalFragmentRegex = /\s*[\(\)（）][^()（）]*$/gu;
 const stripCityQualifier = (value: string) =>
-  normalizeCityName(value).replace(/\s*\([^)]*\)\s*$/u, '').trim();
+  normalizeCityName(
+    normalizeCityName(value)
+      .replace(parentheticalSegmentRegex, ' ')
+      .replace(trailingParentheticalFragmentRegex, ' '),
+  );
 
 const buildCityUrl = (limit: number, offset: number) =>
   `${GOV_DATA_API_URL}?resource_id=${ISRAEL_CITIES_RESOURCE_ID}&limit=${limit}&offset=${offset}`;

@@ -14,6 +14,7 @@ import CalendarIcon from '../../assets/images/datePicker.svg';
 import CardsIcon from '../../assets/images/cards.svg';
 import ContactIcon from '../../assets/images/phone.svg';
 import EditIcon from '../../assets/images/edit.svg';
+import EmailIcon from '../../assets/images/email.svg';
 import LogoutIcon from '../../assets/images/logout.svg';
 import MenuIcon from '../../assets/images/menu.svg';
 import UserAddIcon from '../../assets/images/userAdd.svg';
@@ -49,6 +50,8 @@ const getDrawerIcon = (routeName: string) => {
       return <CalendarIcon {...iconProps} />;
     case 'ContactScreen':
       return <ContactIcon {...iconProps} />;
+    case 'ContactRequestsScreen':
+      return <EmailIcon {...iconProps} />;
     case 'EditFormScreen':
       return <EditIcon {...iconProps} />;
     case 'UsersList':

@@ -1373,7 +1373,23 @@ const Wizard = () => {
       }
 
       if (Array.isArray(payload.images) && payload.images.length) {
-        payload.images = await uploadProfileImages(payload.images);
+        try {
+          payload.images = await uploadProfileImages(payload.images);
+        } catch (uploadError) {
+          const uploadAxiosError = uploadError as AxiosError<{
+            error?: string;
+            message?: string;
+          }>;
+          const messageKey =
+            uploadAxiosError.response?.data?.error === 'storage_not_configured'
+              ? 'errorImageStorageNotConfigured'
+              : 'errorImageUpload';
+
+          setSubmitErrorKey(messageKey);
+          showMessage({type: 'error', message: t(messageKey)});
+          setWizardStep(3);
+          return;
+        }
       }
 
       if (isEditMode && currentRelationshipStatus) {

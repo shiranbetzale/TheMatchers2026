@@ -5,6 +5,25 @@ let firebaseApp;
 const DEFAULT_STORAGE_BUCKET =
   process.env.FIREBASE_STORAGE_BUCKET || 'thematchers-39ff5.appspot.com';
 
+function getServiceAccountCredential() {
+  const serviceAccountJson = process.env.FIREBASE_SERVICE_ACCOUNT_JSON;
+
+  if (!serviceAccountJson) {
+    return null;
+  }
+
+  try {
+    return admin.credential.cert(JSON.parse(serviceAccountJson));
+  } catch (error) {
+    const parseError = new Error(
+      'Invalid FIREBASE_SERVICE_ACCOUNT_JSON. Check that the value is the full Firebase service account JSON.',
+    );
+    parseError.cause = error;
+    parseError.code = 'invalid_firebase_service_account';
+    throw parseError;
+  }
+}
+
 function getFirebaseApp() {
   if (firebaseApp) return firebaseApp;
 
@@ -13,11 +32,11 @@ function getFirebaseApp() {
     return firebaseApp;
   }
 
-  if (process.env.FIREBASE_SERVICE_ACCOUNT_JSON) {
+  const credential = getServiceAccountCredential();
+
+  if (credential) {
     firebaseApp = admin.initializeApp({
-      credential: admin.credential.cert(
-        JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_JSON),
-      ),
+      credential,
       storageBucket: DEFAULT_STORAGE_BUCKET,
     });
     return firebaseApp;

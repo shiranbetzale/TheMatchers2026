@@ -2,6 +2,7 @@ import Wizard from '../components/Wizard/Wizard';
 import AllCardsScreen from '../screens/AllCardsScreen/AllCardsScreen';
 import ArchiveScreen from '../screens/ArchiveScreen/ArchiveScreen';
 import ContactScreen from '../screens/ContactScreen/ContactScreen';
+import ContactRequestsScreen from '../screens/ContactRequestsScreen/ContactRequestsScreen';
 import EditFormScreen from '../screens/EditFormScreen/EditFormScreen';
 import HomeScreen from '../screens/HomeScreen/HomeScreen';
 import Login from '../screens/Login/Login';
@@ -23,6 +24,12 @@ export const drawerData = [
     name: 'UsersList',
     component: UsersListScreen,
     title: 'usersList',
+    allowedRoles: ['admin'],
+  },
+  {
+    name: 'ContactRequestsScreen',
+    component: ContactRequestsScreen,
+    title: 'contactRequests',
     allowedRoles: ['admin'],
   },
   {
