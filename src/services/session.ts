@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {API_TOKEN_KEY} from './api';
+import {API_TOKEN_KEY, clearApiAuthToken} from './api';
 
 const SESSION_EXPIRES_AT_KEY = 'sessionExpiresAt';
 const SESSION_ROLE_KEY = 'sessionRole';
@@ -67,7 +67,11 @@ export const saveSession = async (
 };
 
 export const clearSession = async () => {
-  await Promise.all(SESSION_KEYS.map(key => AsyncStorage.removeItem(key)));
+  await Promise.all(
+    SESSION_KEYS.map(key =>
+      key === API_TOKEN_KEY ? clearApiAuthToken() : AsyncStorage.removeItem(key),
+    ),
+  );
   notifySessionChanged();
 };
 

@@ -1,8 +1,7 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import auth, {FirebaseAuthTypes} from '@react-native-firebase/auth';
 import firebase from '@react-native-firebase/app';
 import {Platform} from 'react-native';
-import api, {API_TOKEN_KEY} from './api';
+import api, {setApiAuthToken} from './api';
 import {saveSession} from './session';
 
 type LoginResponse = {
@@ -29,7 +28,7 @@ export async function loginWithPassword(phone: string, password: string) {
     },
   );
 
-  await AsyncStorage.setItem(API_TOKEN_KEY, response.data.token);
+  await setApiAuthToken(response.data.token);
   await saveSession(response.data.user.role, {
     id: response.data.user.id || response.data.user._id,
     phone: response.data.user.phone,
@@ -141,7 +140,7 @@ export const verifyCandidateCode = async ({
     },
   );
 
-  await AsyncStorage.setItem(API_TOKEN_KEY, response.data.token);
+  await setApiAuthToken(response.data.token);
 
   return response.data;
 };
@@ -167,7 +166,7 @@ export const verifyCandidateFallbackCode = async ({
     },
   );
 
-  await AsyncStorage.setItem(API_TOKEN_KEY, response.data.token);
+  await setApiAuthToken(response.data.token);
 
   return response.data;
 };

@@ -86,19 +86,15 @@ const MainScreen = () => {
     setHasLoadedProfiles(false);
 
     try {
-      const [activeResponse, archivedResponse] = await Promise.all([
-        api.get('/api/profiles'),
-        api.get('/api/profiles', {params: {status: 'archived'}}),
-      ]);
+      const response = await api.get('/api/profiles', {
+        params: {status: 'all'},
+      });
 
-      const activeProfiles = Array.isArray(activeResponse.data?.profiles)
-        ? activeResponse.data.profiles
-        : [];
-      const archivedProfiles = Array.isArray(archivedResponse.data?.profiles)
-        ? archivedResponse.data.profiles
+      const profiles = Array.isArray(response.data?.profiles)
+        ? response.data.profiles
         : [];
 
-      setCards([...activeProfiles, ...archivedProfiles].map(mapProfileToCard));
+      setCards(profiles.map(mapProfileToCard));
     } catch (error) {
       console.warn('Failed to fetch main profiles', error);
       setCards([]);

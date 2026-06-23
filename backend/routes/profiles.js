@@ -287,6 +287,10 @@ router.get(
           return isArchived;
         }
 
+        if (status === 'all') {
+          return true;
+        }
+
         return !isArchived;
       });
 
