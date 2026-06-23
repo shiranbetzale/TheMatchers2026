@@ -29,4 +29,11 @@ export const carousleData: carouslelSlide[] = [
     subtitle: 'onboardCalendarSubtitle',
     previewType: 'calendar',
   },
+  {
+    id: 5,
+    eyebrow: 'onboardRingEyebrow',
+    title: 'onboardRingTitle',
+    subtitle: 'onboardRingSubtitle',
+    previewType: 'ring',
+  },
 ];

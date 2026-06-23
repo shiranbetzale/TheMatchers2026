@@ -21,7 +21,11 @@ type NavigationProp = StackNavigationProp<
 
 const { width } = Dimensions.get('window');
 
-const Preview = ({type}: {type: 'profile' | 'preferences' | 'matches' | 'calendar'}) => {
+const Preview = ({
+  type,
+}: {
+  type: 'profile' | 'preferences' | 'matches' | 'calendar' | 'ring';
+}) => {
   if (type === 'profile') {
     return (
       <View style={styles.previewCard}>
@@ -77,6 +81,34 @@ const Preview = ({type}: {type: 'profile' | 'preferences' | 'matches' | 'calenda
             <CustomText text={item} customStyle={styles.reasonText} />
           </View>
         ))}
+      </View>
+    );
+  }
+
+  if (type === 'ring') {
+    return (
+      <View style={styles.previewCard}>
+        <View style={styles.ringPreviewStage}>
+          <View style={styles.ringCard}>
+            <CustomText text="onboardRingCardName" customStyle={styles.ringCardName} />
+            <CustomText text="onboardRingCardMeta" customStyle={styles.ringCardMeta} />
+          </View>
+
+          <View style={styles.floatingRingButton}>
+            <View style={styles.floatingRingInner} />
+          </View>
+        </View>
+
+        <View style={styles.ringActions}>
+          <View style={styles.ringActionPill}>
+            <CustomText text="engagedStatusFemale" customStyle={styles.ringActionText} />
+          </View>
+          <View style={styles.ringActionPill}>
+            <CustomText text="marriedStatusFemale" customStyle={styles.ringActionText} />
+          </View>
+        </View>
+
+        <CustomText text="onboardRingPreviewNote" customStyle={styles.ringPreviewNote} />
       </View>
     );
   }

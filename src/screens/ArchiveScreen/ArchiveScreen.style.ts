@@ -68,6 +68,9 @@ export const styles = StyleSheet.create({
     backgroundColor: Colors.champagne,
     ...Colors.Shadow,
   },
+  restoreIconButtonDisabled: {
+    opacity: 0.55,
+  },
   restoreIconButtonRtl: {
     left: GeneralStyle.spacing.md,
   },

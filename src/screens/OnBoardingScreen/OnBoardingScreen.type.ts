@@ -5,5 +5,5 @@ export type carouslelSlide = {
   title: string;
   subtitle: string;
   eyebrow: string;
-  previewType: 'profile' | 'preferences' | 'matches' | 'calendar';
+  previewType: 'profile' | 'preferences' | 'matches' | 'calendar' | 'ring';
 };

@@ -309,15 +309,24 @@ router.get(
 
 router.post(
   '/',
-  requireAuth(['admin', 'matchmaker']),
+  requireAuth(['admin', 'matchmaker', 'user']),
   async (req, res, next) => {
     try {
+      const isCandidateUser = req.user.role === 'user';
       const payload = {
         ...req.body,
-        assignedMatchmaker: req.user.id,
-        matcherName: req.user.fullName || req.body.matcherName || '',
-        matcherPhone: req.user.phone || req.body.matcherPhone || '',
-        matcherMail: req.user.email || req.body.matcherMail || '',
+        assignedMatchmaker: isCandidateUser
+          ? req.body.assignedMatchmaker || ''
+          : req.user.id,
+        matcherName: isCandidateUser
+          ? req.body.matcherName || ''
+          : req.user.fullName || req.body.matcherName || '',
+        matcherPhone: isCandidateUser
+          ? req.body.matcherPhone || ''
+          : req.user.phone || req.body.matcherPhone || '',
+        matcherMail: isCandidateUser
+          ? req.body.matcherMail || ''
+          : req.user.email || req.body.matcherMail || '',
       };
 
       validateProfilePayload(payload);

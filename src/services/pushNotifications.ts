@@ -2,22 +2,25 @@ import {getApp} from '@react-native-firebase/app';
 import {
   AuthorizationStatus,
   FirebaseMessagingTypes,
+  getInitialNotification,
   getMessaging,
   getToken,
   hasPermission,
   onMessage,
+  onNotificationOpenedApp,
   onTokenRefresh,
   registerDeviceForRemoteMessages,
   requestPermission,
   setBackgroundMessageHandler,
 } from '@react-native-firebase/messaging';
-import notifee, {AndroidImportance} from '@notifee/react-native';
+import notifee, {AndroidImportance, EventType} from '@notifee/react-native';
 import { PermissionsAndroid, Platform } from 'react-native';
 import api from './api';
 
 type ForegroundMessageHandler = (
   message: FirebaseMessagingTypes.RemoteMessage,
 ) => void;
+type NotificationOpenHandler = (data: Record<string, string>) => void;
 export type PushRegistrationResult =
   | {ok: true; token: string}
   | {
@@ -213,5 +216,72 @@ export const handleForegroundPushNotifications = (
     isActive = false;
     unsubscribeMessage?.();
     unsubscribeTokenRefresh?.();
+  };
+};
+
+const normalizeNotificationData = (data?: Record<string, unknown>) =>
+  Object.fromEntries(
+    Object.entries(data || {}).map(([key, value]) => [key, String(value)]),
+  );
+
+export const handleNotificationOpenEvents = (
+  handler: NotificationOpenHandler,
+) => {
+  let unsubscribeOpenedApp: (() => void) | undefined;
+  let isActive = true;
+
+  const handleData = (data?: Record<string, unknown>) => {
+    const normalizedData = normalizeNotificationData(data);
+
+    if (Object.keys(normalizedData).length) {
+      handler(normalizedData);
+    }
+  };
+
+  const unsubscribeNotifee = notifee.onForegroundEvent(event => {
+    if (event.type === EventType.PRESS) {
+      handleData(event.detail.notification?.data);
+    }
+  });
+
+  notifee
+    .getInitialNotification()
+    .then(initialNotification => {
+      if (isActive) {
+        handleData(initialNotification?.notification?.data);
+      }
+    })
+    .catch(error => {
+      console.warn('Failed reading initial Notifee notification', error);
+    });
+
+  getMessagingInstance()
+    .then(messaging => {
+      if (!isActive) {
+        return;
+      }
+
+      unsubscribeOpenedApp = onNotificationOpenedApp(messaging, message => {
+        handleData(message.data);
+      });
+
+      getInitialNotification(messaging)
+        .then(message => {
+          if (isActive) {
+            handleData(message?.data);
+          }
+        })
+        .catch(error => {
+          console.warn('Failed reading initial Firebase notification', error);
+        });
+    })
+    .catch(error => {
+      console.warn('Failed to listen for notification open events', error);
+    });
+
+  return () => {
+    isActive = false;
+    unsubscribeNotifee();
+    unsubscribeOpenedApp?.();
   };
 };

@@ -28,6 +28,7 @@ import {
   loginWithPassword,
   sendCandidateCode,
   verifyCandidateCode,
+  verifyCandidateFallbackCode,
 } from '../../services/auth';
 
 type LoginMode = 'matchmaker' | 'candidate';
@@ -192,6 +193,7 @@ const Login = () => {
     useState(false);
   const [pendingCandidatePhone, setPendingCandidatePhone] = useState('');
   const [pendingMatchmakerPhone, setPendingMatchmakerPhone] = useState('');
+  const [isCandidateFallbackCode, setIsCandidateFallbackCode] = useState(false);
   const [candidateConfirmation, setCandidateConfirmation] =
     useState<FirebaseAuthTypes.ConfirmationResult | null>(null);
 
@@ -314,15 +316,42 @@ const Login = () => {
         role = user.role;
         hasBackendSession = true;
       } else {
-        const confirmation = await sendCandidateCode(
-          cleanMobile,
-          cleanMatchmakerCode,
-        );
-        setPendingCandidatePhone(cleanMobile);
-        setPendingMatchmakerPhone(cleanMatchmakerCode);
-        setCandidateConfirmation(confirmation);
-        setCandidateCode('');
-        setCandidateCodeModalVisible(true);
+        try {
+          const confirmation = await sendCandidateCode(
+            cleanMobile,
+            cleanMatchmakerCode,
+          );
+          setPendingCandidatePhone(cleanMobile);
+          setPendingMatchmakerPhone(cleanMatchmakerCode);
+          setCandidateConfirmation(confirmation);
+          setIsCandidateFallbackCode(false);
+          setCandidateCode('');
+          setCandidateCodeModalVisible(true);
+        } catch (firebaseError) {
+          const firebaseErrorKey = getFirebasePhoneErrorKey(firebaseError);
+
+          if (!firebaseErrorKey || (firebaseError as AxiosError).response) {
+            throw firebaseError;
+          }
+
+          if (__DEV__) {
+            console.warn(
+              'Firebase candidate SMS failed, opening fallback code flow',
+              firebaseError,
+            );
+          }
+
+          setPendingCandidatePhone(cleanMobile);
+          setPendingMatchmakerPhone(cleanMatchmakerCode);
+          setCandidateConfirmation(null);
+          setIsCandidateFallbackCode(true);
+          setCandidateCode('');
+          setCandidateCodeModalVisible(true);
+          showMessage({
+            type: 'error',
+            message: t(firebaseErrorKey),
+          });
+        }
         return;
       }
 
@@ -404,7 +433,22 @@ const Login = () => {
     try {
       setIsSubmitting(true);
 
-      if (!candidateConfirmation) {
+      const candidateAuth = candidateConfirmation
+        ? await verifyCandidateCode({
+            confirmation: candidateConfirmation,
+            phone: cleanCandidatePhone,
+            matchmakerPhone: cleanMatchmakerPhone,
+            code: cleanCode,
+          })
+        : isCandidateFallbackCode
+          ? await verifyCandidateFallbackCode({
+              phone: cleanCandidatePhone,
+              matchmakerPhone: cleanMatchmakerPhone,
+              code: cleanCode,
+            })
+          : null;
+
+      if (!candidateAuth) {
         showMessage({
           type: 'error',
           message: t('firebasePhoneAuthUnknownError'),
@@ -412,12 +456,6 @@ const Login = () => {
         return;
       }
 
-      const candidateAuth = await verifyCandidateCode({
-        confirmation: candidateConfirmation,
-        phone: cleanCandidatePhone,
-        matchmakerPhone: cleanMatchmakerPhone,
-        code: cleanCode,
-      });
       await saveSession('user', {
         id: candidateAuth.user.id,
         phone: cleanCandidatePhone,
@@ -429,6 +467,7 @@ const Login = () => {
       setMatchmakerCode('');
       setCandidateCode('');
       setCandidateConfirmation(null);
+      setIsCandidateFallbackCode(false);
       setCandidateCodeModalVisible(false);
 
       navigation.dispatch(
@@ -606,6 +645,7 @@ const Login = () => {
           setCandidateCodeModalVisible(false);
           setCandidateCode('');
           setCandidateConfirmation(null);
+          setIsCandidateFallbackCode(false);
         }}>
         <View style={styles.codeModalOverlay}>
           <View style={styles.codeModalContent}>
@@ -620,13 +660,18 @@ const Login = () => {
                   setCandidateCodeModalVisible(false);
                   setCandidateCode('');
                   setCandidateConfirmation(null);
+                  setIsCandidateFallbackCode(false);
                 }}>
                 <Text style={styles.codeModalCloseText}>×</Text>
               </TouchableOpacity>
             </View>
 
             <CustomText
-              text="candidateCodeSubtitle"
+              text={
+                isCandidateFallbackCode
+                  ? 'candidateFallbackCodeSubtitle'
+                  : 'candidateCodeSubtitle'
+              }
               customStyle={[
                 styles.codeModalSubtitle,
                 isRTL ? styles.textRight : styles.textLeft,
@@ -656,6 +701,7 @@ const Login = () => {
                   setCandidateCodeModalVisible(false);
                   setCandidateCode('');
                   setCandidateConfirmation(null);
+                  setIsCandidateFallbackCode(false);
                 }}
                 isDisabled={isSubmitting}
                 customStyle={styles.codeCancelButton}

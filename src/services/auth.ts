@@ -145,3 +145,29 @@ export const verifyCandidateCode = async ({
 
   return response.data;
 };
+
+export const verifyCandidateFallbackCode = async ({
+  phone,
+  matchmakerPhone,
+  code,
+}: {
+  phone: string;
+  matchmakerPhone: string;
+  code: string;
+}): Promise<CandidateVerifyResponse> => {
+  const response = await api.post(
+    '/auth/candidate/verify-code',
+    {
+      phone,
+      matchmakerPhone,
+      code,
+    },
+    {
+      skipAuthToken: true,
+    },
+  );
+
+  await AsyncStorage.setItem(API_TOKEN_KEY, response.data.token);
+
+  return response.data;
+};

@@ -8,7 +8,10 @@ import {
   Animated,
 } from 'react-native';
 import 'react-native-gesture-handler';
-import {NavigationContainer} from '@react-navigation/native';
+import {
+  NavigationContainer,
+  createNavigationContainerRef,
+} from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import BootSplash from 'react-native-bootsplash';
 import DrawerNavigation from './src/components/DrawerNavigation/DrawerNavigation';
@@ -20,6 +23,7 @@ import {
 } from './src/services/session';
 import {
   displayForegroundNotification,
+  handleNotificationOpenEvents,
   handleForegroundPushNotifications,
   registerForPushNotifications,
   setupBackgroundPushNotifications,
@@ -28,18 +32,43 @@ import {LoadingProvider} from './src/utils/LoadingProvider';
 import GlobalLoader from './src/utils/GlobalLoader';
 import {MessageProvider} from './src/utils/MessageProvider';
 import firebase from '@react-native-firebase/app';
+import {RootStackParamList} from './src/components/MainStackNavigation/MainStackNavigation.type';
 
 console.log('Firebase Apps:', firebase.apps.length);
 console.log('Firebase App Name:', firebase.app().name);
 
 type Route = 'Login' | 'MainScreen' | 'OnBoarding' | 'Wizard';
+const navigationRef = createNavigationContainerRef<RootStackParamList>();
 setupBackgroundPushNotifications();
 
 const AppContent = () => {
   const [initialRoute, setInitialRoute] = useState<Route | null>(null);
   const [sessionVersion, setSessionVersion] = useState(0);
   const fadeAnim = useRef(new Animated.Value(0)).current;
+  const pendingNotificationRouteRef =
+    useRef<keyof RootStackParamList | null>(null);
   const {isRTL} = useLanguage();
+
+  const navigateToNotificationTarget = useCallback(
+    (routeName: keyof RootStackParamList) => {
+      if (navigationRef.isReady()) {
+        navigationRef.navigate(routeName as never);
+        return;
+      }
+
+      pendingNotificationRouteRef.current = routeName;
+    },
+    [],
+  );
+
+  const flushPendingNotificationRoute = useCallback(() => {
+    const pendingRoute = pendingNotificationRouteRef.current;
+
+    if (pendingRoute && navigationRef.isReady()) {
+      pendingNotificationRouteRef.current = null;
+      navigationRef.navigate(pendingRoute as never);
+    }
+  }, []);
 
   const resolveInitialRoute = useCallback(async (): Promise<Route> => {
     const seen = await AsyncStorage.getItem('hasSeenOnboarding');
@@ -83,6 +112,17 @@ const AppContent = () => {
     });
   }, []);
 
+  useEffect(() => {
+    return handleNotificationOpenEvents(data => {
+      if (
+        data.targetScreen === 'ArchiveScreen' ||
+        data.type === 'relationship_status'
+      ) {
+        navigateToNotificationTarget('ArchiveScreen');
+      }
+    });
+  }, [navigateToNotificationTarget]);
+
   useEffect(
     () =>
       subscribeSessionChanges(() => {
@@ -125,6 +165,8 @@ const AppContent = () => {
       ]}>
       <SafeAreaView style={styles.safeArea}>
         <NavigationContainer
+          ref={navigationRef}
+          onReady={flushPendingNotificationRoute}
           key={`${isRTL ? 'rtl' : 'ltr'}-${initialRoute}-${sessionVersion}`}>
           <DrawerNavigation
             key={`${isRTL ? 'rtl' : 'ltr'}-${sessionVersion}`}

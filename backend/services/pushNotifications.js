@@ -148,6 +148,22 @@ async function sendPushNotification({title, body, data = {}, tokens}) {
   return response;
 }
 
+function normalizeRelationshipStatus(status) {
+  const normalizedStatus = String(status || '').trim().toLowerCase();
+
+  if (
+    normalizedStatus === 'married' ||
+    normalizedStatus === 'marriedstatus' ||
+    normalizedStatus === 'נשוי' ||
+    normalizedStatus === 'נשואה' ||
+    normalizedStatus === 'התחתנו'
+  ) {
+    return 'married';
+  }
+
+  return 'engaged';
+}
+
 async function notifyProfileCreated(profile) {
   const profileName = profile.fullName || profile.name || 'כרטיס חדש';
 
@@ -162,6 +178,7 @@ async function notifyProfileCreated(profile) {
 }
 
 async function notifyProfileRelationshipStatus(profile, status) {
+  const relationshipStatus = normalizeRelationshipStatus(status);
   const profileName = profile.fullName || profile.name || 'משודך/ת';
   let partnerName = profile.partnerName || '';
 
@@ -170,7 +187,7 @@ async function notifyProfileRelationshipStatus(profile, status) {
     partnerName = partner?.fullName || partner?.name || '';
   }
 
-  const statusText = status === 'married' ? 'התחתנו' : 'התארסו';
+  const statusText = relationshipStatus === 'married' ? 'התחתנו' : 'התארסו';
   const body = partnerName
     ? `${profileName} ו-${partnerName} ${statusText}`
     : `${profileName} ${statusText}`;
@@ -180,15 +197,17 @@ async function notifyProfileRelationshipStatus(profile, status) {
     body,
     data: {
       type: 'relationship_status',
+      targetScreen: 'ArchiveScreen',
       profileId: profile.id,
       partnerProfileId: profile.partnerProfileId || '',
-      status,
+      status: relationshipStatus,
     },
     tokens: await getAllUserTokens(),
   });
 }
 
 async function notifyRelationshipStatus(match, status) {
+  const relationshipStatus = normalizeRelationshipStatus(status);
   const candidate =
     typeof match.candidate === 'object'
       ? match.candidate
@@ -202,14 +221,15 @@ async function notifyRelationshipStatus(match, status) {
     return {successCount: 0, failureCount: 0};
   }
 
-  const statusText = status === 'married' ? 'התחתנו' : 'התארסו';
+  const statusText = relationshipStatus === 'married' ? 'התחתנו' : 'התארסו';
   return sendPushNotification({
     title: 'מזל טוב!',
     body: `${candidate.fullName} ו-${matchWith.fullName} ${statusText}`,
     data: {
       type: 'relationship_status',
+      targetScreen: 'ArchiveScreen',
       matchId: match.id,
-      status,
+      status: relationshipStatus,
     },
     tokens: await getAllUserTokens(),
   });

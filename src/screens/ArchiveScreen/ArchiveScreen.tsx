@@ -1,7 +1,6 @@
 import React, {useMemo, useState} from 'react';
 import {TouchableOpacity, View} from 'react-native';
-import {useFocusEffect, useNavigation} from '@react-navigation/native';
-import {NativeStackNavigationProp} from '@react-navigation/native-stack';
+import {useFocusEffect} from '@react-navigation/native';
 
 import MatchCard from '../../components/MatchCard/MatchCard';
 import {MatchCardType} from '../../components/MatchCard/MatchCard.type';
@@ -22,10 +21,9 @@ import RestoreSvg from '../../assets/images/restore.svg';
 import {styles} from './ArchiveScreen.style';
 import api from '../../services/api';
 import {useLanguage} from '../../utils/LanguageProvider';
+import {useMessage} from '../../utils/MessageProvider';
 import {mapProfileToCard} from '../../utils/generalFunction';
-import {RootStackParamList} from '../../components/MainStackNavigation/MainStackNavigation.type';
 
-type ArchiveNavigationProp = NativeStackNavigationProp<RootStackParamList>;
 const NO_MATCHER_FILTER_VALUE = 'noMatcher';
 
 const getGenderKey = (gender?: string) => {
@@ -72,8 +70,8 @@ const getRelationshipStatusTextKey = (
 };
 
 const ArchiveScreen = () => {
-  const {isRTL} = useLanguage();
-  const navigation = useNavigation<ArchiveNavigationProp>();
+  const {isRTL, t} = useLanguage();
+  const {showMessage} = useMessage();
 
   const [archivedCards, setArchivedCards] = useState<MatchCardType[]>([]);
   const [hasLoadedArchive, setHasLoadedArchive] = useState(false);
@@ -81,9 +79,11 @@ const ArchiveScreen = () => {
   const [isShowOrderBy, setIsShowOrderBy] = useState(false);
   const [filterValues, setFilterValues] = useState<CardsFilterValues>({});
   const [sortValue, setSortValue] = useState<CardsSortValue>('');
+  const [restoringProfileId, setRestoringProfileId] = useState('');
 
   const fetchArchivedProfiles = React.useCallback(async () => {
     setHasLoadedArchive(false);
+    setArchivedCards([]);
 
     try {
       const response = await api.get('/api/profiles', {
@@ -110,17 +110,36 @@ const ArchiveScreen = () => {
     }, [fetchArchivedProfiles]),
   );
 
-  const restoreProfile = (card: MatchCardType) => {
-    if (!card.profileId) {
+  const restoreProfile = async (card: MatchCardType) => {
+    const profileId = String(card.profileId || '').trim();
+
+    if (!profileId || restoringProfileId) {
       return;
     }
 
-    navigation.navigate('Wizard', {
-      mode: 'edit',
-      profileId: card.profileId,
-      card,
-      restoreToAvailable: true,
-    });
+    const previousCards = archivedCards;
+
+    setRestoringProfileId(profileId);
+    setArchivedCards(cards =>
+      cards.filter(item => String(item.profileId || '') !== profileId),
+    );
+
+    try {
+      await api.patch(`/api/profiles/${profileId}/unarchive`);
+      showMessage({
+        type: 'success',
+        message: t('archiveRestoreSuccess'),
+      });
+      fetchArchivedProfiles();
+    } catch {
+      setArchivedCards(previousCards);
+      showMessage({
+        type: 'error',
+        message: t('archiveRestoreError'),
+      });
+    } finally {
+      setRestoringProfileId('');
+    }
   };
 
   const matcherOptions = useMemo(() => {
@@ -421,10 +440,13 @@ const ArchiveScreen = () => {
                       accessibilityLabel="חזר להיות פנוי"
                       style={[
                         styles.restoreIconButton,
+                        restoringProfileId === card.profileId &&
+                          styles.restoreIconButtonDisabled,
                         isRTL
                           ? styles.restoreIconButtonRtl
                           : styles.restoreIconButtonLtr,
                       ]}
+                      disabled={Boolean(restoringProfileId)}
                       onPress={() => restoreProfile(card)}>
                       <RestoreSvg width={22} height={22} />
                     </TouchableOpacity>

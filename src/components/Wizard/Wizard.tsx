@@ -144,16 +144,6 @@ const getGenderKey = (gender?: string) => {
   return undefined;
 };
 
-const getOppositeGender = (gender?: string) => {
-  const genderKey = getGenderKey(gender);
-
-  return genderKey === 'male'
-    ? 'female'
-    : genderKey === 'female'
-      ? 'male'
-      : undefined;
-};
-
 const getRelationshipStatusTextKey = (
   status: 'engaged' | 'married' | '',
   gender?: string,
@@ -969,21 +959,6 @@ const Wizard = () => {
     }, {});
   }, [profilesCache]);
 
-  const partnerGenderByName = useMemo(
-    () =>
-      profilesCache.reduce<Record<string, string>>((profilesByName, profile) => {
-        const name = normalizeName(profile.fullName || profile.name);
-        const gender = getGenderKey(String(profile.gender || ''));
-
-        if (name && gender) {
-          profilesByName[name] = gender;
-        }
-
-        return profilesByName;
-      }, {}),
-    [profilesCache],
-  );
-
   const checkPartnerOutsideApp = (
     relationshipStatus: string,
     partnerName: string,
@@ -1382,6 +1357,21 @@ const Wizard = () => {
         return;
       }
 
+      const payloadFullName = String(
+        payload.fullName || payload.name || '',
+      ).trim();
+      const payloadPhone = String(payload.phone || '').trim();
+
+      if (!payloadFullName || !payloadPhone) {
+        const messageKey = !payloadFullName
+          ? 'candidateNameRequired'
+          : 'candidatePhoneRequired';
+        setSubmitErrorKey(messageKey);
+        showMessage({type: 'error', message: t(messageKey)});
+        setWizardStep(1);
+        return;
+      }
+
       if (Array.isArray(payload.images) && payload.images.length) {
         payload.images = await uploadProfileImages(payload.images);
       }
@@ -1439,12 +1429,36 @@ const Wizard = () => {
       });
       navigation.navigate('AllCardsScreen');
     } catch (error) {
-      const axiosError = error as AxiosError<{message?: string}>;
+      const axiosError = error as AxiosError<{
+        message?: string;
+        field?: string;
+        error?: string;
+      }>;
       const serverMessage = axiosError.response?.data?.message;
+      const errorField = axiosError.response?.data?.field;
 
       if (axiosError.response?.status === 409) {
         setSubmitErrorKey('candidateAlreadyExists');
         showMessage({type: 'error', message: t('candidateAlreadyExists')});
+        return;
+      }
+
+      if (axiosError.response?.status === 400) {
+        const messageKey =
+          errorField === 'fullName'
+            ? 'candidateNameRequired'
+            : errorField === 'phone'
+              ? 'candidatePhoneRequired'
+              : 'errorRequiredFields';
+        setSubmitErrorKey(messageKey);
+        showMessage({type: 'error', message: t(messageKey)});
+        setWizardStep(1);
+        return;
+      }
+
+      if (axiosError.response?.status === 403) {
+        setSubmitErrorKey('errorProfileCreateDenied');
+        showMessage({type: 'error', message: t('errorProfileCreateDenied')});
         return;
       }
 
@@ -1458,7 +1472,7 @@ const Wizard = () => {
       setSubmitErrorKey(messageKey);
       showMessage({
         type: 'error',
-        message: __DEV__ && serverMessage ? serverMessage : t(messageKey),
+        message: serverMessage || t(messageKey),
       });
     } finally {
       setIsSubmitting(false);

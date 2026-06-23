@@ -100,16 +100,6 @@ const getGenderKey = (gender?: string) => {
     : undefined;
 };
 
-const getOppositeGender = (gender?: string) => {
-  const genderKey = getGenderKey(gender);
-
-  return genderKey === 'male'
-    ? 'female'
-    : genderKey === 'female'
-      ? 'male'
-      : undefined;
-};
-
 const getProfileId = (profile?: Record<string, unknown> | MatchCardType) =>
   String(
     (profile as any)?.profileId ||
@@ -546,21 +536,6 @@ const EditFormScreen = () => {
     formValues.collaborationMatchmaker,
     profilesCache,
   ]);
-
-  const partnerGenderByName = useMemo(
-    () =>
-      profilesCache.reduce<Record<string, string>>((profilesByName, profile) => {
-        const name = normalizeName(profile.fullName || profile.name);
-        const gender = getGenderKey(String(profile.gender || ''));
-
-        if (name && gender) {
-          profilesByName[name] = gender;
-        }
-
-        return profilesByName;
-      }, {}),
-    [profilesCache],
-  );
 
   const partnerProfileByName = useMemo(
     () =>
