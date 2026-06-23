@@ -28,6 +28,49 @@ import {RootStackParamList} from '../../components/MainStackNavigation/MainStack
 type ArchiveNavigationProp = NativeStackNavigationProp<RootStackParamList>;
 const NO_MATCHER_FILTER_VALUE = 'noMatcher';
 
+const getGenderKey = (gender?: string) => {
+  const normalizedGender = String(gender || '').trim().toLowerCase();
+
+  if (
+    normalizedGender === 'male' ||
+    normalizedGender === 'זכר' ||
+    normalizedGender === '1'
+  ) {
+    return 'male';
+  }
+
+  if (
+    normalizedGender === 'female' ||
+    normalizedGender === 'נקבה' ||
+    normalizedGender === '2'
+  ) {
+    return 'female';
+  }
+
+  return undefined;
+};
+
+const getRelationshipStatusTextKey = (
+  status?: 'engaged' | 'married',
+  gender?: string,
+) => {
+  const genderKey = getGenderKey(gender);
+
+  if (status === 'married') {
+    return genderKey === 'male'
+      ? 'marriedStatusMale'
+      : genderKey === 'female'
+        ? 'marriedStatusFemale'
+        : 'marriedStatus';
+  }
+
+  return genderKey === 'male'
+    ? 'engagedStatusMale'
+    : genderKey === 'female'
+      ? 'engagedStatusFemale'
+      : 'engagedStatus';
+};
+
 const ArchiveScreen = () => {
   const {isRTL} = useLanguage();
   const navigation = useNavigation<ArchiveNavigationProp>();
@@ -355,11 +398,10 @@ const ArchiveScreen = () => {
                       )}
 
                       <CustomText
-                        text={
-                          card.relationshipStatus === 'married'
-                            ? 'marriedStatus'
-                            : 'engagedStatus'
-                        }
+                        text={getRelationshipStatusTextKey(
+                          card.relationshipStatus,
+                          card.gender,
+                        )}
                         customStyle={styles.relationshipBadge}
                       />
                     </View>

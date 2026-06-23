@@ -128,7 +128,11 @@ const CustomAutocomplete = (props: CustomAutocompleteType) => {
         />
 
         {isEditable && isOpen && (
-          <View style={styles.suggestionsPanel}>
+          <View
+            style={[
+              styles.suggestionsPanel,
+              isSmallSize && styles.inlineSuggestionsPanel,
+            ]}>
             {isLoading ? (
               <View style={styles.emptyItem}>
                 <CustomText

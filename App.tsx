@@ -6,7 +6,6 @@ import {
   StyleSheet,
   View,
   Animated,
-  Easing,
 } from 'react-native';
 import 'react-native-gesture-handler';
 import {NavigationContainer} from '@react-navigation/native';
@@ -40,7 +39,6 @@ const AppContent = () => {
   const [initialRoute, setInitialRoute] = useState<Route | null>(null);
   const [sessionVersion, setSessionVersion] = useState(0);
   const fadeAnim = useRef(new Animated.Value(0)).current;
-  const loaderAnim = useRef(new Animated.Value(0)).current;
   const {isRTL} = useLanguage();
 
   const resolveInitialRoute = useCallback(async (): Promise<Route> => {
@@ -113,72 +111,8 @@ const AppContent = () => {
     }
   }, [fadeAnim, initialRoute]);
 
-  useEffect(() => {
-    if (initialRoute !== null) {
-      return;
-    }
-
-    const animation = Animated.loop(
-      Animated.sequence([
-        Animated.timing(loaderAnim, {
-          toValue: 1,
-          duration: 950,
-          easing: Easing.inOut(Easing.ease),
-          useNativeDriver: true,
-        }),
-        Animated.timing(loaderAnim, {
-          toValue: 0,
-          duration: 950,
-          easing: Easing.inOut(Easing.ease),
-          useNativeDriver: true,
-        }),
-      ]),
-    );
-
-    animation.start();
-
-    return () => animation.stop();
-  }, [initialRoute, loaderAnim]);
-
   if (initialRoute === null) {
-    const iconScale = loaderAnim.interpolate({
-      inputRange: [0, 1],
-      outputRange: [0.96, 1.05],
-    });
-    const haloScale = loaderAnim.interpolate({
-      inputRange: [0, 1],
-      outputRange: [0.98, 1.12],
-    });
-    const haloOpacity = loaderAnim.interpolate({
-      inputRange: [0, 1],
-      outputRange: [0.34, 0.08],
-    });
-
-    return (
-      <View style={styles.loaderContainer}>
-        <Animated.Image
-          source={require('./assets/app-icon/app-icon-1024.png')}
-          style={[
-            styles.logoGlow,
-            {
-              opacity: haloOpacity,
-              transform: [{scale: haloScale}],
-            },
-          ]}
-          resizeMode="cover"
-        />
-        <Animated.Image
-          source={require('./assets/app-icon/app-icon-1024.png')}
-          style={[
-            styles.logo,
-            {
-              transform: [{scale: iconScale}],
-            },
-          ]}
-          resizeMode="cover"
-        />
-      </View>
-    );
+    return null;
   }
 
   return (
@@ -222,27 +156,6 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
     paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
-  },
-  loaderContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#FFFCF7',
-  },
-  logo: {
-    width: 112,
-    height: 112,
-    borderRadius: 30,
-    shadowColor: 'rgba(6, 26, 54, 0.22)',
-    shadowOffset: {width: 0, height: 10},
-    shadowOpacity: 1,
-    shadowRadius: 18,
-  },
-  logoGlow: {
-    position: 'absolute',
-    width: 112,
-    height: 112,
-    borderRadius: 30,
   },
 });
 

@@ -682,20 +682,17 @@ const EditFormScreen = () => {
   const isEngaged = formValues.isEngaged === 'true';
   const isMarried = formValues.isMarried === 'true';
   const relationshipStatus = isMarried ? 'married' : isEngaged ? 'engaged' : '';
-  const selectedPartnerGender =
-    partnerGenderByName[normalizeName(formValues.partnerName)] ||
-    getOppositeGender(formValues.gender);
   const relationshipStatusTextKey = getRelationshipStatusTextKey(
     relationshipStatus,
-    selectedPartnerGender,
+    formValues.gender,
   );
   const engagedStatusTextKey = getRelationshipStatusTextKey(
     'engaged',
-    selectedPartnerGender,
+    formValues.gender,
   );
   const marriedStatusTextKey = getRelationshipStatusTextKey(
     'married',
-    selectedPartnerGender,
+    formValues.gender,
   );
   const selectedCollaborationMatchmakerLabel =
     matchmakerOptions.find(

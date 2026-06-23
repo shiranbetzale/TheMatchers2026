@@ -1072,20 +1072,17 @@ const Wizard = () => {
     : isDraftEngaged
       ? 'engaged'
       : '';
-  const selectedPartnerGender =
-    partnerGenderByName[normalizeName(relationshipDraft.partnerName)] ||
-    getOppositeGender(formValues.gender);
   const draftRelationshipStatusTextKey = getRelationshipStatusTextKey(
     draftRelationshipStatus,
-    selectedPartnerGender,
+    formValues.gender,
   );
   const engagedStatusTextKey = getRelationshipStatusTextKey(
     'engaged',
-    selectedPartnerGender,
+    formValues.gender,
   );
   const marriedStatusTextKey = getRelationshipStatusTextKey(
     'married',
-    selectedPartnerGender,
+    formValues.gender,
   );
   const selectedCollaborationMatchmakerLabel =
     matchmakerOptions.find(

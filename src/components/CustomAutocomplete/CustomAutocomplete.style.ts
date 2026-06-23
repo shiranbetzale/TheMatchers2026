@@ -85,6 +85,15 @@ export const styles = StyleSheet.create({
     zIndex: 1000,
     elevation: 24,
   },
+  inlineSuggestionsPanel: {
+    position: 'relative',
+    top: undefined,
+    right: undefined,
+    left: undefined,
+    marginTop: GeneralStyle.spacing.xs,
+    zIndex: 1,
+    elevation: 0,
+  },
   suggestionItem: {
     paddingHorizontal: GeneralStyle.spacing.md,
     paddingVertical: GeneralStyle.spacing.sm,

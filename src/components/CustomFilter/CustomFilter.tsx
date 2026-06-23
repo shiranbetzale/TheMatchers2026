@@ -157,10 +157,7 @@ const CustomFilter = (props: CustomFilterType) => {
                 styles.filterField,
                 field.fieldType === 'range' && styles.rangeField,
               ]}>
-              {generateField({
-                ...field,
-                isSmallSize: false,
-              })}
+              {generateField(field)}
             </View>
           ))}
         </ScrollView>
