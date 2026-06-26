@@ -51,6 +51,24 @@ const normalizeId = (value: unknown, map: Record<string, string> = {}) => {
   return map[rawValue] ?? map[normalized] ?? rawValue;
 };
 
+const normalizePhone = (value: unknown) => String(value || '').replace(/\D/g, '');
+
+const getProfilePhone = (profile: any) => normalizePhone(profile?.phone);
+
+const normalizeGender = (value: unknown) => {
+  const gender = String(value || '').trim().toLowerCase();
+
+  if (gender === '1' || gender === 'male' || gender === 'זכר') {
+    return 'male';
+  }
+
+  if (gender === '2' || gender === 'female' || gender === 'נקבה') {
+    return 'female';
+  }
+
+  return '';
+};
+
 const normalizeHeight = (height: unknown) => {
   const value = Number(String(height || '').replace(/[^\d.]/g, ''));
 
@@ -401,13 +419,28 @@ export const buildAiSortedMatches = (
     profiles.find(profile => getProfileId(profile) === currentCard.profileId) ||
     profiles.find(
       profile =>
-        String(profile.phone || '').replace(/\D/g, '') ===
-        String(currentCard.phone || '').replace(/\D/g, ''),
+        getProfilePhone(profile) === normalizePhone(currentCard.phone),
     ) ||
     currentCard;
+  const currentProfileId = getProfileId(currentProfile);
+  const currentCardId = getProfileId(currentCard);
+  const currentPhone = getProfilePhone(currentProfile) || normalizePhone(currentCard.phone);
+  const currentGender =
+    normalizeGender(currentProfile.gender) || normalizeGender(currentCard.gender);
 
   return profiles
-    .filter(profile => getProfileId(profile) !== getProfileId(currentProfile))
+    .filter(profile => {
+      const profileId = getProfileId(profile);
+      const profilePhone = getProfilePhone(profile);
+      const profileGender = normalizeGender(profile.gender);
+
+      return (
+        (!currentProfileId || profileId !== currentProfileId) &&
+        (!currentCardId || profileId !== currentCardId) &&
+        (!currentPhone || profilePhone !== currentPhone) &&
+        (!currentGender || !profileGender || profileGender !== currentGender)
+      );
+    })
     .map(profile => {
       const score = scoreMatchProfiles(currentProfile, profile);
 

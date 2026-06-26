@@ -427,6 +427,12 @@ const detailsFormArray: FormField[] = [
           {fieldId: 'hashkafa', value: '5'},
         ],
       },
+      {
+        id: 11,
+        name: 'whatWorks',
+        label: 'midrashaStudent',
+        isShow: [{fieldId: 'gender', value: '2'}],
+      },
     ],
     collapseTitle: 'workAndEducation',
   },

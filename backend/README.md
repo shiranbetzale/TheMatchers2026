@@ -18,6 +18,8 @@ npm run start:backend
 
 Push notifications:
 - Add Firebase service account credentials through `FIREBASE_SERVICE_ACCOUNT_JSON` or `GOOGLE_APPLICATION_CREDENTIALS`.
+- Image uploads use the same Firebase service account credentials and `FIREBASE_STORAGE_BUCKET`.
+- On Render, prefer `FIREBASE_SERVICE_ACCOUNT_JSON_BASE64` because raw JSON environment values are easy to break with quoting/newlines.
 - Add the app Firebase config files locally:
   - Android: `android/app/google-services.json`
   - iOS: `ios/GoogleService-Info.plist`, then run `pod install` in `ios/`

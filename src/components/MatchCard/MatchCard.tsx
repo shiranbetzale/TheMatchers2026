@@ -16,6 +16,7 @@ import CustomImageSlider from '../CustomImageSlider/CustomImageSlider';
 import CustomText from '../CustomText/CustomText';
 import ImagePreviewModal from '../ImagePreviewModal/ImagePreviewModal';
 import WhiteCard from '../WhiteCard/WhiteCard';
+import CustomSingleCheckBox from '../CustomCheckBox/CustomSingleCheckBox';
 import {styles} from './MatchCard.style';
 import {MatchCardType} from './MatchCard.type';
 import {useLanguage} from '../../utils/LanguageProvider';
@@ -91,6 +92,7 @@ const MatchCard = (props: MatchCardType) => {
   } = props as MatchCardType & Record<string, any>;
 
   const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const [shareWithoutImages, setShareWithoutImages] = useState(false);
   const displayImages = useMemo(() => {
     return getCardImages(props);
   }, [gender, images]);
@@ -153,6 +155,7 @@ const MatchCard = (props: MatchCardType) => {
   const buildShareSection = (
     title: string,
     card: MatchCardType & Record<string, any>,
+    includeImages = true,
   ) => {
     const cardImages = getCardImages(card);
     const shareableImages = cardImages.filter(isShareableImageUri);
@@ -196,11 +199,13 @@ const MatchCard = (props: MatchCardType) => {
       card.matchImportantInfo
         ? `💍 מי אני מחפש/ת:\n${card.matchImportantInfo}`
         : '',
-      shareableImages.length
-        ? `🖼️ תמונות:\n${shareableImages.join('\n')}`
-        : cardImages.length
-          ? '🖼️ תמונות קיימות בכרטיס, אבל אינן קישור ציבורי. צריך לשלוח אותן בנפרד.'
-          : '',
+      includeImages
+        ? shareableImages.length
+          ? `🖼️ תמונות:\n${shareableImages.join('\n')}`
+          : cardImages.length
+            ? '🖼️ תמונות קיימות בכרטיס, אבל אינן קישור ציבורי. צריך לשלוח אותן בנפרד.'
+            : ''
+        : '',
     ].filter(Boolean);
   };
 
@@ -217,11 +222,19 @@ const MatchCard = (props: MatchCardType) => {
       '',
       ...(candidateCard
         ? [
-            ...buildShareSection('המשודך/ת:', candidateCard),
+            ...buildShareSection(
+              'המשודך/ת:',
+              candidateCard,
+              !shareWithoutImages,
+            ),
             '',
-            ...buildShareSection('ההתאמה:', matchCard),
+            ...buildShareSection(
+              'ההתאמה:',
+              matchCard,
+              !shareWithoutImages,
+            ),
           ]
-        : buildShareSection('', matchCard)),
+        : buildShareSection('', matchCard, !shareWithoutImages)),
       '',
       '📞 לפרטים נוספים:',
       cleanLine('שדכנית', matcherName),
@@ -230,7 +243,15 @@ const MatchCard = (props: MatchCardType) => {
     ]
       .filter(Boolean)
       .join('\n');
-  }, [matcherMail, matcherName, matcherPhone, pairedCard, props, t]);
+  }, [
+    matcherMail,
+    matcherName,
+    matcherPhone,
+    pairedCard,
+    props,
+    shareWithoutImages,
+    t,
+  ]);
 
   const openURL = async (url: string, fallback?: () => void) => {
     try {
@@ -368,52 +389,80 @@ const MatchCard = (props: MatchCardType) => {
       </View>
 
       {isShowInfoButtons && (
-        <View
-          style={[styles.infoButtons, isRTL ? styles.rtlRow : styles.ltrRow]}>
-          <View style={styles.actionItem}>
-            <CustomButton onPress={handleMatcherCall} customStyle={styles.icon}>
-              <PhoneSvg width={18} height={18} />
-            </CustomButton>
-            <CustomText
-              text="cardMatchmaker"
-              customStyle={styles.actionLabel}
-            />
+        <>
+          <View
+            style={[
+              styles.shareOptions,
+              isRTL ? styles.shareOptionsRtl : styles.shareOptionsLtr,
+            ]}>
+            <View
+              style={[
+                styles.shareOptionRow,
+                isRTL ? styles.rtlRow : styles.ltrRow,
+              ]}>
+              <CustomSingleCheckBox
+                id={1}
+                name="shareWithoutImages"
+                label="shareWithoutImages"
+                isSelected={shareWithoutImages}
+                isRTL={isRTL}
+                isSmallSize
+                onChange={(_option, nextValue) =>
+                  setShareWithoutImages(nextValue)
+                }
+              />
+            </View>
           </View>
 
-          {canSeeCandidatePhone && (
+          <View
+            style={[styles.infoButtons, isRTL ? styles.rtlRow : styles.ltrRow]}>
             <View style={styles.actionItem}>
               <CustomButton
-                onPress={handleCandidateCall}
+                onPress={handleMatcherCall}
                 customStyle={styles.icon}>
                 <PhoneSvg width={18} height={18} />
               </CustomButton>
-              <CustomText text="candidate" customStyle={styles.actionLabel} />
+              <CustomText
+                text="cardMatchmaker"
+                customStyle={styles.actionLabel}
+              />
             </View>
-          )}
 
-          <View style={styles.actionItem}>
-            <CustomButton onPress={handleWhatsapp} customStyle={styles.icon}>
-              <WhatsappSvg width={18} height={18} />
-            </CustomButton>
-            <CustomText text="whatsapp" customStyle={styles.actionLabel} />
-          </View>
+            {canSeeCandidatePhone && (
+              <View style={styles.actionItem}>
+                <CustomButton
+                  onPress={handleCandidateCall}
+                  customStyle={styles.icon}>
+                  <PhoneSvg width={18} height={18} />
+                </CustomButton>
+                <CustomText text="candidate" customStyle={styles.actionLabel} />
+              </View>
+            )}
 
-          <View style={styles.actionItem}>
-            <CustomButton
-              onPress={handleSendEmail}
-              customStyle={styles.mailIcon}>
-              <EmailSvg width={18} height={18} />
-            </CustomButton>
-            <CustomText text="email" customStyle={styles.actionLabel} />
-          </View>
+            <View style={styles.actionItem}>
+              <CustomButton onPress={handleWhatsapp} customStyle={styles.icon}>
+                <WhatsappSvg width={18} height={18} />
+              </CustomButton>
+              <CustomText text="whatsapp" customStyle={styles.actionLabel} />
+            </View>
 
-          <View style={styles.actionItem}>
-            <CustomButton onPress={handleShare} customStyle={styles.icon}>
-              <ShareSvg width={18} height={18} />
-            </CustomButton>
-            <CustomText text="share" customStyle={styles.actionLabel} />
+            <View style={styles.actionItem}>
+              <CustomButton
+                onPress={handleSendEmail}
+                customStyle={styles.mailIcon}>
+                <EmailSvg width={18} height={18} />
+              </CustomButton>
+              <CustomText text="email" customStyle={styles.actionLabel} />
+            </View>
+
+            <View style={styles.actionItem}>
+              <CustomButton onPress={handleShare} customStyle={styles.icon}>
+                <ShareSvg width={18} height={18} />
+              </CustomButton>
+              <CustomText text="share" customStyle={styles.actionLabel} />
+            </View>
           </View>
-        </View>
+        </>
       )}
 
       <ImagePreviewModal

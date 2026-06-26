@@ -3,25 +3,50 @@ const admin = require('firebase-admin');
 let firebaseApp;
 
 const DEFAULT_STORAGE_BUCKET =
-  process.env.FIREBASE_STORAGE_BUCKET || 'thematchers-39ff5.appspot.com';
+  process.env.FIREBASE_STORAGE_BUCKET || 'thematchers-39ff5.firebasestorage.app';
 
-function getServiceAccountCredential() {
-  const serviceAccountJson = process.env.FIREBASE_SERVICE_ACCOUNT_JSON;
-
-  if (!serviceAccountJson) {
-    return null;
-  }
-
+function parseServiceAccountJson(value, sourceName) {
   try {
-    return admin.credential.cert(JSON.parse(serviceAccountJson));
+    return JSON.parse(value);
   } catch (error) {
     const parseError = new Error(
-      'Invalid FIREBASE_SERVICE_ACCOUNT_JSON. Check that the value is the full Firebase service account JSON.',
+      `Invalid ${sourceName}. Check that the value is the full Firebase service account JSON.`,
     );
     parseError.cause = error;
     parseError.code = 'invalid_firebase_service_account';
     throw parseError;
   }
+}
+
+function getServiceAccountCredential() {
+  const serviceAccountJson = process.env.FIREBASE_SERVICE_ACCOUNT_JSON;
+  const serviceAccountJsonBase64 =
+    process.env.FIREBASE_SERVICE_ACCOUNT_JSON_BASE64;
+
+  if (!serviceAccountJson && !serviceAccountJsonBase64) {
+    return null;
+  }
+
+  if (serviceAccountJsonBase64) {
+    const decodedServiceAccountJson = Buffer.from(
+      serviceAccountJsonBase64,
+      'base64',
+    ).toString('utf8');
+
+    return admin.credential.cert(
+      parseServiceAccountJson(
+        decodedServiceAccountJson,
+        'FIREBASE_SERVICE_ACCOUNT_JSON_BASE64',
+      ),
+    );
+  }
+
+  return admin.credential.cert(
+    parseServiceAccountJson(
+      serviceAccountJson,
+      'FIREBASE_SERVICE_ACCOUNT_JSON',
+    ),
+  );
 }
 
 function getFirebaseApp() {

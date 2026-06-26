@@ -147,6 +147,24 @@ export const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: Colors.line,
   },
+  shareOptions: {
+    width: '100%',
+    marginTop: GeneralStyle.spacing.md,
+    paddingTop: GeneralStyle.spacing.sm,
+    borderTopWidth: 1,
+    borderTopColor: Colors.line,
+  },
+  shareOptionsRtl: {
+    alignItems: 'flex-end',
+  },
+  shareOptionsLtr: {
+    alignItems: 'flex-start',
+  },
+  shareOptionRow: {
+    alignItems: 'center',
+    gap: GeneralStyle.spacing.sm,
+    maxWidth: '100%',
+  },
   actionItem: {
     flex: 1,
     minWidth: 0,

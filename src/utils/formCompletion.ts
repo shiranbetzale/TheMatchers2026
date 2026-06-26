@@ -5,6 +5,7 @@ const isFilled = (value: unknown) =>
 
 const PHONE_FIELD_IDS = new Set(['phone', 'rabbiPhone']);
 const EMAIL_FIELD_IDS = new Set(['mail', 'email']);
+const OPTIONAL_FIELD_IDS = new Set(['rabbiName', 'rabbiPhone']);
 
 const normalizePhoneDigits = (value: string) => value.replace(/\D/g, '');
 
@@ -178,6 +179,7 @@ export const getVisibleFields = (
 ) => fields.filter(field => isFieldVisible(field, values, allFields));
 
 export const isRequiredFormField = (field: FormField) =>
+  !OPTIONAL_FIELD_IDS.has(field.id) &&
   field.fieldType !== 'switch' &&
   field.fieldType !== 'range' &&
   field.fieldType !== 'checkbox';

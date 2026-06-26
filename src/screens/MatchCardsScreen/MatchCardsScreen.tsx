@@ -48,6 +48,23 @@ type NavigationProp = StackNavigationProp<RootStackParamList>;
 type MatchCardsRouteProp = RouteProp<RootStackParamList, 'MatchCardsScreen'>;
 type MeetingStatus = NonNullable<MatchCardType['meetingStatus']>;
 
+const normalizePhone = (value: unknown) => String(value || '').replace(/\D/g, '');
+const getCardId = (card: Partial<MatchCardType> & Record<string, unknown>) =>
+  String(card.profileId || card.id || card._id || '').trim();
+const normalizeGender = (value: unknown) => {
+  const gender = String(value || '').trim().toLowerCase();
+
+  if (gender === '1' || gender === 'male' || gender === 'זכר') {
+    return 'male';
+  }
+
+  if (gender === '2' || gender === 'female' || gender === 'נקבה') {
+    return 'female';
+  }
+
+  return '';
+};
+
 const buildMatchmakerOptions = (
   profiles: any[],
   users: any[],
@@ -302,10 +319,15 @@ const MatchCardsScreen = () => {
       )
         .filter((card: MatchCardType) => !isArchivedCard(card))
         .filter((card: MatchCardType) => {
-          if (currentCard.profileId) {
-            return card.profileId !== currentCard.profileId;
-          }
-          return card.phone !== currentCard.phone;
+          const currentId = getCardId(currentCard);
+          const cardId = getCardId(card);
+          const currentPhone = normalizePhone(currentCard.phone);
+          const cardPhone = normalizePhone(card.phone);
+
+          return (
+            (!currentId || cardId !== currentId) &&
+            (!currentPhone || cardPhone !== currentPhone)
+          );
         })
         .filter((card: MatchCardType) => {
           const relationshipStatus = String(card.relationshipStatus || '');
@@ -317,11 +339,14 @@ const MatchCardsScreen = () => {
             return false;
           }
 
-          if (!currentCard.gender) {
+          const currentGender = normalizeGender(currentCard.gender);
+          const cardGender = normalizeGender(card.gender);
+
+          if (!currentGender) {
             return true;
           }
 
-          return card.gender !== currentCard.gender;
+          return cardGender !== currentGender;
         });
       const visibleMatches = eligibleMatches.filter(
         card => (card.aiMatchScore || 0) >= 70,

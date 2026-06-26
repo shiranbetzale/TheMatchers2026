@@ -37,8 +37,8 @@
     "i18next": "26.2.0",
     "jsonwebtoken": "9.0.3",
     "metro-runtime": "0.84.4",
-    "multer": "2.1.1",
-    "nodemailer": "8.0.7",
+    "multer": "^2.2.0",
+    "nodemailer": "^9.0.1",
     "react": "19.2.3",
     "react-i18next": "17.0.8",
     "react-native": "0.85.3",
@@ -61,7 +61,7 @@
     "yup": "1.7.1"
   },
   "devDependencies": {
-    "@babel/core": "7.29.0",
+    "@babel/core": "^7.29.7",
     "@babel/preset-env": "7.29.5",
     "@babel/runtime": "7.29.2",
     "@react-native-community/cli": "20.1.3",
