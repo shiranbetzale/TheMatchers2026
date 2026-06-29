@@ -4,6 +4,86 @@ import {FontsStyle} from '../../utils/FontsStyle';
 import GeneralStyle from '../../utils/GeneralStyle';
 
 export const styles = StyleSheet.create({
+  commitmentGateScreen: {
+    flex: 1,
+    backgroundColor: Colors.ivory,
+  },
+  commitmentOverlay: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: GeneralStyle.spacing.lg,
+    backgroundColor: Colors.overlay,
+  },
+  commitmentModal: {
+    width: '100%',
+    maxWidth: 390,
+    padding: GeneralStyle.spacing.lg,
+    borderRadius: GeneralStyle.radius.lg,
+    borderWidth: 1,
+    borderColor: Colors.premiumLine,
+    backgroundColor: Colors.surfaceElevated,
+    ...Colors.Shadow,
+    elevation: 10,
+  },
+  commitmentTitle: {
+    ...FontsStyle.menuTitle,
+    color: Colors.darkGreen,
+    fontSize: 24,
+    textAlign: 'center',
+  },
+  commitmentIntro: {
+    ...FontsStyle.text,
+    color: Colors.slate,
+    marginTop: GeneralStyle.spacing.sm,
+  },
+  commitmentItems: {
+    gap: GeneralStyle.spacing.md,
+    marginVertical: GeneralStyle.spacing.lg,
+  },
+  commitmentItem: {
+    alignItems: 'flex-start',
+    gap: GeneralStyle.spacing.sm,
+  },
+  commitmentCheck: {
+    width: 24,
+    color: Colors.goldDark,
+    fontSize: 20,
+    fontWeight: '700',
+    textAlign: 'center',
+  },
+  commitmentItemText: {
+    ...FontsStyle.text,
+    flex: 1,
+    color: Colors.darkGreen,
+    lineHeight: 24,
+  },
+  commitmentAcceptButton: {
+    minHeight: 52,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: GeneralStyle.radius.md,
+    borderWidth: 1,
+    borderColor: Colors.premiumLine,
+    backgroundColor: Colors.navyDeep,
+  },
+  commitmentAcceptText: {
+    ...FontsStyle.textDecoration,
+    color: Colors.white,
+    fontSize: 17,
+    textAlign: 'center',
+  },
+  commitmentDeclineButton: {
+    minHeight: 46,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: GeneralStyle.spacing.sm,
+  },
+  commitmentDeclineText: {
+    ...FontsStyle.text,
+    color: Colors.slate,
+    textAlign: 'center',
+  },
   container: {
     flex: 1,
     width: "100%",

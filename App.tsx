@@ -99,7 +99,7 @@ const AppContent = () => {
         console.warn('Error loading onboarding state:', e);
         setInitialRoute('Login');
       } finally {
-        BootSplash.hide({fade: true});
+        await BootSplash.hide({fade: true});
       }
     };
     init();

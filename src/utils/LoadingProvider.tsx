@@ -1,4 +1,11 @@
-import React, {createContext, useContext, useEffect, useMemo, useState} from 'react';
+import React, {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
 import {clearLoadingHandlers, setLoadingHandlers} from './LoadingManager';
 
 type LoadingContextType = {
@@ -15,23 +22,25 @@ const LoadingContext = createContext<LoadingContextType>({
 
 export const LoadingProvider = ({children}: {children: React.ReactNode}) => {
   const [isLoading, setIsLoading] = useState(false);
+  const showLoader = useCallback(() => setIsLoading(true), []);
+  const hideLoader = useCallback(() => setIsLoading(false), []);
   const value = useMemo(
     () => ({
       isLoading,
-      showLoader: () => setIsLoading(true),
-      hideLoader: () => setIsLoading(false),
+      showLoader,
+      hideLoader,
     }),
-    [isLoading],
+    [hideLoader, isLoading, showLoader],
   );
 
   useEffect(() => {
     setLoadingHandlers({
-      show: value.showLoader,
-      hide: value.hideLoader,
+      show: showLoader,
+      hide: hideLoader,
     });
 
     return clearLoadingHandlers;
-  }, [value.hideLoader, value.showLoader]);
+  }, [hideLoader, showLoader]);
 
   return (
     <LoadingContext.Provider value={value}>

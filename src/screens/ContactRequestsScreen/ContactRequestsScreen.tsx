@@ -63,12 +63,10 @@ const ContactRequestsScreen = () => {
   const {t, isRTL} = useLanguage();
   const {showMessage} = useMessage();
   const [requests, setRequests] = useState<ContactRequest[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
   const [updatingId, setUpdatingId] = useState('');
 
   const fetchRequests = useCallback(async () => {
     try {
-      setIsLoading(true);
       const response = await api.get('/api/contact/requests');
       const nextRequests = Array.isArray(response.data?.requests)
         ? response.data.requests
@@ -86,8 +84,6 @@ const ContactRequestsScreen = () => {
         type: 'error',
         message: t(messageKey),
       });
-    } finally {
-      setIsLoading(false);
     }
   }, [showMessage, t]);
 
@@ -285,7 +281,7 @@ const ContactRequestsScreen = () => {
           data={requests}
           keyExtractor={item => item.id}
           renderItem={renderRequest}
-          refreshing={isLoading}
+          refreshing={false}
           onRefresh={fetchRequests}
           contentContainerStyle={styles.listContent}
           ListEmptyComponent={

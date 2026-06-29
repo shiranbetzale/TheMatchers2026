@@ -243,6 +243,31 @@ const getCityArea = (profile: any) => {
 
 const isTrueValue = (value: unknown) => String(value) === 'true';
 
+const isFalseValue = (value: unknown) => String(value) === 'false';
+
+const scoreOpenPreference = (
+  result: ScoreResult,
+  isOpenToTrait: unknown,
+  targetHasTrait: unknown,
+  points: number,
+  reasonKey: string,
+) => {
+  if (!isFalseValue(isOpenToTrait) || targetHasTrait === undefined) {
+    return;
+  }
+
+  if (isTrueValue(targetHasTrait)) {
+    addScore(result, -points);
+    return;
+  }
+
+  addScore(result, points, reasonKey);
+};
+
+const isBaalTeshuva = (profile: any) =>
+  normalizeId(profile?.hashkafa, HASHKAFA_MAP) === '4' ||
+  Boolean(String(profile?.hozerBitshoveAge || '').trim());
+
 const scoreTextPreference = (
   result: ScoreResult,
   preferredValue: unknown,
@@ -372,13 +397,111 @@ const scoreOneWay = (source: any, target: any) => {
     6,
     'matchReasonBodyType',
   );
+  scoreCheckbox(
+    result,
+    parseJsonArray(source.matchTypeOfPhone),
+    target.typeOfPhone,
+    4,
+    'matchReasonPhoneType',
+  );
 
-  if (
-    String(source.matchIsGer) !== 'false' ||
-    String(target.isGer) !== 'true'
-  ) {
-    addScore(result, 3);
+  if (['3', 'noMatter'].includes(normalizeId(source.matchSkinColor))) {
+    addScore(result, 2);
+  } else {
+    scorePreference(
+      result,
+      source.matchSkinColor,
+      target.skinColor,
+      4,
+      'matchReasonSkinTone',
+    );
   }
+
+  scoreCheckbox(
+    result,
+    parseJsonArray(source.matchBeardType),
+    target.beardType,
+    4,
+    'matchReasonBeard',
+  );
+  scoreCheckbox(
+    result,
+    parseJsonArray(source.matchClothes),
+    target.clothes,
+    4,
+    'matchReasonClothes',
+  );
+
+  scoreOpenPreference(
+    result,
+    source.matchIsWantSmoker,
+    target.isSmoker,
+    5,
+    'matchReasonNonSmoker',
+  );
+  scoreOpenPreference(
+    result,
+    source.matchIsWantCohen,
+    target.isCohen,
+    4,
+    'matchReasonCohen',
+  );
+  scoreOpenPreference(
+    result,
+    source.matchIsGer,
+    target.isGer,
+    5,
+    'matchReasonGer',
+  );
+  scoreOpenPreference(
+    result,
+    source.matchIsHozerBitshuva,
+    isBaalTeshuva(target),
+    4,
+    'matchReasonBaalTeshuva',
+  );
+  scoreOpenPreference(
+    result,
+    source.matchIsVaccinatedCorona,
+    target.isVaccinatedCorona,
+    3,
+    'matchReasonVaccination',
+  );
+  scoreOpenPreference(
+    result,
+    source.matchIsWantNationalService,
+    target.isNationalService,
+    3,
+    'matchReasonNationalService',
+  );
+  scoreOpenPreference(
+    result,
+    source.matchIsWantArmy,
+    target.isServedInArmy,
+    3,
+    'matchReasonArmy',
+  );
+  scoreOpenPreference(
+    result,
+    source.matchIsDrivingLicense,
+    target.isHasDrivingLicense,
+    3,
+    'matchReasonDrivingLicense',
+  );
+  scoreOpenPreference(
+    result,
+    source.matchIsWantOrphan,
+    target.isOrphan,
+    4,
+    'matchReasonOrphan',
+  );
+  scoreOpenPreference(
+    result,
+    source.matchIsWantDivorcedParents,
+    target.hasDivorcedParents,
+    4,
+    'matchReasonDivorcedParents',
+  );
 
   return result;
 };

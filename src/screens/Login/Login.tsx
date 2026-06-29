@@ -30,6 +30,7 @@ import {
   verifyCandidateCode,
   verifyCandidateFallbackCode,
 } from '../../services/auth';
+import {warmBackend} from '../../services/api';
 
 type LoginMode = 'matchmaker' | 'candidate';
 
@@ -220,6 +221,8 @@ const Login = () => {
 
   useEffect(() => {
     let isMounted = true;
+
+    void warmBackend();
 
     const redirectActiveSession = async () => {
       const validSession = await isSessionValid();

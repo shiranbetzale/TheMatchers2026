@@ -323,6 +323,18 @@ const detailsFormArray: FormField[] = [
     collapseTitle: 'generalDetails',
   },
   {
+    id: 'isOrphan',
+    text: 'orphanQuestion',
+    fieldType: 'switch',
+    collapseTitle: 'generalDetails',
+  },
+  {
+    id: 'hasDivorcedParents',
+    text: 'divorcedParentsQuestion',
+    fieldType: 'switch',
+    collapseTitle: 'generalDetails',
+  },
+  {
     id: 'zerem',
     text: 'communityLabel',
     fieldType: 'select',

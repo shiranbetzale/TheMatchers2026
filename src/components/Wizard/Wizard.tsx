@@ -26,6 +26,7 @@ import detailsFormArray from '../../utils/DetailsFormFields';
 import matchFormArray from '../../utils/MatchFormFields';
 import {
   hasVisibleFieldErrors,
+  findFieldOptionByValue,
   isFormComplete,
   normalizeWizardFieldValue,
   validateWizardField,
@@ -286,14 +287,10 @@ const applyWizardOptionIds = (
       }
     }
 
-    const selectedOption = field.options.find(
-      option =>
-        option.label === value ||
-        option.name === value ||
-        String(option.id) === String(value),
-    );
+    const selectedOption = findFieldOptionByValue(field, value);
 
     if (selectedOption) {
+      nextValues[field.id] = selectedOption.label;
       nextValues[`${field.id}OptionId`] = String(selectedOption.id);
     }
   });
@@ -627,7 +624,7 @@ const getProfileId = (profile?: Record<string, unknown> | MatchCardType) =>
       '',
   ).trim();
 
-const Wizard = () => {
+const WizardContent = () => {
   const navigation = useNavigation<WizardNavigationProp>();
   const route = useRoute<WizardRouteProp>();
   const {t, isRTL} = useLanguage();
@@ -1543,6 +1540,130 @@ const Wizard = () => {
       {renderRelationshipFloatingButton()}
     </HomeScreen>
   );
+};
+
+const Wizard = () => {
+  const navigation = useNavigation<WizardNavigationProp>();
+  const {t, isRTL} = useLanguage();
+  const [isCheckingAccess, setIsCheckingAccess] = useState(true);
+  const [requiresCommitment, setRequiresCommitment] = useState(false);
+  const [hasAcceptedCommitment, setHasAcceptedCommitment] = useState(false);
+  const [isLeaving, setIsLeaving] = useState(false);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    getSessionRole()
+      .then(role => {
+        if (isMounted) {
+          setRequiresCommitment(role === 'user');
+        }
+      })
+      .finally(() => {
+        if (isMounted) {
+          setIsCheckingAccess(false);
+        }
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const declineCommitment = async () => {
+    if (isLeaving) {
+      return;
+    }
+
+    setIsLeaving(true);
+    await clearSession();
+    navigation.dispatch(
+      CommonActions.reset({
+        index: 0,
+        routes: [{name: 'Login'}],
+      }),
+    );
+  };
+
+  if (isCheckingAccess) {
+    return <View style={styles.commitmentGateScreen} />;
+  }
+
+  if (requiresCommitment && !hasAcceptedCommitment) {
+    return (
+      <View style={styles.commitmentGateScreen}>
+        <Modal
+          transparent
+          visible
+          animationType="fade"
+          statusBarTranslucent
+          onRequestClose={() => undefined}>
+          <View style={styles.commitmentOverlay}>
+            <View style={styles.commitmentModal}>
+              <CustomText
+                text="candidateCommitmentTitle"
+                customStyle={[
+                  styles.commitmentTitle,
+                  isRTL ? styles.textRight : styles.textLeft,
+                ]}
+              />
+              <CustomText
+                text="candidateCommitmentIntro"
+                customStyle={[
+                  styles.commitmentIntro,
+                  isRTL ? styles.textRight : styles.textLeft,
+                ]}
+              />
+
+              <View style={styles.commitmentItems}>
+                {[
+                  'candidateCommitmentTruth',
+                  'candidateCommitmentObservance',
+                  'candidateCommitmentPayment',
+                ].map(item => (
+                  <View
+                    key={item}
+                    style={[
+                      styles.commitmentItem,
+                      isRTL ? styles.rowReverse : styles.row,
+                    ]}>
+                    <CustomText text="✓" customStyle={styles.commitmentCheck} />
+                    <CustomText
+                      text={item}
+                      customStyle={[
+                        styles.commitmentItemText,
+                        isRTL ? styles.textRight : styles.textLeft,
+                      ]}
+                    />
+                  </View>
+                ))}
+              </View>
+
+              <TouchableOpacity
+                style={styles.commitmentAcceptButton}
+                onPress={() => setHasAcceptedCommitment(true)}>
+                <CustomText
+                  text="candidateCommitmentAccept"
+                  customStyle={styles.commitmentAcceptText}
+                />
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.commitmentDeclineButton}
+                disabled={isLeaving}
+                onPress={declineCommitment}>
+                <CustomText
+                  text={isLeaving ? 'loading' : 'candidateCommitmentDecline'}
+                  customStyle={styles.commitmentDeclineText}
+                />
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
+      </View>
+    );
+  }
+
+  return <WizardContent />;
 };
 
 export default Wizard;

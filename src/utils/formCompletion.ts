@@ -1,4 +1,5 @@
 import {FormField} from './FormFields.type';
+import translations from '../translations';
 
 const isFilled = (value: unknown) =>
   value !== undefined && value !== null && String(value).trim().length > 0;
@@ -61,6 +62,43 @@ const parseMultiValue = (value: unknown) => {
   return null;
 };
 
+const normalizeOptionValue = (value: unknown) =>
+  String(value || '')
+    .trim()
+    .toLowerCase();
+
+export const findFieldOptionByValue = (
+  field: FormField | undefined,
+  value: unknown,
+) => {
+  const normalizedValue = normalizeOptionValue(value);
+
+  if (!normalizedValue) {
+    return undefined;
+  }
+
+  return field?.options?.find(option => {
+    const translationKeys = [
+      option.label,
+      ...Object.values(option.genderLabels || {}),
+    ];
+    const translatedValues = Object.values(translations).flatMap(language =>
+      translationKeys.map(key => language[key]),
+    );
+    const possibleValues = [
+      option.id,
+      option.label,
+      option.name,
+      ...Object.values(option.genderLabels || {}),
+      ...translatedValues,
+    ];
+
+    return possibleValues.some(
+      possibleValue => normalizeOptionValue(possibleValue) === normalizedValue,
+    );
+  });
+};
+
 export const getSelectedConditionValue = (
   fieldId: string,
   values: Record<string, string>,
@@ -70,9 +108,7 @@ export const getSelectedConditionValue = (
   const field = fields.find(item => item.id === fieldId);
 
   if (storedOptionId) {
-    const selectedOption = field?.options?.find(
-      option => String(option.id) === String(storedOptionId),
-    );
+    const selectedOption = findFieldOptionByValue(field, storedOptionId);
 
     if (
       selectedOption &&
@@ -104,18 +140,13 @@ export const getSelectedConditionValue = (
 
   if (multiValue) {
     return multiValue.flatMap(item => {
-      const option = field?.options?.find(
-        nextOption =>
-          nextOption.label === item ||
-          nextOption.name === item ||
-          String(nextOption.id) === item,
-      );
+      const option = findFieldOptionByValue(field, item);
 
       return option ? [String(option.id), option.label, option.name] : [item];
     });
   }
 
-  const option = field?.options?.find(item => item.label === value);
+  const option = findFieldOptionByValue(field, value);
 
   return option ? String(option.id) : value;
 };

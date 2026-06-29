@@ -223,13 +223,15 @@ const MatchCard = (props: MatchCardType) => {
       ...(candidateCard
         ? [
             ...buildShareSection(
-              'המשודך/ת:',
+              '*👤 המשודך/ת*',
               candidateCard,
               !shareWithoutImages,
             ),
             '',
+            '──────────',
+            '',
             ...buildShareSection(
-              'ההתאמה:',
+              '*✨ ההתאמה המוצעת*',
               matchCard,
               !shareWithoutImages,
             ),
@@ -237,12 +239,13 @@ const MatchCard = (props: MatchCardType) => {
         : buildShareSection('', matchCard, !shareWithoutImages)),
       '',
       '📞 לפרטים נוספים:',
-      cleanLine('שדכנית', matcherName),
-      cleanLine('נייד שדכנית', matcherPhone),
-      matcherMail ? cleanLine('מייל', matcherMail) : '',
+      cleanLine('👩‍💼 שדכנית', matcherName),
+      cleanLine('📱 נייד שדכנית', matcherPhone),
+      matcherMail ? cleanLine('✉️ מייל', matcherMail) : '',
     ]
-      .filter(Boolean)
-      .join('\n');
+      .join('\n')
+      .replace(/\n{3,}/g, '\n\n')
+      .trim();
   }, [
     matcherMail,
     matcherName,

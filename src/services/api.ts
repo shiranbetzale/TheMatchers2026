@@ -6,19 +6,37 @@ import {hideGlobalLoader, showGlobalLoader} from '../utils/LoadingManager';
 export const API_TOKEN_KEY = 'authToken';
 
 const DEV_SERVER_URL = 'https://thematchers-backend.onrender.com';
-const LOADER_DELAY_MS = 350;
 const REQUEST_TIMEOUT_MS = 20000;
+const BACKEND_WARMUP_TIMEOUT_MS = 60000;
 
 let activeRequests = 0;
-let loaderTimer: ReturnType<typeof setTimeout> | null = null;
 let isLoaderVisible = false;
 let cachedAuthToken: string | null | undefined;
 let authTokenLoadPromise: Promise<string | null> | null = null;
+let backendWarmupPromise: Promise<void> | null = null;
 
 const api = axios.create({
   baseURL: DEV_SERVER_URL,
   timeout: REQUEST_TIMEOUT_MS,
 });
+
+export const warmBackend = () => {
+  if (!backendWarmupPromise) {
+    backendWarmupPromise = api
+      .get('/health', {
+        skipLoader: true,
+        skipAuthToken: true,
+        timeout: BACKEND_WARMUP_TIMEOUT_MS,
+      })
+      .then(() => undefined)
+      .catch(() => undefined)
+      .finally(() => {
+        backendWarmupPromise = null;
+      });
+  }
+
+  return backendWarmupPromise;
+};
 
 const loadAuthToken = async () => {
   if (cachedAuthToken !== undefined) {
@@ -51,18 +69,12 @@ export const clearApiAuthToken = async () => {
 const startLoading = () => {
   activeRequests += 1;
 
-  if (loaderTimer || isLoaderVisible) {
+  if (isLoaderVisible) {
     return;
   }
 
-  loaderTimer = setTimeout(() => {
-    loaderTimer = null;
-
-    if (activeRequests > 0) {
-      isLoaderVisible = true;
-      showGlobalLoader();
-    }
-  }, LOADER_DELAY_MS);
+  isLoaderVisible = true;
+  showGlobalLoader();
 };
 
 const stopLoading = () => {
@@ -70,11 +82,6 @@ const stopLoading = () => {
 
   if (activeRequests !== 0) {
     return;
-  }
-
-  if (loaderTimer) {
-    clearTimeout(loaderTimer);
-    loaderTimer = null;
   }
 
   if (isLoaderVisible) {

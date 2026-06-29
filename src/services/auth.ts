@@ -4,6 +4,8 @@ import {Platform} from 'react-native';
 import api, {setApiAuthToken} from './api';
 import {saveSession} from './session';
 
+const AUTH_REQUEST_TIMEOUT_MS = 60000;
+
 type LoginResponse = {
   token: string;
   user: {
@@ -25,6 +27,7 @@ export async function loginWithPassword(phone: string, password: string) {
     },
     {
       skipAuthToken: true,
+      timeout: AUTH_REQUEST_TIMEOUT_MS,
     },
   );
 
@@ -86,6 +89,7 @@ export const sendCandidateCode = async (
     },
     {
       skipAuthToken: true,
+      timeout: AUTH_REQUEST_TIMEOUT_MS,
     },
   );
 
@@ -137,6 +141,7 @@ export const verifyCandidateCode = async ({
     },
     {
       skipAuthToken: true,
+      timeout: AUTH_REQUEST_TIMEOUT_MS,
     },
   );
 
@@ -163,6 +168,7 @@ export const verifyCandidateFallbackCode = async ({
     },
     {
       skipAuthToken: true,
+      timeout: AUTH_REQUEST_TIMEOUT_MS,
     },
   );
 

@@ -2,12 +2,11 @@ import React, {useEffect, useRef} from 'react';
 import {Animated, Easing, Modal, StyleSheet, View} from 'react-native';
 import {useLoading} from './LoadingProvider';
 
-const GlobalLoader = () => {
-  const {isLoading} = useLoading();
+export const GlobalLoaderVisual = ({active = true}: {active?: boolean}) => {
   const pulseAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    if (!isLoading) {
+    if (!active) {
       pulseAnim.setValue(0);
       return;
     }
@@ -32,7 +31,7 @@ const GlobalLoader = () => {
     animation.start();
 
     return () => animation.stop();
-  }, [isLoading, pulseAnim]);
+  }, [active, pulseAnim]);
 
   const iconScale = pulseAnim.interpolate({
     inputRange: [0, 1],
@@ -50,29 +49,38 @@ const GlobalLoader = () => {
   });
 
   return (
-    <Modal transparent visible={isLoading} animationType="fade">
+    <>
+      <Animated.Image
+        source={require('../../assets/app-icon/app-icon-1024.png')}
+        style={[
+          styles.iconGlow,
+          {
+            opacity: haloOpacity,
+            transform: [{scale: haloScale}],
+          },
+        ]}
+        resizeMode="contain"
+      />
+      <Animated.Image
+        source={require('../../assets/app-icon/app-icon-1024.png')}
+        style={[styles.icon, {transform: [{scale: iconScale}]}]}
+        resizeMode="contain"
+      />
+    </>
+  );
+};
+
+const GlobalLoader = () => {
+  const {isLoading} = useLoading();
+
+  return (
+    <Modal
+      transparent
+      visible={isLoading}
+      animationType="fade"
+      statusBarTranslucent>
       <View style={styles.overlay}>
-        <Animated.Image
-          source={require('../../assets/app-icon/app-icon-1024.png')}
-          style={[
-            styles.iconGlow,
-            {
-              opacity: haloOpacity,
-              transform: [{scale: haloScale}],
-            },
-          ]}
-          resizeMode="cover"
-        />
-        <Animated.Image
-          source={require('../../assets/app-icon/app-icon-1024.png')}
-          style={[
-            styles.icon,
-            {
-              transform: [{scale: iconScale}],
-            },
-          ]}
-          resizeMode="cover"
-        />
+        <GlobalLoaderVisual active={isLoading} />
       </View>
     </Modal>
   );
