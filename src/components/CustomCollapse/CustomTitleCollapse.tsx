@@ -9,7 +9,9 @@ const CustomTitleCollapse = (props: CustomTitleCollapseType) => {
 
   return (
     <CustomButton
+      unstyled
       onPress={handlePress}
+      accessibilityLabel={title}
       customStyle={[styles.collapseBtn, isDisabled && styles.lockedCollapseBtn]}
       isDisabled={isDisabled}>
       <CustomText customStyle={styles.collapseTitle} text={title} />

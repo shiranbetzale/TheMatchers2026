@@ -1,9 +1,11 @@
 import {StyleSheet} from 'react-native';
 import Colors from '../../utils/Colors';
-import {FontsStyle} from '../../utils/FontsStyle';
+import {FontSize, FontsStyle} from '../../utils/FontsStyle';
 import GeneralStyle from '../../utils/GeneralStyle';
+import SharedStyles from '../../utils/SharedStyles';
 
 export const styles = StyleSheet.create({
+  ...SharedStyles,
   headerWrapper: {
     gap: GeneralStyle.spacing.xs,
     paddingHorizontal: GeneralStyle.spacing.md,
@@ -28,12 +30,6 @@ export const styles = StyleSheet.create({
     color: Colors.slate,
     textAlign: 'right',
   },
-  row: {
-    flexDirection: 'row',
-  },
-  rowReverse: {
-    flexDirection: 'row-reverse',
-  },
   statsRow: {
     gap: GeneralStyle.spacing.sm,
     marginTop: GeneralStyle.spacing.sm,
@@ -50,12 +46,12 @@ export const styles = StyleSheet.create({
   statValue: {
     ...FontsStyle.menuTitle,
     color: Colors.color1,
-    fontSize: 20,
+    fontSize: FontSize.title,
   },
   statLabel: {
     ...FontsStyle.text,
     color: Colors.darkGreen,
-    fontSize: 12,
+    fontSize: FontSize.caption,
     textAlign: 'center',
   },
   listContent: {
@@ -64,8 +60,6 @@ export const styles = StyleSheet.create({
   },
   card: {
     gap: GeneralStyle.spacing.md,
-    borderTopWidth: 3,
-    borderTopColor: Colors.premiumLine,
   },
   cardHeader: {
     alignItems: 'flex-start',
@@ -80,12 +74,12 @@ export const styles = StyleSheet.create({
   requestName: {
     ...FontsStyle.subTitle,
     color: Colors.darkGreen,
-    fontSize: 21,
+    fontSize: FontSize.title,
   },
   requestMeta: {
     ...FontsStyle.text,
     color: Colors.slate,
-    fontSize: 13,
+    fontSize: FontSize.caption,
     lineHeight: 19,
   },
   statusBadge: {
@@ -102,13 +96,13 @@ export const styles = StyleSheet.create({
     backgroundColor: Colors.goldWash,
   },
   statusBadgeHandled: {
-    borderColor: Colors.emerald,
+    borderColor: Colors.darkGreen,
     backgroundColor: Colors.successSoft,
   },
   statusText: {
     ...FontsStyle.text,
     color: Colors.darkGreen,
-    fontSize: 12,
+    fontSize: FontSize.caption,
     textAlign: 'center',
   },
   messageText: {
@@ -119,7 +113,7 @@ export const styles = StyleSheet.create({
   emailError: {
     ...FontsStyle.text,
     color: Colors.danger,
-    fontSize: 13,
+    fontSize: FontSize.caption,
     textAlign: 'right',
   },
   actions: {
@@ -127,17 +121,17 @@ export const styles = StyleSheet.create({
   },
   actionButton: {
     flex: 1,
-    minHeight: 42,
+    minHeight: GeneralStyle.size.control,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
     borderColor: Colors.borderSoft,
     borderRadius: GeneralStyle.radius.sm,
-    backgroundColor: Colors.surfaceElevated,
+    backgroundColor: Colors.white,
   },
   handledButton: {
-    borderColor: Colors.emerald,
-    backgroundColor: Colors.emerald,
+    borderColor: Colors.darkGreen,
+    backgroundColor: Colors.darkGreen,
   },
   actionButtonDisabled: {
     opacity: 0.48,
@@ -160,13 +154,5 @@ export const styles = StyleSheet.create({
     ...FontsStyle.text,
     color: Colors.slate,
     textAlign: 'center',
-  },
-  textRight: {
-    textAlign: 'right',
-    writingDirection: 'rtl',
-  },
-  textLeft: {
-    textAlign: 'left',
-    writingDirection: 'ltr',
   },
 });

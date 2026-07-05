@@ -1,17 +1,19 @@
 import { StyleSheet } from 'react-native';
 import Colors from '../../utils/Colors';
 import GeneralStyle from '../../utils/GeneralStyle';
-import {FontsStyle} from '../../utils/FontsStyle';
+import {FontSize, FontsStyle} from '../../utils/FontsStyle';
+import SharedStyles from '../../utils/SharedStyles';
 
 export const styles = StyleSheet.create({
+  ...SharedStyles,
   container: {
     width: '100%',
-    minHeight: 76,
+    minHeight: GeneralStyle.size.avatarSmall,
     alignItems: 'stretch',
     justifyContent: "center",
   },
   smallContainer: {
-    minHeight: 104,
+    minHeight: GeneralStyle.size.label,
   },
   label: {
     ...FontsStyle.questionLabel,
@@ -38,11 +40,11 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
   },
   rangeText: {
-    width: 118,
+    width: GeneralStyle.size.media,
     alignItems: 'center',
   },
   smallRangeText: {
-    width: 104,
+    width: GeneralStyle.size.label,
     alignItems: 'center',
   },
   stepperRow: {
@@ -59,7 +61,7 @@ export const styles = StyleSheet.create({
     right: 0
   },
   markerStyle: {
-    backgroundColor: Colors.surfaceElevated,
+    backgroundColor: Colors.white,
     borderWidth: 2,
     borderColor: Colors.color1,
   },
@@ -77,8 +79,8 @@ export const styles = StyleSheet.create({
     gap: 3,
   },
   stepButton: {
-    width: 30,
-    height: 30,
+    width: GeneralStyle.size.controlSm,
+    height: GeneralStyle.size.controlSm,
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: GeneralStyle.radius.sm,
@@ -94,27 +96,19 @@ export const styles = StyleSheet.create({
   stepButtonText: {
     ...FontsStyle.subTitle,
     color: Colors.darkGreen,
-    fontSize: 18,
+    fontSize: FontSize.large,
     lineHeight: 20,
     textAlign: 'center',
   },
   stepValue: {
     ...FontsStyle.text,
-    minWidth: 34,
-    height: 34,
+    minWidth: GeneralStyle.size.icon,
+    height: GeneralStyle.size.icon,
     paddingHorizontal: 2,
     paddingVertical: 0,
     textAlign: 'center',
     color: Colors.darkGreen,
     borderBottomWidth: 1,
     borderBottomColor: Colors.borderSoft,
-  },
-  textRight: {
-    textAlign: 'right',
-    writingDirection: 'rtl',
-  },
-  textLeft: {
-    textAlign: 'left',
-    writingDirection: 'ltr',
   },
 });

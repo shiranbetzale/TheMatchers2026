@@ -1,6 +1,6 @@
 import { StyleSheet } from 'react-native';
 import Colors from '../../utils/Colors';
-import {FontsStyle} from '../../utils/FontsStyle';
+import {FontSize, FontsStyle} from '../../utils/FontsStyle';
 import GeneralStyle from '../../utils/GeneralStyle';
 
 export const styles = StyleSheet.create({
@@ -35,7 +35,7 @@ export const styles = StyleSheet.create({
     title: {
         ...FontsStyle.menuTitle,
         color: Colors.darkGreen,
-        fontSize: 24,
+        fontSize: FontSize.section,
         textAlign: "center",
     },
     sidePlaceholder: {

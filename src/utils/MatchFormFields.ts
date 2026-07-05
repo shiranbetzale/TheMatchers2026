@@ -329,6 +329,12 @@ const matchFormArray: FormField[] = [
         label: 'yeshivaEducation',
         isShow: [{fieldId: 'gender', value: '2'}],
       },
+      {
+        id: 5,
+        name: 'matchEducation',
+        label: 'chitzimEducation',
+        isShow: [{fieldId: 'gender', value: '1'}],
+      },
     ],
     collapseTitle: 'workAndEducation',
   },

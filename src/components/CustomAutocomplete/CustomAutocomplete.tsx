@@ -1,11 +1,13 @@
 import React, {useEffect, useMemo, useRef, useState} from 'react';
-import {Pressable, ScrollView, TextInput, View} from 'react-native';
+import CustomButton from '../CustomButton/CustomButton';
+import {Keyboard, ScrollView, TextInput, View} from 'react-native';
 import {useLanguage} from '../../utils/LanguageProvider';
 import {Option} from '../../utils/FormFields.type';
 import CustomText from '../CustomText/CustomText';
 import {styles} from './CustomAutocomplete.style';
 import {CustomAutocompleteType} from './CustomAutocomplete.type';
 import {fetchIsraelCities} from '../../services/cities';
+import Colors from '../../utils/Colors';
 
 const CustomAutocomplete = (props: CustomAutocompleteType) => {
   const {
@@ -26,6 +28,7 @@ const CustomAutocomplete = (props: CustomAutocompleteType) => {
   const [isLoading, setIsLoading] = useState(false);
   const [selectedText, setSelectedText] = useState('');
   const requestIdRef = useRef(0);
+  const inputRef = useRef<TextInput>(null);
 
   const valueText = value?.toString() || selectedText;
 
@@ -89,6 +92,8 @@ const CustomAutocomplete = (props: CustomAutocompleteType) => {
     onChangeText(selectedLabel);
     onSelect(option);
     setIsOpen(false);
+    inputRef.current?.blur();
+    Keyboard.dismiss();
   };
 
   return (
@@ -109,6 +114,7 @@ const CustomAutocomplete = (props: CustomAutocompleteType) => {
 
       <View style={styles.inputWrapper}>
         <TextInput
+          ref={inputRef}
           style={[
             isSmallSize ? styles.smallInput : styles.input,
             styles.baseInput,
@@ -118,7 +124,7 @@ const CustomAutocomplete = (props: CustomAutocompleteType) => {
           editable={isEditable}
           value={valueText}
           placeholder={t('selectPlaceholder')}
-          placeholderTextColor="#A8ADB7"
+          placeholderTextColor={Colors.placeholder}
           onFocus={() => setIsOpen(true)}
           onChangeText={nextValue => {
             setSelectedText(nextValue);
@@ -149,7 +155,7 @@ const CustomAutocomplete = (props: CustomAutocompleteType) => {
                 nestedScrollEnabled
                 showsVerticalScrollIndicator={false}>
                 {filteredOptions.map(option => (
-                  <Pressable
+                  <CustomButton unstyled
                     key={`${option.name}_${option.id}_${option.label}`}
                     onPress={() => handleSelect(option)}
                     style={styles.suggestionItem}>
@@ -160,7 +166,7 @@ const CustomAutocomplete = (props: CustomAutocompleteType) => {
                         isRTL ? styles.textRight : styles.textLeft,
                       ]}
                     />
-                  </Pressable>
+                  </CustomButton>
                 ))}
               </ScrollView>
             ) : (

@@ -1,9 +1,11 @@
 import {StyleSheet} from 'react-native';
 import Colors from '../../utils/Colors';
-import {FontsStyle} from '../../utils/FontsStyle';
+import {FontSize, FontsStyle} from '../../utils/FontsStyle';
 import GeneralStyle from '../../utils/GeneralStyle';
+import SharedStyles from '../../utils/SharedStyles';
 
 const sheet = StyleSheet.create({
+  ...SharedStyles,
   container: {
     flex: 1,
     width: '100%',
@@ -15,7 +17,7 @@ const sheet = StyleSheet.create({
     paddingHorizontal: GeneralStyle.spacing.sm,
     paddingTop: GeneralStyle.spacing.xs,
     paddingBottom: GeneralStyle.spacing.sm,
-    backgroundColor: Colors.surface,
+    backgroundColor: Colors.ivory,
     borderBottomWidth: 1,
     borderBottomColor: Colors.borderSoft,
   },
@@ -28,27 +30,9 @@ const sheet = StyleSheet.create({
   headerText: {
     flex: 1,
   },
-  row: {
-    flexDirection: 'row',
-  },
-  rowReverse: {
-    flexDirection: 'row-reverse',
-  },
-  alignStart: {
-    alignItems: 'flex-start',
-  },
-  alignEnd: {
-    alignItems: 'flex-end',
-  },
-  textLeft: {
-    textAlign: 'left',
-  },
-  textRight: {
-    textAlign: 'right',
-  },
   title: {
     ...FontsStyle.menuTitle,
-    fontSize: 20,
+    fontSize: FontSize.title,
     color: Colors.darkGreen,
   },
   subtitle: {
@@ -57,27 +41,27 @@ const sheet = StyleSheet.create({
     marginTop: GeneralStyle.spacing.xs,
   },
   countBadge: {
-    minWidth: 64,
+    minWidth: GeneralStyle.size.badge,
     alignItems: 'center',
+    justifyContent: 'center',
     paddingVertical: GeneralStyle.spacing.xs,
     paddingHorizontal: GeneralStyle.spacing.sm,
     borderWidth: 1,
     borderColor: Colors.borderSoft,
     borderRadius: GeneralStyle.radius.md,
-    backgroundColor: Colors.champagne,
-    borderTopWidth: 0,
-    borderLeftWidth: 3,
-    borderLeftColor: Colors.color1,
+    backgroundColor: Colors.goldWash,
   },
   countText: {
     ...FontsStyle.menuTitle,
-    fontSize: 20,
+    fontSize: FontSize.title,
     color: Colors.color1,
+    textAlign: 'center',
   },
   countLabel: {
     ...FontsStyle.text,
     color: Colors.darkGreen,
-    fontSize: 12,
+    fontSize: FontSize.body,
+    textAlign: 'center',
   },
   calendarButton: {
     marginBottom: GeneralStyle.spacing.sm,
@@ -90,12 +74,13 @@ const sheet = StyleSheet.create({
     color: Colors.ivory,
   },
   sectionHeader: {
+    marginTop: GeneralStyle.spacing.md,
     marginBottom: GeneralStyle.spacing.sm,
   },
   sectionTitle: {
-    ...FontsStyle.subTitle,
+    ...FontsStyle.menuTitle,
     color: Colors.darkGreen,
-    fontSize: 18,
+    fontSize: FontSize.section,
   },
   card: {
     marginBottom: GeneralStyle.spacing.sm,
@@ -119,32 +104,32 @@ const sheet = StyleSheet.create({
     borderRadius: GeneralStyle.radius.md,
     borderWidth: 1,
     borderColor: Colors.premiumLine,
-    backgroundColor: Colors.surfaceElevated,
+    backgroundColor: Colors.white,
   },
   aiScoreValue: {
     ...FontsStyle.menuTitle,
     color: Colors.darkGreen,
-    fontSize: 20,
+    fontSize: FontSize.title,
     textAlign: 'center',
   },
   aiScoreLabel: {
     ...FontsStyle.text,
     color: Colors.goldDark,
-    fontSize: 11,
+    fontSize: FontSize.caption,
     textAlign: 'center',
   },
   aiReasons: {
     flex: 1,
   },
   aiReasonsTitle: {
-    ...FontsStyle.subTitle,
+    ...FontsStyle.menuTitle,
     color: Colors.darkGreen,
-    fontSize: 15,
+    fontSize: FontSize.section,
   },
   aiReasonsText: {
     ...FontsStyle.text,
     color: Colors.slate,
-    fontSize: 12,
+    fontSize: FontSize.caption,
     marginTop: 2,
   },
   meetingPanel: {
@@ -162,18 +147,14 @@ const sheet = StyleSheet.create({
   fieldLabel: {
     ...FontsStyle.subTitle,
     color: Colors.darkGreen,
-    fontSize: 15,
+    fontSize: FontSize.small,
   },
   meetingStatusRow: {
     gap: GeneralStyle.spacing.xs,
   },
-  trackingPanel: {
-    gap: GeneralStyle.spacing.xs,
-    paddingVertical: GeneralStyle.spacing.xs,
-  },
   statusButton: {
     flex: 1,
-    minHeight: 44,
+    minHeight: GeneralStyle.size.control,
     flexDirection: 'row-reverse',
     alignItems: 'center',
     justifyContent: 'center',
@@ -190,9 +171,6 @@ const sheet = StyleSheet.create({
     backgroundColor: Colors.darkGreen,
     borderColor: Colors.color1,
   },
-  statusButtonReadonly: {
-    opacity: 0.75,
-  },
   statusButtonText: {
     ...FontsStyle.text,
     color: Colors.darkGreen,
@@ -207,18 +185,18 @@ const sheet = StyleSheet.create({
     backgroundColor: Colors.color1,
   },
   meetingField: {
-    minHeight: 44,
+    minHeight: GeneralStyle.size.control,
     alignItems: 'center',
     gap: GeneralStyle.spacing.xs,
     paddingHorizontal: GeneralStyle.spacing.xs,
     borderWidth: 1,
     borderColor: Colors.borderSoft,
     borderRadius: GeneralStyle.radius.md,
-    backgroundColor: Colors.surfaceElevated,
+    backgroundColor: Colors.white,
   },
   meetingIconBox: {
-    width: 32,
-    height: 32,
+    width: GeneralStyle.size.iconMd,
+    height: GeneralStyle.size.iconMd,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
@@ -238,7 +216,7 @@ const sheet = StyleSheet.create({
   meetingInput: {
     ...FontsStyle.text,
     flex: 1,
-    minHeight: 40,
+    minHeight: GeneralStyle.size.iconLarge,
     color: Colors.darkGreen,
     paddingVertical: 0,
   },
@@ -246,13 +224,13 @@ const sheet = StyleSheet.create({
     width: '100%',
   },
   invalidMeetingField: {
-    borderColor: '#DFA097',
-    backgroundColor: '#FFF5F1',
+    borderColor: Colors.danger,
+    backgroundColor: Colors.dangerSoft,
   },
   validationText: {
     ...FontsStyle.text,
-    color: '#9F4239',
-    fontSize: 12,
+    color: Colors.danger,
+    fontSize: FontSize.caption,
     textAlign: 'right',
   },
   availableMessage: {
@@ -298,25 +276,25 @@ const sheet = StyleSheet.create({
   modalTitle: {
     ...FontsStyle.menuTitle,
     color: Colors.darkGreen,
-    fontSize: 20,
+    fontSize: FontSize.title,
   },
   modalCloseButton: {
-    width: 34,
-    height: 34,
+    width: GeneralStyle.size.icon,
+    height: GeneralStyle.size.icon,
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: GeneralStyle.radius.md,
     borderWidth: 1,
     borderColor: Colors.borderSoft,
-    backgroundColor: Colors.surfaceElevated,
+    backgroundColor: Colors.white,
   },
   modalCloseText: {
     ...FontsStyle.text,
+    ...SharedStyles.iconGlyphText,
     color: Colors.darkGreen,
-    fontSize: 24,
-    lineHeight: 28,
   },
   modalSaveButton: {
+    flex: 1,
     marginTop: 4,
     paddingVertical: GeneralStyle.spacing.sm,
     backgroundColor: Colors.darkGreen,
@@ -326,18 +304,32 @@ const sheet = StyleSheet.create({
     ...FontsStyle.text,
     color: Colors.ivory,
   },
+  modalActions: {
+    gap: GeneralStyle.spacing.sm,
+  },
+  modalCancelButton: {
+    flex: 1,
+    marginTop: 4,
+    paddingVertical: GeneralStyle.spacing.sm,
+    backgroundColor: Colors.white,
+    borderColor: Colors.borderSoft,
+  },
+  modalCancelText: {
+    ...FontsStyle.text,
+    color: Colors.darkGreen,
+  },
   inlineTimePicker: {
     gap: GeneralStyle.spacing.xs,
     padding: GeneralStyle.spacing.xs,
     borderRadius: GeneralStyle.radius.md,
     borderWidth: 1,
     borderColor: Colors.borderSoft,
-    backgroundColor: Colors.surfaceElevated,
+    backgroundColor: Colors.white,
   },
   timePickerValue: {
     ...FontsStyle.menuTitle,
     color: Colors.darkGreen,
-    fontSize: 26,
+    fontSize: FontSize.display,
     textAlign: 'center',
     writingDirection: 'ltr',
   },
@@ -354,7 +346,7 @@ const sheet = StyleSheet.create({
   },
   timePickerSeparator: {
     width: 1,
-    height: 88,
+    height: GeneralStyle.size.avatar,
     backgroundColor: Colors.borderSoft,
   },
   timePickerLabel: {
@@ -363,8 +355,8 @@ const sheet = StyleSheet.create({
     textAlign: 'center',
   },
   timePickerButton: {
-    width: 44,
-    height: 34,
+    width: GeneralStyle.size.control,
+    height: GeneralStyle.size.icon,
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: GeneralStyle.radius.md,
@@ -375,13 +367,13 @@ const sheet = StyleSheet.create({
   timePickerButtonText: {
     ...FontsStyle.subTitle,
     color: Colors.darkGreen,
-    fontSize: 24,
+    fontSize: FontSize.section,
     lineHeight: 28,
   },
   timePickerPart: {
     ...FontsStyle.menuTitle,
     color: Colors.darkGreen,
-    fontSize: 24,
+    fontSize: FontSize.section,
     textAlign: 'center',
     writingDirection: 'ltr',
   },

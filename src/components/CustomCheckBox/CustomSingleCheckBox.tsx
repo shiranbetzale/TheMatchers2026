@@ -1,8 +1,9 @@
-import React, {useEffect, useState} from "react";
-import {Text, TouchableOpacity, View} from "react-native";
-import { styles } from "./CustomCheckBox.style";
-import CustomText from "../CustomText/CustomText";
-import { Option } from "../../utils/FormFields.type";
+import React, {useEffect, useState} from 'react';
+import CustomButton from '../CustomButton/CustomButton';
+import {Text, View} from 'react-native';
+import {styles} from './CustomCheckBox.style';
+import CustomText from '../CustomText/CustomText';
+import {Option} from '../../utils/FormFields.type';
 
 type SingleCheckBoxProps = Option & {
   isRTL?: boolean;
@@ -38,7 +39,11 @@ const CustomSingleCheckBox = (props: SingleCheckBoxProps) => {
 
   return (
     <React.Fragment>
-      <TouchableOpacity
+      <CustomButton
+        unstyled
+        accessibilityLabel={label}
+        accessibilityRole="checkbox"
+        accessibilityState={{checked: isSelected, disabled: !isEditable}}
         activeOpacity={0.85}
         disabled={!isEditable}
         onPress={() => handleToggle(!isSelected)}
@@ -53,7 +58,7 @@ const CustomSingleCheckBox = (props: SingleCheckBoxProps) => {
             <Text style={styles.checkMark}>✓</Text>
           </View>
         )}
-      </TouchableOpacity>
+      </CustomButton>
       <CustomText
         text={label}
         customStyle={[
@@ -64,7 +69,5 @@ const CustomSingleCheckBox = (props: SingleCheckBoxProps) => {
     </React.Fragment>
   );
 };
-
-
 
 export default CustomSingleCheckBox;

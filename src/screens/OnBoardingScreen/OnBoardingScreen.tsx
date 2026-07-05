@@ -1,25 +1,18 @@
-import React, { useRef, useState } from 'react';
-import {
-  View,
-  FlatList,
-  Dimensions,
-  TouchableOpacity,
-} from 'react-native';
+import React, {useRef, useState} from 'react';
+import CustomButton from '../../components/CustomButton/CustomButton';
+import {View, FlatList, Dimensions} from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useNavigation } from '@react-navigation/native';
-import { StackNavigationProp } from '@react-navigation/stack';
+import {useNavigation} from '@react-navigation/native';
+import {StackNavigationProp} from '@react-navigation/stack';
 
-import { RootStackParamList } from '../../components/MainStackNavigation/MainStackNavigation.type';
-import { styles } from './OnBoardingScreen.style';
-import { carousleData } from '../../data/carousleData';
+import {RootStackParamList} from '../../components/MainStackNavigation/MainStackNavigation.type';
+import {styles} from './OnBoardingScreen.style';
+import {carousleData} from '../../data/carousleData';
 import CustomText from '../../components/CustomText/CustomText';
 
-type NavigationProp = StackNavigationProp<
-  RootStackParamList,
-  'OnBoarding'
->;
+type NavigationProp = StackNavigationProp<RootStackParamList, 'OnBoarding'>;
 
-const { width } = Dimensions.get('window');
+const {width} = Dimensions.get('window');
 
 const Preview = ({
   type,
@@ -34,12 +27,22 @@ const Preview = ({
             <CustomText text="ש" customStyle={styles.avatarText} />
           </View>
           <View style={styles.previewTitleBlock}>
-            <CustomText text="onboardDemoName" customStyle={styles.previewName} />
-            <CustomText text="onboardDemoMeta" customStyle={styles.previewMeta} />
+            <CustomText
+              text="onboardDemoName"
+              customStyle={styles.previewName}
+            />
+            <CustomText
+              text="onboardDemoMeta"
+              customStyle={styles.previewMeta}
+            />
           </View>
         </View>
         <View style={styles.infoGrid}>
-          {['onboardDemoCity', 'onboardDemoHeight', 'onboardDemoOccupation'].map(item => (
+          {[
+            'onboardDemoCity',
+            'onboardDemoHeight',
+            'onboardDemoOccupation',
+          ].map(item => (
             <View key={item} style={styles.infoChip}>
               <CustomText text={item} customStyle={styles.infoChipText} />
             </View>
@@ -73,14 +76,19 @@ const Preview = ({
       <View style={styles.previewCard}>
         <View style={styles.matchScore}>
           <CustomText text="92%" customStyle={styles.matchScoreText} />
-          <CustomText text="onboardMatchRecommended" customStyle={styles.matchScoreLabel} />
+          <CustomText
+            text="onboardMatchRecommended"
+            customStyle={styles.matchScoreLabel}
+          />
         </View>
-        {['matchReasonAge', 'matchReasonHeight', 'matchReasonHashkafa'].map(item => (
-          <View key={item} style={styles.reasonRow}>
-            <View style={styles.reasonDot} />
-            <CustomText text={item} customStyle={styles.reasonText} />
-          </View>
-        ))}
+        {['matchReasonAge', 'matchReasonHeight', 'matchReasonHashkafa'].map(
+          item => (
+            <View key={item} style={styles.reasonRow}>
+              <View style={styles.reasonDot} />
+              <CustomText text={item} customStyle={styles.reasonText} />
+            </View>
+          ),
+        )}
       </View>
     );
   }
@@ -90,8 +98,14 @@ const Preview = ({
       <View style={styles.previewCard}>
         <View style={styles.ringPreviewStage}>
           <View style={styles.ringCard}>
-            <CustomText text="onboardRingCardName" customStyle={styles.ringCardName} />
-            <CustomText text="onboardRingCardMeta" customStyle={styles.ringCardMeta} />
+            <CustomText
+              text="onboardRingCardName"
+              customStyle={styles.ringCardName}
+            />
+            <CustomText
+              text="onboardRingCardMeta"
+              customStyle={styles.ringCardMeta}
+            />
           </View>
 
           <View style={styles.floatingRingButton}>
@@ -101,14 +115,23 @@ const Preview = ({
 
         <View style={styles.ringActions}>
           <View style={styles.ringActionPill}>
-            <CustomText text="engagedStatusFemale" customStyle={styles.ringActionText} />
+            <CustomText
+              text="engagedStatusFemale"
+              customStyle={styles.ringActionText}
+            />
           </View>
           <View style={styles.ringActionPill}>
-            <CustomText text="marriedStatusFemale" customStyle={styles.ringActionText} />
+            <CustomText
+              text="marriedStatusFemale"
+              customStyle={styles.ringActionText}
+            />
           </View>
         </View>
 
-        <CustomText text="onboardRingPreviewNote" customStyle={styles.ringPreviewNote} />
+        <CustomText
+          text="onboardRingPreviewNote"
+          customStyle={styles.ringPreviewNote}
+        />
       </View>
     );
   }
@@ -116,15 +139,30 @@ const Preview = ({
   return (
     <View style={styles.previewCard}>
       <View style={styles.calendarTop}>
-        <CustomText text="onboardCalendarDay" customStyle={styles.calendarDay} />
-        <CustomText text="onboardCalendarTime" customStyle={styles.calendarTime} />
+        <CustomText
+          text="onboardCalendarDay"
+          customStyle={styles.calendarDay}
+        />
+        <CustomText
+          text="onboardCalendarTime"
+          customStyle={styles.calendarTime}
+        />
       </View>
       <View style={styles.meetingCard}>
-        <CustomText text="meetingManagement" customStyle={styles.meetingTitle} />
-        <CustomText text="onboardCalendarPlace" customStyle={styles.meetingMeta} />
+        <CustomText
+          text="meetingManagement"
+          customStyle={styles.meetingTitle}
+        />
+        <CustomText
+          text="onboardCalendarPlace"
+          customStyle={styles.meetingMeta}
+        />
       </View>
       <View style={styles.statusPill}>
-        <CustomText text="onboardCalendarStatus" customStyle={styles.statusPillText} />
+        <CustomText
+          text="onboardCalendarStatus"
+          customStyle={styles.statusPillText}
+        />
       </View>
     </View>
   );
@@ -165,11 +203,11 @@ const OnBoardingScreen = () => {
   };
 
   const onViewableItemsChanged = useRef(
-    ({ viewableItems }: { viewableItems: any[] }) => {
+    ({viewableItems}: {viewableItems: any[]}) => {
       if (viewableItems.length > 0 && viewableItems[0].index !== null) {
         setCurrentIndex(viewableItems[0].index);
       }
-    }
+    },
   ).current;
 
   return (
@@ -182,9 +220,9 @@ const OnBoardingScreen = () => {
         horizontal
         pagingEnabled
         showsHorizontalScrollIndicator={false}
-        keyExtractor={(item) => String(item.id)}
-        renderItem={({ item }) => (
-          <View style={[styles.slide, { width }]}>
+        keyExtractor={item => String(item.id)}
+        renderItem={({item}) => (
+          <View style={[styles.slide, {width}]}>
             <View style={styles.slideCard}>
               <CustomText text={item.eyebrow} customStyle={styles.eyebrow} />
               <Preview type={item.previewType} />
@@ -194,44 +232,44 @@ const OnBoardingScreen = () => {
           </View>
         )}
         onViewableItemsChanged={onViewableItemsChanged}
-        viewabilityConfig={{ viewAreaCoveragePercentThreshold: 50 }}
+        viewabilityConfig={{viewAreaCoveragePercentThreshold: 50}}
       />
 
       <View style={styles.dotsContainer}>
         {carousleData.map((slide, index) => (
           <View
             key={slide.id ?? index}
-            style={[
-              styles.dot,
-              currentIndex === index && styles.activeDot,
-            ]}
+            style={[styles.dot, currentIndex === index && styles.activeDot]}
           />
         ))}
       </View>
 
       <View style={styles.buttonsRow}>
         {currentIndex > 0 && (
-          <TouchableOpacity
+          <CustomButton
+            variant="secondary"
             onPress={handlePrev}
-            style={styles.prevButton}
-          >
+            style={styles.prevButton}>
             <CustomText text="previous" customStyle={styles.prevButtonText} />
-          </TouchableOpacity>
+          </CustomButton>
         )}
 
-        <TouchableOpacity onPress={handleSkip} style={styles.skipButton}>
+        <CustomButton
+          variant="ghost"
+          onPress={handleSkip}
+          style={styles.skipButton}>
           <CustomText text="skip" customStyle={styles.skipText} />
-        </TouchableOpacity>
+        </CustomButton>
 
-        <TouchableOpacity
+        <CustomButton
+          variant="primary"
           onPress={handleNext}
-          style={styles.nextButton}
-        >
+          style={styles.nextButton}>
           <CustomText
             text={currentIndex === carousleData.length - 1 ? 'start' : 'next'}
             customStyle={styles.nextButtonText}
           />
-        </TouchableOpacity>
+        </CustomButton>
       </View>
     </View>
   );

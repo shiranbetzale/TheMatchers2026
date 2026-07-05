@@ -1,12 +1,12 @@
 import {StyleSheet} from 'react-native';
 import Colors from '../../utils/Colors';
-import {FontsStyle} from '../../utils/FontsStyle';
+import {FontSize, FontsStyle} from '../../utils/FontsStyle';
 import GeneralStyle from '../../utils/GeneralStyle';
 
 export const styles = StyleSheet.create({
   pinChildrenContainer: {
     width: '100%',
-    backgroundColor: Colors.surface,
+    backgroundColor: Colors.ivory,
     borderBottomWidth: 1,
     borderBottomColor: Colors.borderSoft,
   },
@@ -24,7 +24,7 @@ export const styles = StyleSheet.create({
     flexDirection: 'row',
   },
   actionButton: {
-    minHeight: 42,
+    minHeight: GeneralStyle.size.control,
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
@@ -33,7 +33,7 @@ export const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.borderSoft,
     borderRadius: GeneralStyle.radius.md,
-    backgroundColor: Colors.surfaceElevated,
+    backgroundColor: Colors.white,
   },
   actionButtonActive: {
     borderColor: Colors.color1,
@@ -48,50 +48,44 @@ export const styles = StyleSheet.create({
   actionText: {
     ...FontsStyle.text,
     color: Colors.darkGreen,
-    fontSize: 13,
+    fontSize: FontSize.caption,
     textAlign: 'center',
   },
   actionTextActive: {
     color: Colors.goldDark,
   },
 
-  restoreIconButton: {
-    position: 'absolute',
-    bottom: GeneralStyle.spacing.sm,
-    width: 40,
-    height: 40,
+  restoreButton: {
+    width: '100%',
+    minHeight: GeneralStyle.size.control,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: Colors.color1Light,
-    borderRadius: 20,
-    backgroundColor: Colors.champagne,
-    ...Colors.Shadow,
+    gap: GeneralStyle.spacing.xs,
+    backgroundColor: Colors.white,
+    borderColor: Colors.premiumLine,
+    shadowOpacity: 0,
+    elevation: 0,
   },
-  restoreIconButtonDisabled: {
-    opacity: 0.55,
+  restoreButtonRtl: {
+    flexDirection: 'row-reverse',
   },
-  restoreIconButtonRtl: {
-    left: GeneralStyle.spacing.md,
+  restoreButtonLtr: {
+    flexDirection: 'row',
   },
-  restoreIconButtonLtr: {
-    right: GeneralStyle.spacing.md,
-  },
-  matchCardWithRestore: {
-    position: 'relative',
+  restoreButtonText: {
+    ...FontsStyle.textDecoration,
+    color: Colors.darkGreen,
   },
   container: {
     gap: GeneralStyle.spacing.md,
   },
   headerCard: {
     gap: GeneralStyle.spacing.xs,
-    borderTopWidth: 3,
-    borderTopColor: Colors.premiumLine,
   },
   title: {
     ...FontsStyle.menuTitle,
     color: Colors.darkGreen,
-    fontSize: 24,
+    fontSize: FontSize.section,
     textAlign: 'right',
   },
   subtitle: {
@@ -116,29 +110,27 @@ export const styles = StyleSheet.create({
   statValue: {
     ...FontsStyle.menuTitle,
     color: Colors.color1,
-    fontSize: 20,
+    fontSize: FontSize.title,
   },
   statLabel: {
     ...FontsStyle.text,
     color: Colors.darkGreen,
-    fontSize: 12,
+    fontSize: FontSize.caption,
     textAlign: 'center',
   },
-  cardBlock: {
-    gap: GeneralStyle.spacing.xs,
+  archiveCard: {
+    gap: GeneralStyle.spacing.md,
     marginBottom: GeneralStyle.spacing.sm,
+    backgroundColor: Colors.white,
   },
   relationshipBar: {
     alignItems: 'stretch',
     justifyContent: 'flex-start',
     gap: GeneralStyle.spacing.sm,
-    paddingHorizontal: GeneralStyle.spacing.md,
     paddingVertical: GeneralStyle.spacing.sm,
-    borderWidth: 1,
-    borderColor: Colors.borderSoft,
-    borderRadius: GeneralStyle.radius.md,
-    backgroundColor: Colors.ivory,
-    overflow: 'hidden',
+    paddingHorizontal: GeneralStyle.spacing.sm,
+    borderRadius: GeneralStyle.radius.sm,
+    backgroundColor: Colors.goldWash,
   },
   relationshipBarRtl: {
     flexDirection: 'column',
@@ -163,7 +155,7 @@ export const styles = StyleSheet.create({
   relationshipText: {
     ...FontsStyle.textDecoration,
     color: Colors.darkGreen,
-    fontSize: 18,
+    fontSize: FontSize.large,
     width: '100%',
   },
   textRtl: {
@@ -193,7 +185,7 @@ export const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.borderSoft,
     borderRadius: 999,
-    backgroundColor: Colors.surfaceElevated,
+    backgroundColor: Colors.white,
     overflow: 'hidden',
   },
   emptyCard: {
@@ -201,9 +193,9 @@ export const styles = StyleSheet.create({
     gap: GeneralStyle.spacing.xs,
   },
   emptyTitle: {
-    ...FontsStyle.subTitle,
+    ...FontsStyle.menuTitle,
     color: Colors.darkGreen,
-    fontSize: 18,
+    fontSize: FontSize.section,
     textAlign: 'center',
   },
   emptyText: {

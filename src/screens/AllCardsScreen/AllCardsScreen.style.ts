@@ -1,6 +1,6 @@
 import {StyleSheet} from 'react-native';
 import Colors from '../../utils/Colors';
-import {FontsStyle} from '../../utils/FontsStyle';
+import {FontSize, FontsStyle} from '../../utils/FontsStyle';
 import GeneralStyle from '../../utils/GeneralStyle';
 
 export const styles = StyleSheet.create({
@@ -9,13 +9,11 @@ export const styles = StyleSheet.create({
   },
   headerCard: {
     gap: GeneralStyle.spacing.xs,
-    borderTopWidth: 3,
-    borderTopColor: Colors.premiumLine,
   },
   title: {
     ...FontsStyle.menuTitle,
     color: Colors.darkGreen,
-    fontSize: 24,
+    fontSize: FontSize.section,
   },
   subtitle: {
     ...FontsStyle.text,
@@ -44,12 +42,12 @@ export const styles = StyleSheet.create({
   statValue: {
     ...FontsStyle.menuTitle,
     color: Colors.color1,
-    fontSize: 20,
+    fontSize: FontSize.title,
   },
   statLabel: {
     ...FontsStyle.text,
     color: Colors.darkGreen,
-    fontSize: 12,
+    fontSize: FontSize.caption,
     textAlign: 'center',
   },
   matchCard: {
@@ -66,7 +64,7 @@ export const styles = StyleSheet.create({
     elevation: 0,
   },
   pinChildrenContainer: {
-    backgroundColor: Colors.surface,
+    backgroundColor: Colors.ivory,
     borderBottomWidth: 1,
     borderBottomColor: Colors.borderSoft,
   },
@@ -84,7 +82,7 @@ export const styles = StyleSheet.create({
     flexDirection: 'row',
   },
   actionButton: {
-    minHeight: 44,
+    minHeight: GeneralStyle.size.control,
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
@@ -93,7 +91,7 @@ export const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.borderSoft,
     borderRadius: GeneralStyle.radius.md,
-    backgroundColor: Colors.surfaceElevated,
+    backgroundColor: Colors.white,
   },
   actionButtonActive: {
     borderColor: Colors.color1,
@@ -108,7 +106,7 @@ export const styles = StyleSheet.create({
   actionText: {
     ...FontsStyle.text,
     color: Colors.darkGreen,
-    fontSize: 13,
+    fontSize: FontSize.caption,
     textAlign: 'center',
   },
   actionTextActive: {

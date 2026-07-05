@@ -1,14 +1,10 @@
 import React, {useState} from 'react';
-import {
-  Dimensions,
-  Image,
-  Modal,
-  Pressable,
-  ScrollView,
-  Text,
-  View,
-} from 'react-native';
+import CustomButton from '../CustomButton/CustomButton';
+import CustomModal from '../CustomModal/CustomModal';
+import {Dimensions, Image, ScrollView, Text, View} from 'react-native';
 import {styles} from './ImagePreviewModal.style';
+import {useLanguage} from '../../utils/LanguageProvider';
+import CloseIcon from '../CloseIcon/CloseIcon';
 
 type ImagePreviewModalProps = {
   images: string[];
@@ -21,6 +17,7 @@ const {width} = Dimensions.get('window');
 
 const ImagePreviewModal = (props: ImagePreviewModalProps) => {
   const {images, initialIndex = 0, visible, onClose} = props;
+  const {t} = useLanguage();
   const [activeIndex, setActiveIndex] = useState(initialIndex);
 
   const handleScroll = ({nativeEvent}: any) => {
@@ -31,15 +28,19 @@ const ImagePreviewModal = (props: ImagePreviewModalProps) => {
   };
 
   return (
-    <Modal
+    <CustomModal
       transparent
       visible={visible}
       animationType="fade"
       onRequestClose={onClose}>
       <View style={styles.overlay}>
-        <Pressable style={styles.closeButton} onPress={onClose}>
-          <Text style={styles.closeText}>×</Text>
-        </Pressable>
+        <CustomButton
+          accessibilityLabel={t('close')}
+          variant="icon"
+          style={styles.closeButton}
+          onPress={onClose}>
+          <CloseIcon />
+        </CustomButton>
 
         <ScrollView
           horizontal
@@ -52,6 +53,10 @@ const ImagePreviewModal = (props: ImagePreviewModalProps) => {
           {images.map((image, index) => (
             <View key={`${image}_${index}`} style={[styles.slide, {width}]}>
               <Image
+                accessible
+                accessibilityLabel={`${t('image')} ${index + 1} ${t('of')} ${
+                  images.length
+                }`}
                 source={{uri: image}}
                 style={styles.image}
                 resizeMode="contain"
@@ -61,7 +66,7 @@ const ImagePreviewModal = (props: ImagePreviewModalProps) => {
         </ScrollView>
 
         {images.length > 1 && (
-          <View style={styles.pagination}>
+          <View accessible={false} style={styles.pagination}>
             {images.map((image, index) => (
               <Text
                 key={`${image}_dot_${index}`}
@@ -72,7 +77,7 @@ const ImagePreviewModal = (props: ImagePreviewModalProps) => {
           </View>
         )}
       </View>
-    </Modal>
+    </CustomModal>
   );
 };
 

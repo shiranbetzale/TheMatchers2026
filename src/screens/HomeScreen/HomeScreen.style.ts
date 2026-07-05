@@ -55,7 +55,7 @@ export const styles = StyleSheet.create({
   bgShapeTwo: {
     position: 'absolute',
     width: width * 1.35,
-    height: 76,
+    height: GeneralStyle.size.avatarSmall,
     backgroundColor: Colors.goldWash,
     top: 94,
     right: -width * 0.18,
@@ -67,7 +67,7 @@ export const styles = StyleSheet.create({
     position: 'absolute',
     width: width * 0.82,
     height: height * 0.72,
-    backgroundColor: Colors.navyTint,
+    backgroundColor: Colors.softBlue,
     top: 178,
     right: -width * 0.34,
     zIndex: 0,
@@ -88,8 +88,8 @@ export const styles = StyleSheet.create({
   bgShapeFive: {
     position: 'absolute',
     width: width * 1.2,
-    height: 54,
-    backgroundColor: Colors.surfaceElevated,
+    height: GeneralStyle.size.action,
+    backgroundColor: Colors.white,
     top: height * 0.58,
     left: -width * 0.12,
     opacity: 0.58,

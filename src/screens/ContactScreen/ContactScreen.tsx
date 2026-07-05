@@ -124,48 +124,50 @@ const ContactScreen = () => {
         <CustomText text="contactSubtitle" customStyle={styles.subtitle} />
 
         <WhiteCard customStyle={styles.card}>
-          <View style={styles.field}>
-            <CustomInput
-              text={`* ${t('fullName')}`}
-              placeholder="fullName"
-              value={name}
-              onChangeText={setName}
-            />
-          </View>
+          <View style={styles.fieldsContainer}>
+            <View style={styles.field}>
+              <CustomInput
+                text={`* ${t('fullName')}`}
+                placeholder="fullName"
+                value={name}
+                onChangeText={setName}
+              />
+            </View>
 
-          <View style={styles.field}>
-            <CustomInput
-              text={`* ${t('email')}`}
-              placeholder="email"
-              keyboardType="email-address"
-              inputMode="email"
-              autoCapitalize="none"
-              value={email}
-              onChangeText={setEmail}
-            />
-          </View>
+            <View style={styles.field}>
+              <CustomInput
+                text={`* ${t('email')}`}
+                placeholder="email"
+                keyboardType="email-address"
+                inputMode="email"
+                autoCapitalize="none"
+                value={email}
+                onChangeText={setEmail}
+              />
+            </View>
 
-          <View style={styles.field}>
-            <CustomInput
-              text={`* ${t('phoneNumber')}`}
-              placeholder="phoneNumber"
-              keyboardType="phone-pad"
-              inputMode="tel"
-              onlyDigits
-              maxLength={10}
-              value={phone}
-              onChangeText={setPhone}
-            />
-          </View>
+            <View style={styles.field}>
+              <CustomInput
+                text={`* ${t('phoneNumber')}`}
+                placeholder="phoneNumber"
+                keyboardType="phone-pad"
+                inputMode="tel"
+                onlyDigits
+                maxLength={10}
+                value={phone}
+                onChangeText={setPhone}
+              />
+            </View>
 
-          <View style={styles.field}>
-            <CustomInput
-              text={`*${t('contactMessage')}`}
-              placeholder="contactMessage"
-              isMultiline
-              value={message}
-              onChangeText={setMessage}
-            />
+            <View style={styles.field}>
+              <CustomInput
+                text={`* ${t('contactMessage')}`}
+                placeholder="contactMessage"
+                isMultiline
+                value={message}
+                onChangeText={setMessage}
+              />
+            </View>
           </View>
 
           <CustomButton

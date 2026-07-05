@@ -1,21 +1,22 @@
 import {StyleSheet} from 'react-native';
 import Colors from '../../utils/Colors';
 import GeneralStyle from '../../utils/GeneralStyle';
-import {FontsStyle} from '../../utils/FontsStyle';
+import {FontSize, FontsStyle} from '../../utils/FontsStyle';
+import SharedStyles, {ProfileImageStyle} from '../../utils/SharedStyles';
 
 export const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.55)',
+    backgroundColor: Colors.overlayDark,
     justifyContent: 'center',
     alignItems: 'center',
     padding: GeneralStyle.spacing.lg,
   },
   card: {
     width: '100%',
-    maxWidth: 360,
+    maxWidth: GeneralStyle.size.modal,
     borderRadius: GeneralStyle.radius.sm,
-    backgroundColor: Colors.surfaceElevated,
+    backgroundColor: Colors.white,
     padding: GeneralStyle.spacing.lg,
     alignItems: 'center',
     borderWidth: 1,
@@ -24,12 +25,32 @@ export const styles = StyleSheet.create({
   },
   title: {
     ...FontsStyle.title,
-    fontSize: 36,
+    flex: 1,
     color: Colors.color1,
+  },
+  header: {
+    width: '100%',
+    flexDirection: 'row-reverse',
+    alignItems: 'center',
+    gap: GeneralStyle.spacing.sm,
+  },
+  closeIconButton: {
+    width: GeneralStyle.size.icon,
+    height: GeneralStyle.size.icon,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: GeneralStyle.radius.sm,
+    borderWidth: 1,
+    borderColor: Colors.borderSoft,
+  },
+  closeIconText: {
+    ...FontsStyle.text,
+    ...SharedStyles.iconGlyphText,
+    color: Colors.darkGreen,
   },
   subtitle: {
     ...FontsStyle.text,
-    fontSize: 18,
+    fontSize: FontSize.large,
     color: Colors.darkGreen,
     marginBottom: GeneralStyle.spacing.md,
   },
@@ -41,15 +62,11 @@ export const styles = StyleSheet.create({
     marginBottom: GeneralStyle.spacing.lg,
   },
   person: {
-    width: 120,
+    width: GeneralStyle.size.media,
     alignItems: 'center',
   },
   image: {
-    width: 92,
-    height: 92,
-    borderRadius: 46,
-    borderWidth: 2,
-    borderColor: Colors.color1Light,
+    ...ProfileImageStyle,
     marginBottom: GeneralStyle.spacing.sm,
   },
   name: {
@@ -59,11 +76,11 @@ export const styles = StyleSheet.create({
   },
   plus: {
     ...FontsStyle.title,
-    fontSize: 30,
+    fontSize: FontSize.displayLarge,
     color: Colors.color1,
   },
   button: {
-    minWidth: 120,
+    flex: 1,
     borderRadius: GeneralStyle.radius.sm,
     backgroundColor: Colors.darkGreen,
     paddingVertical: GeneralStyle.spacing.sm,
@@ -72,6 +89,20 @@ export const styles = StyleSheet.create({
   },
   buttonText: {
     ...FontsStyle.subTitle,
-    color: Colors.surface,
+    color: Colors.ivory,
+  },
+  actions: {
+    width: '100%',
+    flexDirection: 'row-reverse',
+    gap: GeneralStyle.spacing.sm,
+  },
+  secondaryButton: {
+    borderWidth: 1,
+    borderColor: Colors.borderSoft,
+    backgroundColor: Colors.white,
+  },
+  secondaryButtonText: {
+    ...FontsStyle.subTitle,
+    color: Colors.darkGreen,
   },
 });

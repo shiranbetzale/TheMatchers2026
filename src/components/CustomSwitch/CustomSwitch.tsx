@@ -57,9 +57,9 @@ const CustomSwitch = (props: CustomSwitchType) => {
           isRTL ? styles.alignEnd : styles.alignStart,
         ]}>
         <Switch
-          trackColor={{false: '#c8d0dc', true: Colors.color1}}
+          trackColor={{false: Colors.controlDisabled, true: Colors.color1}}
           thumbColor={isEnabled ? Colors.darkGreen : Colors.white}
-          ios_backgroundColor="#c8d0dc"
+          ios_backgroundColor={Colors.controlDisabled}
           onValueChange={toggleSwitch}
           value={isEnabled}
           disabled={!isEditable}

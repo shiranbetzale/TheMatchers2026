@@ -534,6 +534,12 @@ const detailsFormArray: FormField[] = [
         ],
       },
       {id: 5, name: 'education', label: 'twelveYearsSchooling'},
+      {
+        id: 6,
+        name: 'education',
+        label: 'chitzimEducation',
+        isShow: [{fieldId: 'gender', value: '2'}],
+      },
     ],
     collapseTitle: 'workAndEducation',
   },

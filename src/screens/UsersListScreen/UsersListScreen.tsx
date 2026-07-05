@@ -1,5 +1,9 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import {View, Text, FlatList, TextInput, TouchableOpacity} from 'react-native';
+import CustomButton, {
+  BUTTON_ICON_SIZE,
+} from '../../components/CustomButton/CustomButton';
+import CloseIcon from '../../components/CloseIcon/CloseIcon';
+import {View, Text, FlatList, TextInput} from 'react-native';
 import {useLanguage} from '../../utils/LanguageProvider';
 import {useMessage} from '../../utils/MessageProvider';
 import {useFocusEffect, useNavigation} from '@react-navigation/native';
@@ -12,6 +16,8 @@ import {styles} from './UsersListScreen.style';
 import EditIcon from '../../assets/images/edit.svg';
 import SaveIcon from '../../assets/images/save.svg';
 import UserAddIcon from '../../assets/images/userAdd.svg';
+import TrashIcon from '../../assets/images/trash.svg';
+import Colors from '../../utils/Colors';
 
 interface User {
   id?: string;
@@ -62,7 +68,8 @@ const normalizePhoneInput = (value: string) =>
 
 const isValidMobilePhone = (value: string) => /^05\d{8}$/.test(value);
 
-const isValidEmail = (value: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+const isValidEmail = (value: string) =>
+  /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 
 const getUserId = (user: Partial<User>) => String(user._id || user.id || '');
 
@@ -81,10 +88,7 @@ const UsersListScreen = () => {
   const {t, isRTL} = useLanguage();
   const {showMessage} = useMessage();
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
-  const roles: UserRole[] = useMemo(
-    () => ['admin', 'matchmaker', 'user'],
-    [],
-  );
+  const roles: UserRole[] = useMemo(() => ['admin', 'matchmaker', 'user'], []);
 
   const fetchUsers = useCallback(async () => {
     try {
@@ -128,9 +132,7 @@ const UsersListScreen = () => {
       return (
         name.includes(normalizedSearch) ||
         email.includes(normalizedSearch) ||
-        (normalizedPhoneSearch
-          ? phone.includes(normalizedPhoneSearch)
-          : false)
+        (normalizedPhoneSearch ? phone.includes(normalizedPhoneSearch) : false)
       );
     });
   }, [searchValue, users]);
@@ -232,17 +234,21 @@ const UsersListScreen = () => {
     <View style={styles.choiceRow}>
       <CustomText text={titleKey} customStyle={styles.choiceLabel} />
       <View
-        style={[
-          styles.choiceOptions,
-          isRTL ? styles.choiceOptionsRtl : styles.choiceOptionsLtr,
-        ]}>
+        style={[styles.choiceOptions, isRTL ? styles.rowReverse : styles.row]}>
         {options.map(option => {
           const isActive = value === option;
           return (
-            <TouchableOpacity
+            <CustomButton
+              unstyled
               key={option}
+              accessibilityLabel={`${t(titleKey)}: ${t(option)}`}
+              accessibilityRole="radio"
+              accessibilityState={{selected: isActive}}
               onPress={() => onSelect(option)}
               style={[styles.choiceChip, isActive && styles.choiceChipActive]}>
+              {isActive ? (
+                <CustomText text="✓" customStyle={styles.choiceCheck} />
+              ) : null}
               <CustomText
                 text={option}
                 customStyle={[
@@ -250,7 +256,7 @@ const UsersListScreen = () => {
                   isActive && styles.choiceChipTextActive,
                 ]}
               />
-            </TouchableOpacity>
+            </CustomButton>
           );
         })}
       </View>
@@ -266,16 +272,20 @@ const UsersListScreen = () => {
               styles.editorTopActions,
               isRTL ? styles.editorTopActionsRtl : styles.editorTopActionsLtr,
             ]}>
-            <TouchableOpacity
+            <CustomButton
+              variant="icon"
+              accessibilityLabel={t('cancel')}
               onPress={stopEditing}
-              style={[styles.iconButton, styles.cancelButton]}>
-              <Text style={styles.deleteIcon}>✕</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
+              style={styles.iconButton}>
+              <CloseIcon />
+            </CustomButton>
+            <CustomButton
+              variant="icon"
+              accessibilityLabel={t('save')}
               onPress={updateUser}
-              style={[styles.iconButton, styles.saveButton]}>
-              <SaveIcon width={18} height={18} />
-            </TouchableOpacity>
+              style={styles.iconButton}>
+              <SaveIcon width={BUTTON_ICON_SIZE} height={BUTTON_ICON_SIZE} />
+            </CustomButton>
           </View>
 
           <CustomText text="fullName" customStyle={styles.inputLabel} />
@@ -284,9 +294,9 @@ const UsersListScreen = () => {
             onChangeText={text =>
               setEditedUser(prev => ({...prev, fullName: text}))
             }
-            style={[styles.input, isRTL ? styles.inputRtl : styles.inputLtr]}
+            style={[styles.input, isRTL ? styles.textRight : styles.textLeft]}
             placeholder={t('fullName')}
-            placeholderTextColor="#8A94A6"
+            placeholderTextColor={Colors.placeholder}
           />
           <CustomText text="mobile" customStyle={styles.inputLabel} />
           <TextInput
@@ -297,9 +307,9 @@ const UsersListScreen = () => {
                 phone: normalizePhoneInput(text),
               }))
             }
-            style={[styles.input, isRTL ? styles.inputRtl : styles.inputLtr]}
+            style={[styles.input, isRTL ? styles.textRight : styles.textLeft]}
             placeholder={t('mobile')}
-            placeholderTextColor="#8A94A6"
+            placeholderTextColor={Colors.placeholder}
             keyboardType="phone-pad"
             inputMode="tel"
             maxLength={10}
@@ -310,9 +320,9 @@ const UsersListScreen = () => {
             onChangeText={text =>
               setEditedUser(prev => ({...prev, email: text.trim()}))
             }
-            style={[styles.input, isRTL ? styles.inputRtl : styles.inputLtr]}
+            style={[styles.input, isRTL ? styles.textRight : styles.textLeft]}
             placeholder={t('email')}
-            placeholderTextColor="#8A94A6"
+            placeholderTextColor={Colors.placeholder}
             keyboardType="email-address"
             inputMode="email"
             autoCapitalize="none"
@@ -323,9 +333,9 @@ const UsersListScreen = () => {
             onChangeText={text =>
               setEditedUser(prev => ({...prev, password: text}))
             }
-            style={[styles.input, isRTL ? styles.inputRtl : styles.inputLtr]}
+            style={[styles.input, isRTL ? styles.textRight : styles.textLeft]}
             placeholder={t('password')}
-            placeholderTextColor="#8A94A6"
+            placeholderTextColor={Colors.placeholder}
             secureTextEntry
           />
 
@@ -343,37 +353,33 @@ const UsersListScreen = () => {
           )}
         </View>
       ) : (
-        <View
-          style={[
-            styles.viewRow,
-            isRTL ? styles.viewRowRtl : styles.viewRowLtr,
-          ]}>
+        <View style={[styles.viewRow, isRTL ? styles.rowReverse : styles.row]}>
           <View style={styles.userDetails}>
             <Text
               style={[
                 styles.primaryText,
-                isRTL ? styles.textRtl : styles.textLtr,
+                isRTL ? styles.textRight : styles.textLeft,
               ]}>
               {item.fullName}
             </Text>
             <Text
               style={[
                 styles.secondaryText,
-                isRTL ? styles.textRtl : styles.textLtr,
+                isRTL ? styles.textRight : styles.textLeft,
               ]}>
               {item.phone}
             </Text>
             <Text
               style={[
                 styles.secondaryText,
-                isRTL ? styles.textRtl : styles.textLtr,
+                isRTL ? styles.textRight : styles.textLeft,
               ]}>
               {item.email || '-'}
             </Text>
             <Text
               style={[
                 styles.metaText,
-                isRTL ? styles.textRtl : styles.textLtr,
+                isRTL ? styles.textRight : styles.textLeft,
               ]}>
               {isRTL
                 ? `${t(normalizeGender(item.gender))} • ${t(normalizeRole(item.role))}`
@@ -386,16 +392,25 @@ const UsersListScreen = () => {
               styles.actionRow,
               isRTL ? styles.actionsSideRtl : styles.actionsSideLtr,
             ]}>
-            <TouchableOpacity
+            <CustomButton
+              variant="iconDanger"
+              accessibilityLabel={t('delete')}
               onPress={() => deleteUser(item._id)}
-              style={[styles.iconButton, styles.deleteButton]}>
-              <Text style={styles.deleteIcon}>🗑</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
+              icon={
+                <TrashIcon
+                  width={BUTTON_ICON_SIZE}
+                  height={BUTTON_ICON_SIZE}
+                />
+              }
+            />
+            <CustomButton
+              variant="icon"
+              accessibilityLabel={t('edit')}
               onPress={() => startEditing(item)}
-              style={[styles.iconButton, styles.editButton]}>
-              <EditIcon width={18} height={18} />
-            </TouchableOpacity>
+              icon={
+                <EditIcon width={BUTTON_ICON_SIZE} height={BUTTON_ICON_SIZE} />
+              }
+            />
           </View>
         </View>
       )}
@@ -408,25 +423,30 @@ const UsersListScreen = () => {
       pinChildren={
         <View style={styles.headerWrapper}>
           <View
-            style={[
-              styles.headerRow,
-              isRTL ? styles.headerRowRtl : styles.headerRowLtr,
-            ]}>
+            style={[styles.headerRow, isRTL ? styles.rowReverse : styles.row]}>
             <CustomText text="usersList" customStyle={styles.title} />
-            <TouchableOpacity
-              style={styles.addButton}
+            <CustomButton
+              variant="icon"
               accessibilityLabel={t('registerUser')}
-              onPress={() => navigation.navigate('RegisterUserScreen')}>
-              <UserAddIcon width={20} height={20} />
-            </TouchableOpacity>
+              onPress={() => navigation.navigate('RegisterUserScreen')}
+              icon={
+                <UserAddIcon
+                  width={BUTTON_ICON_SIZE}
+                  height={BUTTON_ICON_SIZE}
+                />
+              }
+            />
           </View>
 
           <TextInput
             value={searchValue}
             onChangeText={setSearchValue}
-            style={[styles.searchInput, isRTL ? styles.inputRtl : styles.inputLtr]}
+            style={[
+              styles.searchInput,
+              isRTL ? styles.textRight : styles.textLeft,
+            ]}
             placeholder={t('usersSearchPlaceholder')}
-            placeholderTextColor="#8A94A6"
+            placeholderTextColor={Colors.placeholder}
             autoCorrect={false}
             autoCapitalize="none"
             keyboardType="default"

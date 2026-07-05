@@ -1,5 +1,5 @@
 import React, {useEffect, useMemo, useState} from 'react';
-import {TextInput, TouchableOpacity, View} from 'react-native';
+import {TextInput, View} from 'react-native';
 import {RouteProp, useNavigation, useRoute} from '@react-navigation/native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 
@@ -16,6 +16,7 @@ import {RootStackParamList} from '../../components/MainStackNavigation/MainStack
 import {MatchCardType} from '../../components/MatchCard/MatchCard.type';
 import {Option} from '../../utils/FormFields.type';
 import {calculateAge, formatHebrewDate} from '../../utils/generalFunction';
+import Colors from '../../utils/Colors';
 import {useLanguage} from '../../utils/LanguageProvider';
 import {useMessage} from '../../utils/MessageProvider';
 import {
@@ -25,6 +26,7 @@ import {
 } from '../../utils/formCompletion';
 import i18n from '../../utils/i18n';
 import api from '../../services/api';
+import CustomButton from '../../components/CustomButton/CustomButton';
 
 type EditFormRouteProp = RouteProp<RootStackParamList, 'EditFormScreen'>;
 type EditFormNavigationProp = NativeStackNavigationProp<RootStackParamList>;
@@ -718,7 +720,7 @@ const EditFormScreen = () => {
             styles.statusOptions,
             isRTL ? styles.rowReverse : styles.row,
           ]}>
-          <TouchableOpacity
+          <CustomButton unstyled
             activeOpacity={0.85}
             disabled={!isEditable || isSaving}
             onPress={() => updateRelationshipStatus('engaged')}
@@ -734,9 +736,9 @@ const EditFormScreen = () => {
                 isEngaged && styles.statusOptionTextActive,
               ]}
             />
-          </TouchableOpacity>
+          </CustomButton>
 
-          <TouchableOpacity
+          <CustomButton unstyled
             activeOpacity={0.85}
             disabled={!isEditable || isSaving}
             onPress={() => updateRelationshipStatus('married')}
@@ -752,7 +754,7 @@ const EditFormScreen = () => {
                 isMarried && styles.statusOptionTextActive,
               ]}
             />
-          </TouchableOpacity>
+          </CustomButton>
         </View>
 
         {shouldShowPartnerSearch && (
@@ -790,7 +792,7 @@ const EditFormScreen = () => {
               editable={isEditable && !isSaving}
               value={formValues.partnerName}
               placeholder={t('partnerSearchPlaceholder')}
-              placeholderTextColor="#A8ADB7"
+              placeholderTextColor={Colors.placeholder}
               onFocus={() => setIsPartnerSearchFocused(true)}
               onChangeText={value => {
                 updateField('partnerName', value);
@@ -802,7 +804,7 @@ const EditFormScreen = () => {
               <View style={styles.suggestionsPanel}>
                 {filteredPartnerSuggestions.length > 0 ? (
                   filteredPartnerSuggestions.slice(0, 5).map(partnerName => (
-                    <TouchableOpacity
+                    <CustomButton unstyled
                       key={partnerName}
                       activeOpacity={0.82}
                       onPress={() => selectPartner(partnerName)}
@@ -814,7 +816,7 @@ const EditFormScreen = () => {
                           isRTL ? styles.textRight : styles.textLeft,
                         ]}
                       />
-                    </TouchableOpacity>
+                    </CustomButton>
                   ))
                 ) : (
                   <CustomText

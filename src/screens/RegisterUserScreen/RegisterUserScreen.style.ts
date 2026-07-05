@@ -19,7 +19,7 @@ export const styles = StyleSheet.create({
   },
   card: {
     alignSelf: 'center',
-    maxWidth: 560,
+    maxWidth: GeneralStyle.size.content,
   },
   field: {
     marginBottom: GeneralStyle.spacing.sm,
@@ -30,7 +30,7 @@ export const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.borderSoft,
     borderRadius: GeneralStyle.radius.md,
-    backgroundColor: Colors.surfaceElevated,
+    backgroundColor: Colors.white,
   },
   submitButton: {
     marginTop: GeneralStyle.spacing.sm,

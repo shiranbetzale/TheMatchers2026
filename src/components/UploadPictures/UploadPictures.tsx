@@ -1,5 +1,5 @@
 import React, {useState} from 'react';
-import {Image, Pressable, View} from 'react-native';
+import {Image, View} from 'react-native';
 import {
   Asset,
   ImageLibraryOptions,
@@ -11,6 +11,9 @@ import CustomText from '../../components/CustomText/CustomText';
 import ImagePreviewModal from '../ImagePreviewModal/ImagePreviewModal';
 import {UploadedPicture, UploadPicturesType} from './UploadPictures.type';
 import {styles} from './UploadPictures.style';
+import {useLanguage} from '../../utils/LanguageProvider';
+import CloseIcon from '../CloseIcon/CloseIcon';
+import Colors from '../../utils/Colors';
 
 const toUploadedPicture = (asset: Asset): UploadedPicture | null => {
   if (!asset.uri) {
@@ -28,11 +31,12 @@ const toUploadedPicture = (asset: Asset): UploadedPicture | null => {
 const pickerOptions: ImageLibraryOptions = {
   mediaType: 'photo',
   selectionLimit: 0,
-  quality: 0.8,
+  quality: 0.9,
 };
 
 const UploadPictures = (props: UploadPicturesType) => {
   const {images, maxImages = 2, onChange} = props;
+  const {t} = useLanguage();
   const [error, setError] = useState('');
   const [previewIndex, setPreviewIndex] = useState(0);
   const [isPreviewVisible, setIsPreviewVisible] = useState(false);
@@ -72,7 +76,7 @@ const UploadPictures = (props: UploadPicturesType) => {
   const takePhoto = async () => {
     const response = await launchCamera({
       mediaType: 'photo',
-      quality: 0.8,
+      quality: 0.9,
       saveToPhotos: false,
     });
 
@@ -116,32 +120,39 @@ const UploadPictures = (props: UploadPicturesType) => {
         <View style={styles.grid}>
           {images.map((image, index) => (
             <View key={`${image.uri}_${index}`} style={styles.tile}>
-              <Pressable
+              <CustomButton
+                accessibilityLabel={`${t('previewImage')} ${index + 1}`}
+                variant="ghost"
                 style={styles.previewButton}
                 onPress={() => {
                   setPreviewIndex(index);
                   setIsPreviewVisible(true);
                 }}>
-                <Image source={{uri: image.uri}} style={styles.image} />
-              </Pressable>
-              <Pressable
+                <Image
+                  accessible={false}
+                  source={{uri: image.uri}}
+                  style={styles.image}
+                />
+              </CustomButton>
+              <CustomButton
+                accessibilityLabel={`${t('removeImage')} ${index + 1}`}
+                unstyled
                 style={styles.removeButton}
                 onPress={() => removeImage(index)}>
-                <CustomText text="×" customStyle={styles.removeText} />
-              </Pressable>
+                <CloseIcon color={Colors.danger} size={16} />
+              </CustomButton>
             </View>
           ))}
         </View>
       ) : (
         <View style={styles.emptyState}>
-          <CustomText
-            text="noUploadedImages"
-            customStyle={styles.emptyText}
-          />
+          <CustomText text="noUploadedImages" customStyle={styles.emptyText} />
         </View>
       )}
 
-      {error ? <CustomText text={error} customStyle={styles.errorText} /> : null}
+      {error ? (
+        <CustomText text={error} customStyle={styles.errorText} />
+      ) : null}
 
       <ImagePreviewModal
         images={previewImages}

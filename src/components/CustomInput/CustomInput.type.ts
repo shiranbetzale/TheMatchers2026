@@ -18,4 +18,6 @@ export type CustomInputType = {
   value?: string | number;
   onChangeText?: (text: string) => void;
   autoCapitalize?: TextInputProps['autoCapitalize'];
+  accessibilityHint?: string;
+  accessibilityLabel?: string;
 };

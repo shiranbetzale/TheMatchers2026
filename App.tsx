@@ -33,7 +33,7 @@ import GlobalLoader from './src/utils/GlobalLoader';
 import {MessageProvider} from './src/utils/MessageProvider';
 import firebase from '@react-native-firebase/app';
 import {RootStackParamList} from './src/components/MainStackNavigation/MainStackNavigation.type';
-import api from './src/services/api';
+import api, {enableGlobalApiLoader} from './src/services/api';
 
 console.log('Firebase Apps:', firebase.apps.length);
 console.log('Firebase App Name:', firebase.app().name);
@@ -100,6 +100,7 @@ const AppContent = () => {
         setInitialRoute('Login');
       } finally {
         await BootSplash.hide({fade: true});
+        setTimeout(enableGlobalApiLoader, 500);
       }
     };
     init();

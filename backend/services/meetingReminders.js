@@ -62,8 +62,16 @@ async function getReminderUserIds(profile) {
   );
 }
 
-async function sendReminder(profile, reminderType, meetingKey) {
-  const userIds = await getReminderUserIds(profile);
+async function sendReminder(
+  profile,
+  reminderType,
+  meetingKey,
+  meetingProfiles = [profile],
+) {
+  const userIdGroups = await Promise.all(
+    meetingProfiles.map(getReminderUserIds),
+  );
+  const userIds = Array.from(new Set(userIdGroups.flat()));
   const tokens = await getUserTokens(userIds);
 
   if (!tokens.length) {
@@ -78,15 +86,21 @@ async function sendReminder(profile, reminderType, meetingKey) {
   const response = await notifyMeetingReminder(profile, reminderType, tokens);
 
   if (response.successCount > 0) {
-    if (reminderType === 'day') {
-      profile.meetingReminderDayFor = meetingKey;
-      profile.meetingReminderDaySentAt = new Date();
-    } else {
-      profile.meetingReminderHourFor = meetingKey;
-      profile.meetingReminderHourSentAt = new Date();
-    }
+    const sentAt = new Date();
 
-    await profile.save();
+    await Promise.all(
+      meetingProfiles.map(meetingProfile => {
+        if (reminderType === 'day') {
+          meetingProfile.meetingReminderDayFor = meetingKey;
+          meetingProfile.meetingReminderDaySentAt = sentAt;
+        } else {
+          meetingProfile.meetingReminderHourFor = meetingKey;
+          meetingProfile.meetingReminderHourSentAt = sentAt;
+        }
+
+        return meetingProfile.save();
+      }),
+    );
   }
 }
 
@@ -99,6 +113,10 @@ async function processMeetingReminders() {
 
   try {
     const profiles = await Profile.find({});
+    const profilesById = new Map(
+      profiles.map(profile => [String(profile.id), profile]),
+    );
+    const processedReminderKeys = new Set();
     const now = Date.now();
 
     for (const profile of profiles) {
@@ -119,21 +137,47 @@ async function processMeetingReminders() {
       }
 
       const meetingKey = getReminderMeetingKey(meetingDateTime);
+      const reminderType = diffMs <= HOUR_MS ? 'hour' : 'day';
+      const partner = profile.partnerProfileId
+        ? profilesById.get(String(profile.partnerProfileId))
+        : null;
+      const partnerMeetingDateTime = partner
+        ? getMeetingDateTime(partner)
+        : null;
+      const isSameMutualMeeting = Boolean(
+        partner &&
+          partner.meetingStatus === 'busy' &&
+          String(partner.partnerProfileId || '') === String(profile.id) &&
+          partnerMeetingDateTime?.toISOString() === meetingKey,
+      );
+      const meetingProfiles = isSameMutualMeeting
+        ? [profile, partner]
+        : [profile];
+      const pairKey = meetingProfiles
+        .map(meetingProfile => String(meetingProfile.id))
+        .sort()
+        .join('|');
+      const reminderKey = `${reminderType}:${meetingKey}:${pairKey}`;
+      const reminderField =
+        reminderType === 'hour'
+          ? 'meetingReminderHourFor'
+          : 'meetingReminderDayFor';
+      const wasAlreadySent = meetingProfiles.some(
+        meetingProfile =>
+          String(meetingProfile[reminderField] || '') === meetingKey,
+      );
 
-      if (
-        diffMs <= HOUR_MS &&
-        String(profile.meetingReminderHourFor || '') !== meetingKey
-      ) {
-        await sendReminder(profile, 'hour', meetingKey);
+      if (processedReminderKeys.has(reminderKey) || wasAlreadySent) {
         continue;
       }
 
-      if (
-        diffMs > HOUR_MS &&
-        String(profile.meetingReminderDayFor || '') !== meetingKey
-      ) {
-        await sendReminder(profile, 'day', meetingKey);
-      }
+      processedReminderKeys.add(reminderKey);
+      await sendReminder(
+        profile,
+        reminderType,
+        meetingKey,
+        meetingProfiles,
+      );
     }
   } catch (error) {
     console.warn('Meeting reminder job failed', error);

@@ -6,12 +6,21 @@ import React, {
   useMemo,
   useState,
 } from 'react';
-import {Modal, StyleSheet, View} from 'react-native';
+import {StyleSheet, View} from 'react-native';
 
 import CustomButton from '../components/CustomButton/CustomButton';
 import CustomText from '../components/CustomText/CustomText';
-import {FontsStyle} from './FontsStyle';
+import {FontSize, FontsStyle} from './FontsStyle';
 import {useLanguage} from './LanguageProvider';
+import SharedStyles from './SharedStyles';
+import Colors from './Colors';
+import GeneralStyle from './GeneralStyle';
+import CustomModal from '../components/CustomModal/CustomModal';
+import CloseIcon from '../components/CloseIcon/CloseIcon';
+import {
+  clearErrorMessageHandler,
+  setErrorMessageHandler,
+} from './MessageManager';
 
 type MessageType = 'success' | 'error' | 'info';
 
@@ -41,24 +50,24 @@ const TYPE_STYLES: Record<
   {accent: string; background: string; icon: string}
 > = {
   success: {
-    accent: '#1F8A5B',
-    background: '#EAF7F0',
+    accent: Colors.success,
+    background: Colors.successSoft,
     icon: '✓',
   },
   error: {
-    accent: '#C93A3A',
-    background: '#FCEEEE',
+    accent: Colors.danger,
+    background: Colors.dangerSoft,
     icon: '!',
   },
   info: {
-    accent: '#2F68B8',
-    background: '#EEF4FF',
+    accent: Colors.info,
+    background: Colors.softBlue,
     icon: 'i',
   },
 };
 
 export const MessageProvider = ({children}: {children: React.ReactNode}) => {
-  const {isRTL} = useLanguage();
+  const {isRTL, t} = useLanguage();
   const [messageOptions, setMessageOptions] = useState<MessageOptions | null>(
     null,
   );
@@ -74,6 +83,14 @@ export const MessageProvider = ({children}: {children: React.ReactNode}) => {
       ...options,
     });
   }, []);
+
+  useEffect(() => {
+    setErrorMessageHandler(messageKey => {
+      showMessage({type: 'error', message: t(messageKey)});
+    });
+
+    return clearErrorMessageHandler;
+  }, [showMessage, t]);
 
   useEffect(() => {
     if (!messageOptions?.autoDismissMs) {
@@ -96,7 +113,7 @@ export const MessageProvider = ({children}: {children: React.ReactNode}) => {
   const type = messageOptions?.type ?? 'info';
   const typeStyles = TYPE_STYLES[type];
   const defaultTitle =
-    type === 'success' ? 'success' : type === 'error' ? 'error' : '';
+    type === 'success' ? 'success' : type === 'error' ? 'error' : 'notice';
   const hasConfirmAction = Boolean(messageOptions?.onConfirm);
 
   const handleConfirm = async () => {
@@ -118,15 +135,29 @@ export const MessageProvider = ({children}: {children: React.ReactNode}) => {
       {children}
 
       {messageOptions ? (
-        <Modal
+        <CustomModal
           transparent
           visible
-          animationType="fade"
+          animationType="none"
           onRequestClose={handleClose}>
           <View style={styles.overlay}>
-            <View style={styles.card}>
-              <View
-                style={[styles.header, isRTL ? styles.rowReverse : styles.row]}>
+            <View
+              accessible
+              accessibilityLiveRegion="assertive"
+              accessibilityRole="alert"
+              style={[styles.card, {borderColor: typeStyles.accent}]}>
+              <CustomButton
+                unstyled
+                accessibilityLabel={t('close')}
+                style={[
+                  styles.headerCloseButton,
+                  isRTL ? styles.closeButtonRtl : styles.closeButtonLtr,
+                ]}
+                icon={<CloseIcon />}
+                onPress={handleClose}
+              />
+
+              <View style={styles.body}>
                 <View
                   style={[
                     styles.iconWrap,
@@ -141,23 +172,15 @@ export const MessageProvider = ({children}: {children: React.ReactNode}) => {
                   />
                 </View>
 
-                <View style={styles.textArea}>
-                  <CustomText
-                    text={messageOptions.title || defaultTitle}
-                    customStyle={[
-                      styles.title,
-                      isRTL ? styles.textRight : styles.textLeft,
-                    ]}
-                  />
+                <CustomText
+                  text={messageOptions.title || defaultTitle}
+                  customStyle={styles.title}
+                />
 
-                  <CustomText
-                    text={messageOptions.message}
-                    customStyle={[
-                      styles.message,
-                      isRTL ? styles.textRight : styles.textLeft,
-                    ]}
-                  />
-                </View>
+                <CustomText
+                  text={messageOptions.message}
+                  customStyle={styles.message}
+                />
               </View>
 
               {hasConfirmAction ? (
@@ -167,6 +190,7 @@ export const MessageProvider = ({children}: {children: React.ReactNode}) => {
                     isRTL ? styles.rowReverse : styles.row,
                   ]}>
                   <CustomButton
+                    variant="secondary"
                     onPress={hideMessage}
                     text={messageOptions.cancelText || 'cancel'}
                     customStyle={[styles.actionButton, styles.cancelButton]}
@@ -174,8 +198,9 @@ export const MessageProvider = ({children}: {children: React.ReactNode}) => {
                   />
 
                   <CustomButton
+                    variant={type === 'error' ? 'danger' : 'primary'}
                     onPress={handleConfirm}
-                    text={messageOptions.confirmText || 'yes'}
+                    text={messageOptions.confirmText || 'confirm'}
                     customStyle={[
                       styles.actionButton,
                       {backgroundColor: typeStyles.accent},
@@ -183,20 +208,10 @@ export const MessageProvider = ({children}: {children: React.ReactNode}) => {
                     customTextStyle={styles.confirmText}
                   />
                 </View>
-              ) : (
-                <CustomButton
-                  onPress={handleClose}
-                  text="close"
-                  customStyle={[
-                    styles.closeButton,
-                    {backgroundColor: typeStyles.accent},
-                  ]}
-                  customTextStyle={styles.closeText}
-                />
-              )}
+              ) : null}
             </View>
           </View>
-        </Modal>
+        </CustomModal>
       ) : null}
     </MessageContext.Provider>
   );
@@ -205,81 +220,82 @@ export const MessageProvider = ({children}: {children: React.ReactNode}) => {
 export const useMessage = () => useContext(MessageContext);
 
 const styles = StyleSheet.create({
+  ...SharedStyles,
   overlay: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
     padding: 24,
-    backgroundColor: 'rgba(17, 24, 39, 0.32)',
+    backgroundColor: Colors.overlay,
   },
   card: {
     width: '100%',
-    maxWidth: 380,
-    borderRadius: 8,
-    padding: 18,
-    backgroundColor: '#FFFFFF',
-    shadowColor: '#000',
+    maxWidth: GeneralStyle.size.modal,
+    overflow: 'hidden',
+    borderWidth: 2,
+    borderRadius: GeneralStyle.radius.md,
+    padding: GeneralStyle.spacing.lg,
+    paddingTop: GeneralStyle.spacing.xl,
+    backgroundColor: Colors.white,
+    shadowColor: Colors.black,
     shadowOffset: {width: 0, height: 10},
     shadowOpacity: 0.16,
     shadowRadius: 18,
     elevation: 8,
   },
-  header: {
-    alignItems: 'flex-start',
-    gap: 12,
+  headerCloseButton: {
+    position: 'absolute',
+    top: GeneralStyle.spacing.sm,
+    width: GeneralStyle.size.icon,
+    height: GeneralStyle.size.icon,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: GeneralStyle.radius.sm,
+    borderWidth: 1,
+    borderColor: Colors.borderSoft,
+    backgroundColor: Colors.white,
+    zIndex: 2,
   },
-  row: {
-    flexDirection: 'row',
+  closeButtonRtl: {
+    left: GeneralStyle.spacing.sm,
   },
-  rowReverse: {
-    flexDirection: 'row-reverse',
+  closeButtonLtr: {
+    right: GeneralStyle.spacing.sm,
+  },
+  body: {
+    alignItems: 'center',
+    gap: GeneralStyle.spacing.sm,
+    paddingTop: GeneralStyle.spacing.md,
   },
   iconWrap: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
-    borderWidth: 1,
+    width: GeneralStyle.size.badge,
+    height: GeneralStyle.size.badge,
+    borderRadius: GeneralStyle.size.badge / 2,
+    borderWidth: 2,
     alignItems: 'center',
     justifyContent: 'center',
   },
   iconText: {
     ...FontsStyle.textDecoration,
-    fontSize: 20,
-  },
-  textArea: {
-    flex: 1,
-    minWidth: 0,
+    fontSize: FontSize.iconLarge,
+    lineHeight: 40,
+    textAlign: 'center',
   },
   title: {
     ...FontsStyle.textDecoration,
-    color: '#172033',
-    fontSize: 17,
-    marginBottom: 6,
+    width: '100%',
+    color: Colors.darkGreen,
+    fontSize: FontSize.heading,
+    lineHeight: 28,
+    textAlign: 'center',
   },
   message: {
     ...FontsStyle.text,
-    color: '#4F5B6D',
-    fontSize: 14,
-    lineHeight: 21,
-  },
-  textLeft: {
-    textAlign: 'left',
-  },
-  textRight: {
-    textAlign: 'right',
-  },
-  closeButton: {
-    minHeight: 42,
-    borderRadius: 6,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 18,
-    paddingHorizontal: 16,
-  },
-  closeText: {
-    ...FontsStyle.textDecoration,
-    color: '#FFFFFF',
-    fontSize: 15,
+    width: '100%',
+    color: Colors.slate,
+    fontSize: FontSize.body,
+    lineHeight: 24,
+    textAlign: 'center',
   },
   actionsRow: {
     gap: 10,
@@ -287,23 +303,23 @@ const styles = StyleSheet.create({
   },
   actionButton: {
     flex: 1,
-    minHeight: 42,
+    minHeight: GeneralStyle.size.control,
     borderRadius: 6,
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 14,
   },
   cancelButton: {
-    backgroundColor: '#EEF1F5',
+    backgroundColor: Colors.surfaceMuted,
   },
   cancelText: {
     ...FontsStyle.textDecoration,
-    color: '#4F5B6D',
-    fontSize: 15,
+    color: Colors.slate,
+    fontSize: FontSize.small,
   },
   confirmText: {
     ...FontsStyle.textDecoration,
-    color: '#FFFFFF',
-    fontSize: 15,
+    color: Colors.white,
+    fontSize: FontSize.small,
   },
 });

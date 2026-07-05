@@ -1,7 +1,8 @@
 import {Dimensions, StyleSheet} from 'react-native';
 import Colors from '../../utils/Colors';
 import GeneralStyle from '../../utils/GeneralStyle';
-import {FontsStyle} from '../../utils/FontsStyle';
+import {CardBorderStyle} from '../../utils/SharedStyles';
+import {FontSize, FontsStyle} from '../../utils/FontsStyle';
 
 const {width} = Dimensions.get('window');
 
@@ -38,32 +39,26 @@ export const styles = StyleSheet.create({
     paddingTop: GeneralStyle.spacing.xl,
   },
   slideCard: {
+    ...CardBorderStyle,
     width: '100%',
     minHeight: 520,
     justifyContent: 'space-between',
     padding: GeneralStyle.spacing.lg,
-    borderWidth: 1,
-    borderColor: Colors.borderSoft,
-    borderTopWidth: 3,
-    borderTopColor: Colors.premiumLine,
-    borderRadius: GeneralStyle.radius.lg,
-    backgroundColor: Colors.surfaceElevated,
+    backgroundColor: Colors.white,
     ...Colors.Shadow,
   },
   eyebrow: {
     ...FontsStyle.text,
     color: Colors.goldDark,
-    fontSize: 13,
+    fontSize: FontSize.caption,
     textAlign: 'center',
   },
   previewCard: {
+    ...CardBorderStyle,
     minHeight: 260,
     justifyContent: 'center',
     gap: GeneralStyle.spacing.md,
     padding: GeneralStyle.spacing.lg,
-    borderWidth: 1,
-    borderColor: Colors.borderSoft,
-    borderRadius: GeneralStyle.radius.md,
     backgroundColor: Colors.ivory,
   },
   previewHeader: {
@@ -72,8 +67,8 @@ export const styles = StyleSheet.create({
     gap: GeneralStyle.spacing.md,
   },
   avatar: {
-    width: 58,
-    height: 58,
+    width: GeneralStyle.size.largeControl,
+    height: GeneralStyle.size.largeControl,
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: 29,
@@ -84,7 +79,7 @@ export const styles = StyleSheet.create({
   avatarText: {
     ...FontsStyle.menuTitle,
     color: Colors.white,
-    fontSize: 26,
+    fontSize: FontSize.display,
     textAlign: 'center',
   },
   previewTitleBlock: {
@@ -95,7 +90,7 @@ export const styles = StyleSheet.create({
   previewName: {
     ...FontsStyle.subTitle,
     color: Colors.darkGreen,
-    fontSize: 22,
+    fontSize: FontSize.heading,
     textAlign: 'right',
   },
   previewMeta: {
@@ -119,7 +114,7 @@ export const styles = StyleSheet.create({
   infoChipText: {
     ...FontsStyle.text,
     color: Colors.darkGreen,
-    fontSize: 13,
+    fontSize: FontSize.caption,
   },
   profileLine: {
     height: 9,
@@ -132,7 +127,7 @@ export const styles = StyleSheet.create({
     alignSelf: 'flex-end',
   },
   preferenceRow: {
-    minHeight: 58,
+    minHeight: GeneralStyle.size.largeControl,
     flexDirection: 'row-reverse',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -141,7 +136,7 @@ export const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.borderSoft,
     borderRadius: GeneralStyle.radius.md,
-    backgroundColor: Colors.surfaceElevated,
+    backgroundColor: Colors.white,
   },
   preferenceLabel: {
     ...FontsStyle.text,
@@ -151,13 +146,13 @@ export const styles = StyleSheet.create({
   preferenceValue: {
     ...FontsStyle.subTitle,
     color: Colors.darkGreen,
-    fontSize: 18,
+    fontSize: FontSize.large,
     textAlign: 'left',
   },
   matchScore: {
     alignSelf: 'center',
-    width: 118,
-    height: 118,
+    width: GeneralStyle.size.media,
+    height: GeneralStyle.size.media,
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: 59,
@@ -168,13 +163,13 @@ export const styles = StyleSheet.create({
   matchScoreText: {
     ...FontsStyle.menuTitle,
     color: Colors.navyDeep,
-    fontSize: 30,
+    fontSize: FontSize.displayLarge,
     textAlign: 'center',
   },
   matchScoreLabel: {
     ...FontsStyle.text,
     color: Colors.goldDark,
-    fontSize: 12,
+    fontSize: FontSize.caption,
     textAlign: 'center',
   },
   reasonRow: {
@@ -202,24 +197,23 @@ export const styles = StyleSheet.create({
   calendarDay: {
     ...FontsStyle.subTitle,
     color: Colors.darkGreen,
-    fontSize: 22,
+    fontSize: FontSize.heading,
   },
   calendarTime: {
     ...FontsStyle.menuTitle,
     color: Colors.goldDark,
-    fontSize: 28,
+    fontSize: FontSize.display,
   },
   meetingCard: {
+    ...CardBorderStyle,
     gap: GeneralStyle.spacing.xs,
     padding: GeneralStyle.spacing.md,
-    borderWidth: 1,
-    borderColor: Colors.borderSoft,
-    borderRadius: GeneralStyle.radius.md,
-    backgroundColor: Colors.surfaceElevated,
+    backgroundColor: Colors.white,
   },
   meetingTitle: {
-    ...FontsStyle.subTitle,
+    ...FontsStyle.menuTitle,
     color: Colors.darkGreen,
+    fontSize: FontSize.section,
     textAlign: 'right',
   },
   meetingMeta: {
@@ -237,7 +231,7 @@ export const styles = StyleSheet.create({
   statusPillText: {
     ...FontsStyle.text,
     color: Colors.darkGreen,
-    fontSize: 13,
+    fontSize: FontSize.caption,
   },
   ringPreviewStage: {
     minHeight: 126,
@@ -245,15 +239,13 @@ export const styles = StyleSheet.create({
     padding: GeneralStyle.spacing.md,
   },
   ringCard: {
-    minHeight: 88,
+    ...CardBorderStyle,
+    minHeight: GeneralStyle.size.avatar,
     justifyContent: 'center',
     gap: GeneralStyle.spacing.xs,
     paddingHorizontal: GeneralStyle.spacing.md,
     paddingVertical: GeneralStyle.spacing.sm,
-    borderWidth: 1,
-    borderColor: Colors.borderSoft,
-    borderRadius: GeneralStyle.radius.md,
-    backgroundColor: Colors.surfaceElevated,
+    backgroundColor: Colors.white,
   },
   ringCardName: {
     ...FontsStyle.subTitle,
@@ -269,8 +261,8 @@ export const styles = StyleSheet.create({
     position: 'absolute',
     left: GeneralStyle.spacing.lg,
     bottom: 0,
-    width: 62,
-    height: 62,
+    width: GeneralStyle.size.badge,
+    height: GeneralStyle.size.badge,
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: 31,
@@ -280,8 +272,8 @@ export const styles = StyleSheet.create({
     ...Colors.Shadow,
   },
   floatingRingInner: {
-    width: 34,
-    height: 34,
+    width: GeneralStyle.size.icon,
+    height: GeneralStyle.size.icon,
     borderRadius: 17,
     borderWidth: 5,
     borderColor: Colors.white,
@@ -292,7 +284,7 @@ export const styles = StyleSheet.create({
     gap: GeneralStyle.spacing.sm,
   },
   ringActionPill: {
-    minWidth: 92,
+    minWidth: GeneralStyle.size.avatar,
     alignItems: 'center',
     paddingHorizontal: GeneralStyle.spacing.md,
     paddingVertical: GeneralStyle.spacing.xs,
@@ -304,26 +296,26 @@ export const styles = StyleSheet.create({
   ringActionText: {
     ...FontsStyle.text,
     color: Colors.darkGreen,
-    fontSize: 13,
+    fontSize: FontSize.caption,
     textAlign: 'center',
   },
   ringPreviewNote: {
     ...FontsStyle.text,
     color: Colors.slate,
-    fontSize: 13,
+    fontSize: FontSize.caption,
     lineHeight: 20,
     textAlign: 'center',
   },
   title: {
     ...FontsStyle.wizardTitle,
     color: Colors.darkGreen,
-    fontSize: 27,
+    fontSize: FontSize.section,
     textAlign: 'center',
   },
   subtitle: {
     ...FontsStyle.text,
     color: Colors.slate,
-    fontSize: 15,
+    fontSize: FontSize.small,
     lineHeight: 23,
     textAlign: 'center',
   },
@@ -349,13 +341,13 @@ export const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    minHeight: 64,
+    minHeight: GeneralStyle.size.badge,
     marginHorizontal: GeneralStyle.spacing.lg,
     marginBottom: GeneralStyle.spacing.xl,
     gap: GeneralStyle.spacing.sm,
   },
   skipButton: {
-    minWidth: 64,
+    minWidth: GeneralStyle.size.badge,
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: GeneralStyle.spacing.sm,
@@ -363,11 +355,11 @@ export const styles = StyleSheet.create({
   skipText: {
     ...FontsStyle.text,
     color: Colors.slate,
-    fontSize: 15,
+    fontSize: FontSize.small,
     textAlign: 'center',
   },
   prevButton: {
-    minWidth: 86,
+    minWidth: GeneralStyle.size.avatar,
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: GeneralStyle.spacing.md,
@@ -375,16 +367,16 @@ export const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.borderSoft,
     borderRadius: GeneralStyle.radius.md,
-    backgroundColor: Colors.surfaceElevated,
+    backgroundColor: Colors.white,
   },
   prevButtonText: {
     ...FontsStyle.text,
     color: Colors.darkGreen,
-    fontSize: 15,
+    fontSize: FontSize.small,
     textAlign: 'center',
   },
   nextButton: {
-    minWidth: 104,
+    minWidth: GeneralStyle.size.label,
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: GeneralStyle.spacing.lg,
@@ -397,7 +389,7 @@ export const styles = StyleSheet.create({
   nextButtonText: {
     ...FontsStyle.text,
     color: Colors.white,
-    fontSize: 16,
+    fontSize: FontSize.body,
     textAlign: 'center',
   },
 });

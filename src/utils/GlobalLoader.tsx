@@ -1,6 +1,9 @@
 import React, {useEffect, useRef} from 'react';
-import {Animated, Easing, Modal, StyleSheet, View} from 'react-native';
+import {Animated, Easing, StyleSheet, View} from 'react-native';
 import {useLoading} from './LoadingProvider';
+import Colors from './Colors';
+import GeneralStyle from './GeneralStyle';
+import CustomModal from '../components/CustomModal/CustomModal';
 
 export const GlobalLoaderVisual = ({active = true}: {active?: boolean}) => {
   const pulseAnim = useRef(new Animated.Value(0)).current;
@@ -74,15 +77,20 @@ const GlobalLoader = () => {
   const {isLoading} = useLoading();
 
   return (
-    <Modal
+    <CustomModal
       transparent
       visible={isLoading}
       animationType="fade"
       statusBarTranslucent>
-      <View style={styles.overlay}>
+      <View
+        accessible
+        accessibilityLabel="loading"
+        accessibilityRole="progressbar"
+        accessibilityState={{busy: isLoading}}
+        style={styles.overlay}>
         <GlobalLoaderVisual active={isLoading} />
       </View>
-    </Modal>
+    </CustomModal>
   );
 };
 
@@ -91,13 +99,13 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(6, 26, 54, 0.28)',
+    backgroundColor: Colors.overlaySoft,
   },
   icon: {
-    width: 86,
-    height: 86,
+    width: GeneralStyle.size.avatar,
+    height: GeneralStyle.size.avatar,
     borderRadius: 24,
-    shadowColor: 'rgba(6, 26, 54, 0.28)',
+    shadowColor: Colors.overlaySoft,
     shadowOffset: {width: 0, height: 10},
     shadowOpacity: 1,
     shadowRadius: 18,
@@ -105,8 +113,8 @@ const styles = StyleSheet.create({
   },
   iconGlow: {
     position: 'absolute',
-    width: 86,
-    height: 86,
+    width: GeneralStyle.size.avatar,
+    height: GeneralStyle.size.avatar,
     borderRadius: 24,
   },
 });

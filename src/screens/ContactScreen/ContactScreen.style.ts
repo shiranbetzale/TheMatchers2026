@@ -19,9 +19,14 @@ export const styles = StyleSheet.create({
   },
   card: {
     alignSelf: 'center',
-    maxWidth: 560,
+    maxWidth: GeneralStyle.size.content,
+    gap: GeneralStyle.spacing.md,
+  },
+  fieldsContainer: {
+    width: '100%',
+    gap: GeneralStyle.spacing.sm,
   },
   field: {
-    marginBottom: GeneralStyle.spacing.sm,
+    width: '100%',
   },
 });

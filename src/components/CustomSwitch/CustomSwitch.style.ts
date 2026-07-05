@@ -1,7 +1,9 @@
 import { StyleSheet } from "react-native";
 import GeneralStyle from "../../utils/GeneralStyle";
+import SharedStyles from '../../utils/SharedStyles';
 
 export const styles = StyleSheet.create({
+  ...SharedStyles,
   container: {
     width: '100%',
     alignItems: 'center',
@@ -9,19 +11,7 @@ export const styles = StyleSheet.create({
     gap: GeneralStyle.spacing.sm,
   },
   smallContainer: {
-    minHeight: 34,
-  },
-  row: {
-    flexDirection: 'row',
-  },
-  rowReverse: {
-    flexDirection: 'row-reverse',
-  },
-  alignStart: {
-    alignItems: 'flex-start',
-  },
-  alignEnd: {
-    alignItems: 'flex-end',
+    minHeight: GeneralStyle.size.icon,
   },
   switchText: {
     flex: 1,
@@ -33,14 +23,6 @@ export const styles = StyleSheet.create({
   text: {
     flexShrink: 1,
     width: '100%',
-  },
-  textLeft: {
-    textAlign: 'left',
-    writingDirection: 'ltr',
-  },
-  textRight: {
-    textAlign: 'right',
-    writingDirection: 'rtl',
   },
   switch: {
     flexShrink: 0,

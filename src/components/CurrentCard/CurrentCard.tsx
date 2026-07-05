@@ -1,11 +1,10 @@
 import React, {useState} from 'react';
-import {Linking, Pressable, Share, View} from 'react-native';
+import {Linking, Share, View} from 'react-native';
 import EmailSvg from '../../assets/images/email.svg';
 import PhoneSvg from '../../assets/images/phone.svg';
 import ShareSvg from '../../assets/images/share.svg';
 import WhatsappSvg from '../../assets/images/whatsapp.svg';
 import CustomImage from '../CustomImage/CustomImage';
-import CustomImageSlider from '../CustomImageSlider/CustomImageSlider';
 import CustomText from '../CustomText/CustomText';
 import ImagePreviewModal from '../ImagePreviewModal/ImagePreviewModal';
 import {MatchCardType} from '../MatchCard/MatchCard.type';
@@ -13,7 +12,7 @@ import {styles} from './CurrentCard.style';
 import SelectedCard from '../SelectedCard/SelectedCard';
 import {useLanguage} from '../../utils/LanguageProvider';
 import {getCardStatusText} from '../../utils/generalFunction';
-import CustomButton from '../CustomButton/CustomButton';
+import CustomButton, {BUTTON_ICON_SIZE} from '../CustomButton/CustomButton';
 import {formatProfileOptionValue} from '../../utils/shareFormatting';
 
 type CurrentCardProps = MatchCardType & {
@@ -33,7 +32,6 @@ const CurrentCard = (props: CurrentCardProps) => {
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const {
     city,
-    isSlide = true,
     name,
     age,
     images,
@@ -88,14 +86,6 @@ const CurrentCard = (props: CurrentCardProps) => {
 
   const isMale = gender === 'male' || gender === t('male');
 
-  const getImage = () => {
-    return images?.length > 1 && isSlide ? (
-      <CustomImageSlider images={images} />
-    ) : (
-      <CustomImage customImgStyle={styles.img} src={images[0]} />
-    );
-  };
-
   const profileMessage = [
     'בס"ד',
     '',
@@ -142,9 +132,9 @@ const CurrentCard = (props: CurrentCardProps) => {
   };
 
   const handleWhatsapp = () => {
-    Linking.openURL(`whatsapp://send?text=${encodeURIComponent(profileMessage)}`).catch(
-      handleShare,
-    );
+    Linking.openURL(
+      `whatsapp://send?text=${encodeURIComponent(profileMessage)}`,
+    ).catch(handleShare);
   };
 
   const handleSendEmail = () => {
@@ -152,9 +142,9 @@ const CurrentCard = (props: CurrentCardProps) => {
     const subject = encodeURIComponent(`${t('candidateDetails')}: ${name}`);
     const body = encodeURIComponent(profileMessage);
 
-    Linking.openURL(`mailto:${recipient}?subject=${subject}&body=${body}`).catch(
-      handleShare,
-    );
+    Linking.openURL(
+      `mailto:${recipient}?subject=${subject}&body=${body}`,
+    ).catch(handleShare);
   };
 
   const handleMatcherCall = () => {
@@ -176,11 +166,12 @@ const CurrentCard = (props: CurrentCardProps) => {
   return (
     <View style={[styles.container, isMale ? styles.boy : styles.girl]}>
       <CustomText text={name} customStyle={styles.txt} />
-      <Pressable
+      <CustomButton
+        unstyled
         style={styles.imgContainer}
         onPress={() => setIsPreviewOpen(true)}>
-        {getImage()}
-      </Pressable>
+        <CustomImage customImgStyle={styles.img} src={images?.[0]} />
+      </CustomButton>
       <SelectedCard
         card={props}
         details={details}
@@ -191,36 +182,52 @@ const CurrentCard = (props: CurrentCardProps) => {
       {isShowInfoButtons && (
         <View style={styles.infoButtons}>
           <View style={styles.actionItem}>
-            <CustomButton onPress={handleMatcherCall} customStyle={styles.icon}>
-              <PhoneSvg width={18} height={18} />
+            <CustomButton
+              unstyled
+              onPress={handleMatcherCall}
+              customStyle={styles.icon}>
+              <PhoneSvg width={BUTTON_ICON_SIZE} height={BUTTON_ICON_SIZE} />
             </CustomButton>
-            <CustomText text="cardMatchmaker" customStyle={styles.actionLabel} />
+            <CustomText
+              text="cardMatchmaker"
+              customStyle={styles.actionLabel}
+            />
           </View>
           {canSeeCandidatePhone && (
             <View style={styles.actionItem}>
               <CustomButton
+                unstyled
                 onPress={handleCandidateCall}
                 customStyle={styles.icon}>
-                <PhoneSvg width={18} height={18} />
+                <PhoneSvg width={BUTTON_ICON_SIZE} height={BUTTON_ICON_SIZE} />
               </CustomButton>
               <CustomText text="candidate" customStyle={styles.actionLabel} />
             </View>
           )}
           <View style={styles.actionItem}>
-            <CustomButton onPress={handleWhatsapp} customStyle={styles.icon}>
-              <WhatsappSvg width={18} height={18} />
+            <CustomButton
+              unstyled
+              onPress={handleWhatsapp}
+              customStyle={styles.icon}>
+              <WhatsappSvg width={BUTTON_ICON_SIZE} height={BUTTON_ICON_SIZE} />
             </CustomButton>
             <CustomText text="whatsapp" customStyle={styles.actionLabel} />
           </View>
           <View style={styles.actionItem}>
-            <CustomButton onPress={handleSendEmail} customStyle={styles.icon}>
-              <EmailSvg width={18} height={18} />
+            <CustomButton
+              unstyled
+              onPress={handleSendEmail}
+              customStyle={styles.icon}>
+              <EmailSvg width={BUTTON_ICON_SIZE} height={BUTTON_ICON_SIZE} />
             </CustomButton>
             <CustomText text="email" customStyle={styles.actionLabel} />
           </View>
           <View style={styles.actionItem}>
-            <CustomButton onPress={handleShare} customStyle={styles.icon}>
-              <ShareSvg width={18} height={18} />
+            <CustomButton
+              unstyled
+              onPress={handleShare}
+              customStyle={styles.icon}>
+              <ShareSvg width={BUTTON_ICON_SIZE} height={BUTTON_ICON_SIZE} />
             </CustomButton>
             <CustomText text="share" customStyle={styles.actionLabel} />
           </View>

@@ -1,12 +1,7 @@
 import React, {useEffect, useState} from 'react';
-import {
-  GestureResponderEvent,
-  Modal,
-  ScrollView,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import CustomButton from '../CustomButton/CustomButton';
+import CustomModal from '../CustomModal/CustomModal';
+import {GestureResponderEvent, ScrollView, Text, View} from 'react-native';
 import {styles} from './CustomSelect.style';
 import {CustomSelectType} from './CustomSelect.type';
 import CustomText from '../CustomText/CustomText';
@@ -24,7 +19,7 @@ const CustomSelect = (props: CustomSelectType) => {
     text,
     value,
   } = props;
-  const {isRTL} = useLanguage();
+  const {isRTL, t} = useLanguage();
   const [isOpen, setIsOpen] = useState(false);
   const [selectedOption, setSelectedOption] = useState<Option | undefined>();
   const isColumnLayout = layout === 'column';
@@ -71,7 +66,11 @@ const CustomSelect = (props: CustomSelectType) => {
       showsVerticalScrollIndicator={false}
       keyboardShouldPersistTaps="always">
       {options.map(option => (
-        <TouchableOpacity
+        <CustomButton
+          unstyled
+          accessibilityLabel={`${t(text)}: ${t(option.label)}`}
+          accessibilityRole="radio"
+          accessibilityState={{selected: option === displayOption}}
           key={`${option.name}_${option.id}_${option.value || option.label}`}
           style={styles.option}
           onPress={() => handleSelect(option)}>
@@ -79,10 +78,10 @@ const CustomSelect = (props: CustomSelectType) => {
             text={option.label}
             customStyle={[
               styles.optionText,
-              isRTL ? styles.rtlText : styles.ltrText,
+              isRTL ? styles.textRight : styles.textLeft,
             ]}
           />
-        </TouchableOpacity>
+        </CustomButton>
       ))}
     </ScrollView>
   );
@@ -100,11 +99,20 @@ const CustomSelect = (props: CustomSelectType) => {
         ]}>
         <CustomText
           text={text}
-          customStyle={[styles.label, isRTL ? styles.rtlText : styles.ltrText]}
+          customStyle={[
+            styles.label,
+            isRTL ? styles.textRight : styles.textLeft,
+          ]}
         />
       </View>
 
-      <TouchableOpacity
+      <CustomButton
+        unstyled
+        accessibilityLabel={`${t(text)}: ${t(
+          String(displayOption?.label || value || 'selectPlaceholder'),
+        )}`}
+        accessibilityRole="button"
+        accessibilityState={{disabled: !isEditable, expanded: isOpen}}
         style={[
           styles.select,
           isColumnLayout && styles.selectColumn,
@@ -119,39 +127,41 @@ const CustomSelect = (props: CustomSelectType) => {
             customStyle={[
               styles.selectText,
               styles.selectContentText,
-              isRTL ? styles.rtlText : styles.ltrText,
+              isRTL ? styles.textRight : styles.textLeft,
             ]}
           />
           {canClear && (
-            <TouchableOpacity
+            <CustomButton
+              unstyled
               accessibilityRole="button"
-              accessibilityLabel="נקה בחירה"
+              accessibilityLabel={t('clearSelection')}
               hitSlop={{top: 8, bottom: 8, left: 8, right: 8}}
               style={styles.clearButton}
               onPress={handleClear}>
               <Text style={styles.clearButtonText}>x</Text>
-            </TouchableOpacity>
+            </CustomButton>
           )}
         </View>
-      </TouchableOpacity>
+      </CustomButton>
 
       {presentation === 'inline' ? (
         isEditable && isOpen ? (
           <View style={styles.inlineOptionsContainer}>{optionsList}</View>
         ) : null
       ) : (
-        <Modal
+        <CustomModal
           transparent
           visible={isEditable && isOpen}
           animationType="fade"
           onRequestClose={() => setIsOpen(false)}>
-          <TouchableOpacity
+          <CustomButton
+            unstyled
             style={styles.overlay}
             activeOpacity={1}
             onPressOut={() => setIsOpen(false)}>
             <View style={styles.optionsContainer}>{optionsList}</View>
-          </TouchableOpacity>
-        </Modal>
+          </CustomButton>
+        </CustomModal>
       )}
     </View>
   );

@@ -1,7 +1,8 @@
 import {StyleSheet} from 'react-native';
 import Colors from '../../utils/Colors';
-import {FontsStyle} from '../../utils/FontsStyle';
+import {FontSize, FontsStyle} from '../../utils/FontsStyle';
 import GeneralStyle from '../../utils/GeneralStyle';
+import SharedStyles from '../../utils/SharedStyles';
 
 export const styles = StyleSheet.create({
   container: {
@@ -13,7 +14,7 @@ export const styles = StyleSheet.create({
   title: {
     ...FontsStyle.menuTitle,
     color: Colors.darkGreen,
-    fontSize: 24,
+    fontSize: FontSize.section,
     textAlign: 'right',
   },
   subtitle: {
@@ -39,12 +40,12 @@ export const styles = StyleSheet.create({
   summaryValue: {
     ...FontsStyle.menuTitle,
     color: Colors.color1,
-    fontSize: 20,
+    fontSize: FontSize.title,
   },
   summaryLabel: {
     ...FontsStyle.text,
     color: Colors.darkGreen,
-    fontSize: 12,
+    fontSize: FontSize.caption,
   },
   dayGroup: {
     gap: GeneralStyle.spacing.sm,
@@ -53,13 +54,12 @@ export const styles = StyleSheet.create({
   dayTitle: {
     ...FontsStyle.textDecoration,
     color: Colors.darkGreen,
-    fontSize: 19,
+    fontSize: FontSize.section,
     textAlign: 'right',
     paddingHorizontal: GeneralStyle.spacing.sm,
   },
   meetingCard: {
     gap: GeneralStyle.spacing.sm,
-    borderTopColor: Colors.color1,
   },
   meetingTopRow: {
     alignItems: 'flex-start',
@@ -72,12 +72,12 @@ export const styles = StyleSheet.create({
     flexDirection: 'row-reverse',
   },
   editMeetingButton: {
-    width: 40,
-    height: 40,
+    width: GeneralStyle.size.iconLarge,
+    height: GeneralStyle.size.iconLarge,
     borderRadius: GeneralStyle.radius.sm,
     borderWidth: 1,
     borderColor: Colors.borderSoft,
-    backgroundColor: Colors.surfaceElevated,
+    backgroundColor: Colors.white,
   },
   meetingMain: {
     flex: 1,
@@ -97,22 +97,44 @@ export const styles = StyleSheet.create({
   timeLabel: {
     ...FontsStyle.subTitle,
     color: Colors.ivory,
-    fontSize: 12,
+    fontSize: FontSize.caption,
     textAlign: 'center',
     marginBottom: 2,
   },
   timeText: {
     ...FontsStyle.textDecoration,
     color: Colors.white,
-    fontSize: 18,
+    fontSize: FontSize.large,
     textAlign: 'center',
     writingDirection: 'ltr',
   },
   meetingName: {
     ...FontsStyle.subTitle,
     color: Colors.darkGreen,
-    fontSize: 18,
+    fontSize: FontSize.large,
     textAlign: 'right',
+  },
+  meetingNamesRow: {
+    alignItems: 'center',
+    flexWrap: 'wrap',
+    gap: GeneralStyle.spacing.xs,
+  },
+  meetingNamesRowRtl: {
+    flexDirection: 'row-reverse',
+  },
+  meetingNamesRowLtr: {
+    flexDirection: 'row',
+  },
+  meetingNameLink: {
+    ...FontsStyle.textDecoration,
+    color: Colors.info,
+    fontSize: FontSize.large,
+    textDecorationLine: 'underline',
+  },
+  meetingNameSeparator: {
+    ...FontsStyle.text,
+    color: Colors.slate,
+    fontSize: FontSize.large,
   },
   meetingDate: {
     ...FontsStyle.text,
@@ -128,13 +150,13 @@ export const styles = StyleSheet.create({
     ...FontsStyle.subTitle,
     color: Colors.darkGreen,
     textAlign: 'right',
-    fontSize: 16,
+    fontSize: FontSize.body,
   },
   detailValue: {
     ...FontsStyle.text,
     color: Colors.darkGreen,
     textAlign: 'right',
-    fontSize: 16,
+    fontSize: FontSize.body,
   },
   detailRow: {
     flexDirection: 'row-reverse',
@@ -180,24 +202,23 @@ export const styles = StyleSheet.create({
   modalTitle: {
     ...FontsStyle.menuTitle,
     color: Colors.darkGreen,
-    fontSize: 22,
+    fontSize: FontSize.heading,
     textAlign: 'right',
   },
   modalCloseButton: {
-    width: 36,
-    height: 36,
+    width: GeneralStyle.size.icon,
+    height: GeneralStyle.size.icon,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
     borderColor: Colors.borderSoft,
     borderRadius: GeneralStyle.radius.sm,
-    backgroundColor: Colors.surfaceElevated,
+    backgroundColor: Colors.white,
   },
   modalCloseText: {
     ...FontsStyle.subTitle,
+    ...SharedStyles.iconGlyphText,
     color: Colors.darkGreen,
-    fontSize: 18,
-    textAlign: 'center',
   },
   modalField: {
     gap: GeneralStyle.spacing.xs,
@@ -205,37 +226,37 @@ export const styles = StyleSheet.create({
   modalFieldLabel: {
     ...FontsStyle.subTitle,
     color: Colors.darkGreen,
-    fontSize: 15,
+    fontSize: FontSize.small,
   },
   modalInputBox: {
-    minHeight: 46,
+    minHeight: GeneralStyle.size.field,
     justifyContent: 'center',
     paddingHorizontal: GeneralStyle.spacing.md,
     paddingVertical: GeneralStyle.spacing.sm,
     borderWidth: 1,
     borderColor: Colors.borderSoft,
     borderRadius: GeneralStyle.radius.sm,
-    backgroundColor: Colors.surfaceElevated,
+    backgroundColor: Colors.white,
   },
   modalInputText: {
     ...FontsStyle.text,
     color: Colors.darkGreen,
   },
   modalTextInput: {
-    minHeight: 46,
+    minHeight: GeneralStyle.size.field,
     paddingHorizontal: GeneralStyle.spacing.md,
     paddingVertical: GeneralStyle.spacing.sm,
     borderWidth: 1,
     borderColor: Colors.borderSoft,
     borderRadius: GeneralStyle.radius.sm,
-    backgroundColor: Colors.surfaceElevated,
+    backgroundColor: Colors.white,
     ...FontsStyle.text,
     color: Colors.darkGreen,
   },
   validationText: {
     ...FontsStyle.text,
     color: Colors.danger,
-    fontSize: 13,
+    fontSize: FontSize.caption,
   },
   modalActions: {
     gap: GeneralStyle.spacing.sm,
@@ -279,9 +300,9 @@ export const styles = StyleSheet.create({
     gap: GeneralStyle.spacing.xs,
   },
   emptyTitle: {
-    ...FontsStyle.subTitle,
+    ...FontsStyle.menuTitle,
     color: Colors.darkGreen,
-    fontSize: 18,
+    fontSize: FontSize.section,
     textAlign: 'center',
   },
   emptyText: {

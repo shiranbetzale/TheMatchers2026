@@ -3,13 +3,15 @@ import {AxiosError} from 'axios';
 import {FirebaseAuthTypes} from '@react-native-firebase/auth';
 import {CommonActions, useNavigation} from '@react-navigation/native';
 import {StackNavigationProp} from '@react-navigation/stack';
-import {Modal, Platform, Text, TouchableOpacity, View} from 'react-native';
+import {Platform, Text, View} from 'react-native';
 
 import HomeScreen from '../HomeScreen/HomeScreen';
 import WhiteCard from '../../components/WhiteCard/WhiteCard';
 import CustomText from '../../components/CustomText/CustomText';
 import CustomInput from '../../components/CustomInput/CustomInput';
 import CustomButton from '../../components/CustomButton/CustomButton';
+import CustomModal from '../../components/CustomModal/CustomModal';
+import CloseIcon from '../../components/CloseIcon/CloseIcon';
 import CustomTab from '../../components/CustomTab/CustomTab';
 
 import {styles} from './Login.style';
@@ -27,8 +29,10 @@ import {registerForPushNotifications} from '../../services/pushNotifications';
 import {
   loginWithPassword,
   sendCandidateCode,
+  sendCandidateVoiceCode,
   verifyCandidateCode,
   verifyCandidateFallbackCode,
+  verifyCandidateVoiceCode,
 } from '../../services/auth';
 import {warmBackend} from '../../services/api';
 
@@ -86,7 +90,7 @@ const getFirebasePhoneErrorKey = (error: unknown) => {
   }
 
   if (code === 'auth/network-request-failed') {
-    return 'errorNoResponse';
+    return 'noInternetConnection';
   }
 
   if (code === 'auth/invalid-verification-code') {
@@ -195,6 +199,8 @@ const Login = () => {
   const [pendingCandidatePhone, setPendingCandidatePhone] = useState('');
   const [pendingMatchmakerPhone, setPendingMatchmakerPhone] = useState('');
   const [isCandidateFallbackCode, setIsCandidateFallbackCode] = useState(false);
+  const [isCandidateVoiceCode, setIsCandidateVoiceCode] = useState(false);
+  const [resendCooldown, setResendCooldown] = useState(0);
   const [candidateConfirmation, setCandidateConfirmation] =
     useState<FirebaseAuthTypes.ConfirmationResult | null>(null);
 
@@ -218,6 +224,19 @@ const Login = () => {
 
   const activeTab = tabModes.indexOf(activeMode);
   const isMatchmakerLogin = activeMode === 'matchmaker';
+
+  useEffect(() => {
+    if (resendCooldown <= 0) {
+      return;
+    }
+
+    const timeout = setTimeout(
+      () => setResendCooldown(current => Math.max(0, current - 1)),
+      1000,
+    );
+
+    return () => clearTimeout(timeout);
+  }, [resendCooldown]);
 
   useEffect(() => {
     let isMounted = true;
@@ -278,6 +297,7 @@ const Login = () => {
 
     setPassword('');
     setMatchmakerCode('');
+    setIsCandidateVoiceCode(false);
   };
 
   const handleLoginApp = async () => {
@@ -328,6 +348,8 @@ const Login = () => {
           setPendingMatchmakerPhone(cleanMatchmakerCode);
           setCandidateConfirmation(confirmation);
           setIsCandidateFallbackCode(false);
+          setIsCandidateVoiceCode(false);
+          setResendCooldown(30);
           setCandidateCode('');
           setCandidateCodeModalVisible(true);
         } catch (firebaseError) {
@@ -348,6 +370,7 @@ const Login = () => {
           setPendingMatchmakerPhone(cleanMatchmakerCode);
           setCandidateConfirmation(null);
           setIsCandidateFallbackCode(true);
+          setIsCandidateVoiceCode(false);
           setCandidateCode('');
           setCandidateCodeModalVisible(true);
           showMessage({
@@ -419,6 +442,85 @@ const Login = () => {
     }
   };
 
+  const handleVoiceVerification = async () => {
+    if (isSubmitting) {
+      return;
+    }
+
+    const cleanMobile = (pendingCandidatePhone || mobile).trim();
+    const cleanMatchmakerPhone = (
+      pendingMatchmakerPhone || matchmakerCode
+    ).trim();
+
+    if (!cleanMobile || !cleanMatchmakerPhone) {
+      showMessage({type: 'error', message: t('errorRequiredFields')});
+      return;
+    }
+
+    if (
+      !/^05\d{8}$/.test(cleanMobile) ||
+      !/^05\d{8}$/.test(cleanMatchmakerPhone)
+    ) {
+      showMessage({type: 'error', message: t('invalidPhone')});
+      return;
+    }
+
+    try {
+      setIsSubmitting(true);
+      await sendCandidateVoiceCode(cleanMobile, cleanMatchmakerPhone);
+      setPendingCandidatePhone(cleanMobile);
+      setPendingMatchmakerPhone(cleanMatchmakerPhone);
+      setCandidateConfirmation(null);
+      setIsCandidateFallbackCode(false);
+      setIsCandidateVoiceCode(true);
+      setResendCooldown(0);
+      setCandidateCode('');
+      setCandidateCodeModalVisible(true);
+    } catch (err) {
+      const error = err as AxiosError;
+
+      showMessage({
+        type: 'error',
+        message:
+          error.response?.status === 503 || error.response?.status === 502
+            ? t('candidateVoiceUnavailable')
+            : error.response?.status === 404
+              ? t('matchmakerNotFound')
+              : t('errorServer'),
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleResendCandidateCode = async () => {
+    if (isSubmitting || resendCooldown > 0) {
+      return;
+    }
+
+    try {
+      setIsSubmitting(true);
+      const confirmation = await sendCandidateCode(
+        pendingCandidatePhone,
+        pendingMatchmakerPhone,
+      );
+
+      setCandidateConfirmation(confirmation);
+      setCandidateCode('');
+      setResendCooldown(30);
+      showMessage({type: 'success', message: t('candidateCodeResent')});
+    } catch (error) {
+      const firebaseErrorKey = getFirebasePhoneErrorKey(error);
+
+      showMessage({
+        type: 'error',
+        message: t(firebaseErrorKey || 'firebasePhoneAuthUnknownError'),
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   const handleVerifyCandidateCode = async () => {
     if (isSubmitting) {
       return;
@@ -443,7 +545,13 @@ const Login = () => {
             matchmakerPhone: cleanMatchmakerPhone,
             code: cleanCode,
           })
-        : isCandidateFallbackCode
+        : isCandidateVoiceCode
+          ? await verifyCandidateVoiceCode({
+              phone: cleanCandidatePhone,
+              matchmakerPhone: cleanMatchmakerPhone,
+              code: cleanCode,
+            })
+          : isCandidateFallbackCode
           ? await verifyCandidateFallbackCode({
               phone: cleanCandidatePhone,
               matchmakerPhone: cleanMatchmakerPhone,
@@ -471,6 +579,8 @@ const Login = () => {
       setCandidateCode('');
       setCandidateConfirmation(null);
       setIsCandidateFallbackCode(false);
+      setIsCandidateVoiceCode(false);
+      setResendCooldown(0);
       setCandidateCodeModalVisible(false);
 
       navigation.dispatch(
@@ -525,7 +635,8 @@ const Login = () => {
       <View style={styles.container}>
         <HomeScreen>
           <View style={styles.langSwitchContainer}>
-            <TouchableOpacity
+            <CustomButton
+              variant="ghost"
               onPress={() => setLangModalVisible(true)}
               style={styles.langSwitchButton}
               accessibilityLabel={t('selectLanguage')}>
@@ -539,7 +650,7 @@ const Login = () => {
                   {language.toUpperCase()}
                 </Text>
               </View>
-            </TouchableOpacity>
+            </CustomButton>
           </View>
 
           <WhiteCard customStyle={styles.whiteCardContainer}>
@@ -598,6 +709,17 @@ const Login = () => {
                 )}
               </View>
 
+              {!isMatchmakerLogin && (
+                <CustomButton
+                  variant="secondary"
+                  text="candidateVoiceCall"
+                  onPress={handleVoiceVerification}
+                  isDisabled={isSubmitting}
+                  customStyle={styles.voiceButton}
+                  customTextStyle={styles.voiceButtonText}
+                />
+              )}
+
               <View style={styles.space}>
                 <CustomButton
                   text={isSubmitting ? 'loading' : 'login'}
@@ -612,35 +734,71 @@ const Login = () => {
         </HomeScreen>
       </View>
 
-      <Modal
+      <CustomModal
         transparent
         visible={langModalVisible}
         animationType="slide"
         onRequestClose={() => setLangModalVisible(false)}>
-        <TouchableOpacity
+        <CustomButton
+          unstyled
           style={styles.modalOverlay}
           activeOpacity={1}
           onPressOut={() => setLangModalVisible(false)}>
           <View style={styles.modalContent}>
-            <CustomText text="selectLanguage" customStyle={styles.modalTitle} />
-            {languages.map(lang => (
-              <TouchableOpacity
-                key={lang.code}
-                style={styles.modalOption}
-                onPress={async () => {
-                  await changeLanguage(lang.code);
-                  setLangModalVisible(false);
-                }}>
-                <Text style={styles.modalOptionText}>
-                  {lang.label} ({lang.code.toUpperCase()})
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-        </TouchableOpacity>
-      </Modal>
+            <View style={styles.codeModalHeader}>
+              <CustomText
+                text="selectLanguage"
+                customStyle={styles.modalTitle}
+              />
+              <CustomButton
+                unstyled
+                accessibilityLabel={t('close')}
+                style={styles.codeModalCloseButton}
+                onPress={() => setLangModalVisible(false)}>
+                <CloseIcon />
+              </CustomButton>
+            </View>
+            <View style={styles.languageOptions}>
+              {languages.map(lang => {
+                const isSelected = language === lang.code;
 
-      <Modal
+                return (
+                  <CustomButton
+                    unstyled
+                    key={lang.code}
+                    accessibilityRole="radio"
+                    accessibilityState={{selected: isSelected}}
+                    style={[
+                      styles.modalOption,
+                      isSelected && styles.modalOptionSelected,
+                    ]}
+                    onPress={async () => {
+                      await changeLanguage(lang.code);
+                      setLangModalVisible(false);
+                    }}>
+                    <Text
+                      style={[
+                        styles.modalOptionText,
+                        isSelected && styles.modalOptionTextSelected,
+                      ]}>
+                      {lang.label}
+                    </Text>
+                    <Text
+                      style={[
+                        styles.languageCode,
+                        isSelected && styles.modalOptionTextSelected,
+                      ]}>
+                      {lang.code.toUpperCase()}
+                    </Text>
+                  </CustomButton>
+                );
+              })}
+            </View>
+          </View>
+        </CustomButton>
+      </CustomModal>
+
+      <CustomModal
         transparent
         visible={candidateCodeModalVisible}
         animationType="fade"
@@ -649,6 +807,8 @@ const Login = () => {
           setCandidateCode('');
           setCandidateConfirmation(null);
           setIsCandidateFallbackCode(false);
+          setIsCandidateVoiceCode(false);
+          setResendCooldown(0);
         }}>
         <View style={styles.codeModalOverlay}>
           <View style={styles.codeModalContent}>
@@ -657,21 +817,27 @@ const Login = () => {
                 text="candidateCodeTitle"
                 customStyle={styles.codeModalTitle}
               />
-              <TouchableOpacity
+              <CustomButton
+                variant="icon"
+                accessibilityLabel={t('close')}
                 style={styles.codeModalCloseButton}
                 onPress={() => {
                   setCandidateCodeModalVisible(false);
                   setCandidateCode('');
                   setCandidateConfirmation(null);
                   setIsCandidateFallbackCode(false);
+                  setIsCandidateVoiceCode(false);
+                  setResendCooldown(0);
                 }}>
-                <Text style={styles.codeModalCloseText}>×</Text>
-              </TouchableOpacity>
+                <CloseIcon />
+              </CustomButton>
             </View>
 
             <CustomText
               text={
-                isCandidateFallbackCode
+                isCandidateVoiceCode
+                  ? 'candidateVoiceCodeSubtitle'
+                  : isCandidateFallbackCode
                   ? 'candidateFallbackCodeSubtitle'
                   : 'candidateCodeSubtitle'
               }
@@ -693,18 +859,46 @@ const Login = () => {
               />
             </View>
 
+            {!isCandidateVoiceCode && !isCandidateFallbackCode && (
+              <View style={styles.verificationAlternatives}>
+                <CustomButton
+                  variant="ghost"
+                  text={
+                    resendCooldown > 0
+                      ? `${t('resendSms')} (${resendCooldown})`
+                      : t('resendSms')
+                  }
+                  onPress={handleResendCandidateCode}
+                  isDisabled={isSubmitting || resendCooldown > 0}
+                  customStyle={styles.resendButton}
+                  customTextStyle={styles.resendButtonText}
+                />
+                <CustomButton
+                  variant="secondary"
+                  text="candidateVoiceCall"
+                  onPress={handleVoiceVerification}
+                  isDisabled={isSubmitting}
+                  customStyle={styles.modalVoiceButton}
+                  customTextStyle={styles.modalVoiceButtonText}
+                />
+              </View>
+            )}
+
             <View
               style={[
                 styles.codeModalActions,
                 isRTL ? styles.rowReverse : styles.row,
               ]}>
               <CustomButton
+                variant="secondary"
                 text="cancel"
                 onPress={() => {
                   setCandidateCodeModalVisible(false);
                   setCandidateCode('');
                   setCandidateConfirmation(null);
                   setIsCandidateFallbackCode(false);
+                  setIsCandidateVoiceCode(false);
+                  setResendCooldown(0);
                 }}
                 isDisabled={isSubmitting}
                 customStyle={styles.codeCancelButton}
@@ -720,7 +914,7 @@ const Login = () => {
             </View>
           </View>
         </View>
-      </Modal>
+      </CustomModal>
     </>
   );
 };

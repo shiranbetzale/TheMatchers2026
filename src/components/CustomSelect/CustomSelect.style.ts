@@ -2,23 +2,19 @@ import {Dimensions, StyleSheet} from 'react-native';
 import Colors from '../../utils/Colors';
 import {FontsStyle} from '../../utils/FontsStyle';
 import GeneralStyle from '../../utils/GeneralStyle';
+import SharedStyles from '../../utils/SharedStyles';
 
 const {height} = Dimensions.get('window');
 const SELECT_MODAL_MAX_HEIGHT = Math.min(height * 0.56, 430);
 
 export const styles = StyleSheet.create({
+  ...SharedStyles,
   container: {
     width: '100%',
-    minHeight: 48,
+    minHeight: GeneralStyle.size.field,
     alignItems: 'center',
     justifyContent: 'space-between',
     gap: GeneralStyle.spacing.sm,
-  },
-  row: {
-    flexDirection: 'row',
-  },
-  rowReverse: {
-    flexDirection: 'row-reverse',
   },
   column: {
     flexDirection: 'column',
@@ -28,11 +24,11 @@ export const styles = StyleSheet.create({
   select: {
     flex: 1,
     minWidth: 0,
-    minHeight: 44,
+    minHeight: GeneralStyle.size.control,
     borderWidth: 1,
     borderColor: Colors.borderSoft,
     borderRadius: GeneralStyle.radius.md,
-    backgroundColor: Colors.surfaceElevated,
+    backgroundColor: Colors.white,
     borderBottomColor: Colors.borderSoft,
     paddingHorizontal: GeneralStyle.spacing.md,
     paddingVertical: GeneralStyle.spacing.sm,
@@ -40,15 +36,16 @@ export const styles = StyleSheet.create({
   selectColumn: {
     flex: 0,
     width: '100%',
-    minHeight: 44,
+    minHeight: GeneralStyle.size.control,
     paddingVertical: GeneralStyle.spacing.xs,
   },
   readOnlySelect: {
-    borderWidth: 0,
-    backgroundColor: 'transparent',
+    borderColor: Colors.borderSoft,
+    backgroundColor: Colors.surfaceMuted,
   },
   selectText: {
     ...FontsStyle.text,
+    color: Colors.darkGreen,
   },
   selectContent: {
     minHeight: 26,
@@ -60,8 +57,8 @@ export const styles = StyleSheet.create({
     flex: 1,
   },
   clearButton: {
-    width: 24,
-    height: 24,
+    width: GeneralStyle.size.iconXs,
+    height: GeneralStyle.size.iconXs,
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
@@ -74,7 +71,7 @@ export const styles = StyleSheet.create({
   },
   labelWrapper: {
     width: '42%',
-    minWidth: 104,
+    minWidth: GeneralStyle.size.label,
     flexShrink: 0,
   },
   labelWrapperColumn: {
@@ -86,14 +83,6 @@ export const styles = StyleSheet.create({
     width: '100%',
     flexShrink: 0,
   },
-  rtlText: {
-    textAlign: 'right',
-    writingDirection: 'rtl',
-  },
-  ltrText: {
-    textAlign: 'left',
-    writingDirection: 'ltr',
-  },
   overlay: {
     flex: 1,
     justifyContent: 'center',
@@ -103,7 +92,7 @@ export const styles = StyleSheet.create({
   },
   optionsContainer: {
     width: '100%',
-    maxWidth: 360,
+    maxWidth: GeneralStyle.size.modal,
     maxHeight: SELECT_MODAL_MAX_HEIGHT,
     overflow: 'hidden',
     borderRadius: GeneralStyle.radius.md,
@@ -112,7 +101,7 @@ export const styles = StyleSheet.create({
   },
   inlineOptionsContainer: {
     width: '100%',
-    maxHeight: 220,
+    maxHeight: GeneralStyle.size.options,
     overflow: 'hidden',
     borderWidth: 1,
     borderColor: Colors.borderSoft,
@@ -124,7 +113,7 @@ export const styles = StyleSheet.create({
     paddingVertical: GeneralStyle.spacing.sm,
     borderBottomWidth: 1,
     borderBottomColor: Colors.borderSoft,
-    minHeight: 48,
+    minHeight: GeneralStyle.size.field,
     justifyContent: 'center',
   },
   optionText: {

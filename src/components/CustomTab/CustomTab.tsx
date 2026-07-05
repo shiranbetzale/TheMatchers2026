@@ -15,29 +15,24 @@ const CustomTab = (props: CustomTabType) => {
         style={[
           styles.tabsRow,
           isRTL ? styles.rowReverse : styles.row,
-          isRTL ? styles.alignRight : styles.alignLeft,
         ]}>
         {tabs.map((tab, index) => {
-          const isLast = index === tabs.length - 1;
+          const isActive = index === activeTab;
 
           return (
-            <React.Fragment key={`tab_${index}`}>
-              <View style={styles.tabBorder}>
-                <CustomButton
-                  text={tab.label}
-                  customStyle={[
-                    styles.tab,
-                    index === activeTab && styles.activeTab,
-                  ]}
-                  customTextStyle={[
-                    styles.tabText,
-                    index === activeTab && styles.activeTabTxt,
-                  ]}
-                  onPress={() => onTabPress(index)}
-                />
-              </View>
-              {!isLast && <View style={styles.separator} />}
-            </React.Fragment>
+            <CustomButton
+              unstyled
+              key={`tab_${index}`}
+              text={tab.label}
+              accessibilityRole="tab"
+              accessibilityState={{selected: isActive}}
+              customStyle={[styles.tab, isActive && styles.activeTab]}
+              customTextStyle={[
+                styles.tabText,
+                isActive && styles.activeTabTxt,
+              ]}
+              onPress={() => onTabPress(index)}
+            />
           );
         })}
       </View>

@@ -1,9 +1,11 @@
 import {StyleSheet} from 'react-native';
 import Colors from '../../utils/Colors';
-import {FontsStyle} from '../../utils/FontsStyle';
+import {FontSize, FontsStyle} from '../../utils/FontsStyle';
 import GeneralStyle from '../../utils/GeneralStyle';
+import SharedStyles from '../../utils/SharedStyles';
 
 export const styles = StyleSheet.create({
+  ...SharedStyles,
   fieldContainer: {
     width: '100%',
   },
@@ -12,12 +14,6 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     gap: GeneralStyle.spacing.sm,
-  },
-  row: {
-    flexDirection: 'row',
-  },
-  rowReverse: {
-    flexDirection: 'row-reverse',
   },
   smallContainer: {
     width: '100%',
@@ -43,18 +39,18 @@ export const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.borderSoft,
     borderRadius: GeneralStyle.radius.md,
-    backgroundColor: Colors.surfaceElevated,
+    backgroundColor: Colors.white,
     borderBottomColor: Colors.borderSoft,
     ...FontsStyle.text,
-    color: Colors.black,
+    color: Colors.darkGreen,
   },
   errorInput: {
-    borderColor: '#D65A50',
-    backgroundColor: '#FFF5F1',
+    borderColor: Colors.danger,
+    backgroundColor: Colors.dangerSoft,
   },
   readOnlyInput: {
-    borderWidth: 0,
-    backgroundColor: 'transparent',
+    borderColor: Colors.borderSoft,
+    backgroundColor: Colors.surfaceMuted,
     color: Colors.slate,
   },
   ltrInput: {
@@ -83,7 +79,7 @@ export const styles = StyleSheet.create({
   },
   labelWrapper: {
     flex: 0.42,
-    minWidth: 92,
+    minWidth: GeneralStyle.size.avatar,
     flexShrink: 0,
   },
   label: {
@@ -94,16 +90,10 @@ export const styles = StyleSheet.create({
   errorText: {
     ...FontsStyle.text,
     width: '100%',
-    color: '#9F4239',
-    fontSize: 12,
+    color: Colors.danger,
+    fontSize: FontSize.caption,
     lineHeight: 18,
     marginTop: GeneralStyle.spacing.xs,
-  },
-  textRight: {
-    textAlign: 'right',
-  },
-  textLeft: {
-    textAlign: 'left',
   },
   toggleSecure: {
     position: 'absolute',
@@ -119,7 +109,7 @@ export const styles = StyleSheet.create({
   },
   toggleSecureText: {
     ...FontsStyle.text,
-    fontSize: 14,
+    fontSize: FontSize.small,
     color: Colors.darkGreen,
   },
 });

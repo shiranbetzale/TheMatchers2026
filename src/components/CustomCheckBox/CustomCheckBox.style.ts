@@ -1,9 +1,11 @@
 import {StyleSheet} from 'react-native';
 import Colors from '../../utils/Colors';
-import {FontsStyle} from '../../utils/FontsStyle';
+import {FontSize, FontsStyle} from '../../utils/FontsStyle';
 import GeneralStyle from '../../utils/GeneralStyle';
+import SharedStyles from '../../utils/SharedStyles';
 
 export const styles = StyleSheet.create({
+  ...SharedStyles,
   container: {
     width: '100%',
   },
@@ -12,8 +14,8 @@ export const styles = StyleSheet.create({
     width: '100%',
   },
   smallCheckbox: {
-    width: 24,
-    height: 24,
+    width: GeneralStyle.size.iconXs,
+    height: GeneralStyle.size.iconXs,
     borderWidth: 1,
     flexShrink: 0,
   },
@@ -40,8 +42,8 @@ export const styles = StyleSheet.create({
     flexDirection: 'row-reverse',
   },
   checkbox: {
-    width: 28,
-    height: 28,
+    width: GeneralStyle.size.iconSm,
+    height: GeneralStyle.size.iconSm,
     alignSelf: 'center',
     flexShrink: 0,
   },
@@ -51,7 +53,7 @@ export const styles = StyleSheet.create({
     borderRadius: 7,
     borderWidth: 2,
     borderColor: Colors.darkGreen,
-    backgroundColor: Colors.surfaceElevated,
+    backgroundColor: Colors.white,
   },
   checkboxBoxSelected: {
     borderColor: Colors.color1,
@@ -66,7 +68,7 @@ export const styles = StyleSheet.create({
   },
   checkMark: {
     color: Colors.white,
-    fontSize: 18,
+    fontSize: FontSize.large,
     fontWeight: '700',
     lineHeight: 20,
   },
@@ -80,13 +82,11 @@ export const styles = StyleSheet.create({
     color: Colors.black,
   },
   textRight: {
-    textAlign: 'right',
-    writingDirection: 'rtl',
+    ...SharedStyles.textRight,
     width: '100%',
   },
   textLeft: {
-    textAlign: 'left',
-    writingDirection: 'ltr',
+    ...SharedStyles.textLeft,
     width: '100%',
   },
 });

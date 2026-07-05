@@ -7,27 +7,42 @@ const fontMap = {
   bold: 'Birzia-Bold',
 };
 
+export const FontSize = {
+  micro: 16,
+  caption: 16,
+  small: 16,
+  body: 16,
+  large: 18,
+  title: 24,
+  heading: 24,
+  section: 24,
+  display: 28,
+  displayLarge: 30,
+  iconLarge: 34,
+  hero: 40,
+} as const;
+
 export const FontsStyle = StyleSheet.create({
   text: {
     color: Colors.black,
     fontFamily: fontMap.light,
-    fontSize: 16,
+    fontSize: FontSize.body,
   },
   title: {
     fontFamily: fontMap.bold,
     color: Colors.darkGreen,
-    fontSize: 40,
+    fontSize: FontSize.section,
     textAlign: 'center',
   },
   menuTitle: {
     fontFamily: fontMap.bold,
-    fontSize: 23,
-    color: Colors.surface,
+    fontSize: FontSize.heading,
+    color: Colors.ivory,
   },
   wizardTitle: {
     fontFamily: fontMap.bold,
     color: Colors.darkGreen,
-    fontSize: 24,
+    fontSize: FontSize.section,
   },
   textDecoration: {
     fontFamily: fontMap.bold,
@@ -39,6 +54,6 @@ export const FontsStyle = StyleSheet.create({
   questionLabel: {
     fontFamily: fontMap.medium,
     color: Colors.darkGreen,
-    fontSize: 16,
+    fontSize: FontSize.body,
   },
 });

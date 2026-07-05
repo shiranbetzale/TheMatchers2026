@@ -2,6 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 
 import {hideGlobalLoader, showGlobalLoader} from '../utils/LoadingManager';
+import {showGlobalError} from '../utils/MessageManager';
 
 export const API_TOKEN_KEY = 'authToken';
 
@@ -11,14 +12,42 @@ const BACKEND_WARMUP_TIMEOUT_MS = 60000;
 
 let activeRequests = 0;
 let isLoaderVisible = false;
+let isGlobalLoaderEnabled = false;
 let cachedAuthToken: string | null | undefined;
 let authTokenLoadPromise: Promise<string | null> | null = null;
 let backendWarmupPromise: Promise<void> | null = null;
+let lastNetworkErrorAt = 0;
+
+const NETWORK_ERROR_DEBOUNCE_MS = 3000;
+
+const isNetworkError = (error: any) =>
+  !error?.response &&
+  (error?.code === 'ERR_NETWORK' || error?.message === 'Network Error');
+
+const showNetworkError = () => {
+  const now = Date.now();
+
+  if (now - lastNetworkErrorAt < NETWORK_ERROR_DEBOUNCE_MS) {
+    return;
+  }
+
+  lastNetworkErrorAt = now;
+  showGlobalError('noInternetConnection');
+};
 
 const api = axios.create({
   baseURL: DEV_SERVER_URL,
   timeout: REQUEST_TIMEOUT_MS,
 });
+
+export const enableGlobalApiLoader = () => {
+  isGlobalLoaderEnabled = true;
+
+  if (activeRequests > 0 && !isLoaderVisible) {
+    isLoaderVisible = true;
+    showGlobalLoader();
+  }
+};
 
 export const warmBackend = () => {
   if (!backendWarmupPromise) {
@@ -69,12 +98,13 @@ export const clearApiAuthToken = async () => {
 const startLoading = () => {
   activeRequests += 1;
 
-  if (isLoaderVisible) {
-    return;
+  if (!isGlobalLoaderEnabled || isLoaderVisible) {
+    return true;
   }
 
   isLoaderVisible = true;
   showGlobalLoader();
+  return true;
 };
 
 const stopLoading = () => {
@@ -94,6 +124,7 @@ declare module 'axios' {
   export interface InternalAxiosRequestConfig {
     skipLoader?: boolean;
     skipAuthToken?: boolean;
+    usesGlobalLoader?: boolean;
   }
 
   export interface AxiosRequestConfig {
@@ -105,7 +136,7 @@ declare module 'axios' {
 api.interceptors.request.use(
   async config => {
     if (!config.skipLoader) {
-      startLoading();
+      config.usesGlobalLoader = startLoading();
     }
 
     const token = config.skipAuthToken ? null : await loadAuthToken();
@@ -117,8 +148,11 @@ api.interceptors.request.use(
     return config;
   },
   error => {
-    if (!error?.config?.skipLoader) {
+    if (error?.config?.usesGlobalLoader) {
       stopLoading();
+    }
+    if (isNetworkError(error)) {
+      showNetworkError();
     }
     return Promise.reject(error);
   },
@@ -126,13 +160,13 @@ api.interceptors.request.use(
 
 api.interceptors.response.use(
   response => {
-    if (!response.config.skipLoader) {
+    if (response.config.usesGlobalLoader) {
       stopLoading();
     }
     return response;
   },
   error => {
-    if (!error?.config?.skipLoader) {
+    if (error?.config?.usesGlobalLoader) {
       stopLoading();
     }
     return Promise.reject(error);

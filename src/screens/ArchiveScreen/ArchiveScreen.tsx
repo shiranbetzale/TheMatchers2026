@@ -1,11 +1,14 @@
 import React, {useMemo, useState} from 'react';
-import {TouchableOpacity, View} from 'react-native';
-import {useFocusEffect} from '@react-navigation/native';
+import {View} from 'react-native';
+import {useFocusEffect, useNavigation} from '@react-navigation/native';
+import {StackNavigationProp} from '@react-navigation/stack';
 
 import MatchCard from '../../components/MatchCard/MatchCard';
 import {MatchCardType} from '../../components/MatchCard/MatchCard.type';
 import CustomText from '../../components/CustomText/CustomText';
-import CustomButton from '../../components/CustomButton/CustomButton';
+import CustomButton, {
+  BUTTON_ICON_SIZE,
+} from '../../components/CustomButton/CustomButton';
 import WhiteCard from '../../components/WhiteCard/WhiteCard';
 import HomeScreen from '../HomeScreen/HomeScreen';
 import CustomFilter from '../../components/CustomFilter/CustomFilter';
@@ -21,13 +24,15 @@ import RestoreSvg from '../../assets/images/restore.svg';
 import {styles} from './ArchiveScreen.style';
 import api from '../../services/api';
 import {useLanguage} from '../../utils/LanguageProvider';
-import {useMessage} from '../../utils/MessageProvider';
 import {mapProfileToCard} from '../../utils/generalFunction';
+import {RootStackParamList} from '../../components/MainStackNavigation/MainStackNavigation.type';
 
 const NO_MATCHER_FILTER_VALUE = 'noMatcher';
 
 const getGenderKey = (gender?: string) => {
-  const normalizedGender = String(gender || '').trim().toLowerCase();
+  const normalizedGender = String(gender || '')
+    .trim()
+    .toLowerCase();
 
   if (
     normalizedGender === 'male' ||
@@ -70,8 +75,8 @@ const getRelationshipStatusTextKey = (
 };
 
 const ArchiveScreen = () => {
+  const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
   const {isRTL, t} = useLanguage();
-  const {showMessage} = useMessage();
 
   const [archivedCards, setArchivedCards] = useState<MatchCardType[]>([]);
   const [hasLoadedArchive, setHasLoadedArchive] = useState(false);
@@ -79,7 +84,6 @@ const ArchiveScreen = () => {
   const [isShowOrderBy, setIsShowOrderBy] = useState(false);
   const [filterValues, setFilterValues] = useState<CardsFilterValues>({});
   const [sortValue, setSortValue] = useState<CardsSortValue>('');
-  const [restoringProfileId, setRestoringProfileId] = useState('');
 
   const fetchArchivedProfiles = React.useCallback(async () => {
     setHasLoadedArchive(false);
@@ -110,36 +114,19 @@ const ArchiveScreen = () => {
     }, [fetchArchivedProfiles]),
   );
 
-  const restoreProfile = async (card: MatchCardType) => {
+  const restoreProfile = (card: MatchCardType) => {
     const profileId = String(card.profileId || '').trim();
 
-    if (!profileId || restoringProfileId) {
+    if (!profileId) {
       return;
     }
 
-    const previousCards = archivedCards;
-
-    setRestoringProfileId(profileId);
-    setArchivedCards(cards =>
-      cards.filter(item => String(item.profileId || '') !== profileId),
-    );
-
-    try {
-      await api.patch(`/api/profiles/${profileId}/unarchive`);
-      showMessage({
-        type: 'success',
-        message: t('archiveRestoreSuccess'),
-      });
-      fetchArchivedProfiles();
-    } catch {
-      setArchivedCards(previousCards);
-      showMessage({
-        type: 'error',
-        message: t('archiveRestoreError'),
-      });
-    } finally {
-      setRestoringProfileId('');
-    }
+    navigation.navigate('Wizard', {
+      mode: 'edit',
+      profileId,
+      card,
+      restoreToAvailable: true,
+    });
   };
 
   const matcherOptions = useMemo(() => {
@@ -285,7 +272,8 @@ const ArchiveScreen = () => {
               styles.actionsBar,
               isRTL ? styles.actionsBarRtl : styles.actionsBarLtr,
             ]}>
-            <TouchableOpacity
+            <CustomButton
+              unstyled
               activeOpacity={0.84}
               style={[
                 styles.actionButton,
@@ -293,7 +281,7 @@ const ArchiveScreen = () => {
                 isRTL ? styles.actionButtonRtl : styles.actionButtonLtr,
               ]}
               onPress={toggleFilter}>
-              <FilterSvg width={20} height={20} />
+              <FilterSvg width={BUTTON_ICON_SIZE} height={BUTTON_ICON_SIZE} />
               <CustomText
                 text="filter"
                 customStyle={[
@@ -301,9 +289,10 @@ const ArchiveScreen = () => {
                   isShowFilter && styles.actionTextActive,
                 ]}
               />
-            </TouchableOpacity>
+            </CustomButton>
 
-            <TouchableOpacity
+            <CustomButton
+              unstyled
               activeOpacity={0.84}
               style={[
                 styles.actionButton,
@@ -311,7 +300,7 @@ const ArchiveScreen = () => {
                 isRTL ? styles.actionButtonRtl : styles.actionButtonLtr,
               ]}
               onPress={toggleOrderBy}>
-              <OrderBySvg width={20} height={20} />
+              <OrderBySvg width={BUTTON_ICON_SIZE} height={BUTTON_ICON_SIZE} />
               <CustomText
                 text="sort"
                 customStyle={[
@@ -319,7 +308,7 @@ const ArchiveScreen = () => {
                   isShowOrderBy && styles.actionTextActive,
                 ]}
               />
-            </TouchableOpacity>
+            </CustomButton>
           </View>
 
           {isShowFilter && (
@@ -386,9 +375,9 @@ const ArchiveScreen = () => {
 
             {!hasLoadedArchive ? null : filteredAndSortedCards.length ? (
               filteredAndSortedCards.map((card, index) => (
-                <View
+                <WhiteCard
                   key={card.profileId || `${card.name}_${index}`}
-                  style={styles.cardBlock}>
+                  customStyle={styles.archiveCard}>
                   <View
                     style={[
                       styles.relationshipBar,
@@ -424,34 +413,37 @@ const ArchiveScreen = () => {
                         customStyle={styles.relationshipBadge}
                       />
                     </View>
+
                   </View>
 
-                  <View style={styles.matchCardWithRestore}>
-                    <MatchCard
-                      {...card}
-                      isSlide={false}
-                      isShowMeetingInfo={false}
-                      isShowInfoButtons={false}
-                    />
+                  <MatchCard
+                    {...card}
+                    isEmbedded
+                    isSlide={false}
+                    isShowMeetingInfo={false}
+                    isShowInfoButtons={false}
+                  />
 
-                    <TouchableOpacity
-                      activeOpacity={0.82}
-                      accessibilityRole="button"
-                      accessibilityLabel="חזר להיות פנוי"
-                      style={[
-                        styles.restoreIconButton,
-                        restoringProfileId === card.profileId &&
-                          styles.restoreIconButtonDisabled,
-                        isRTL
-                          ? styles.restoreIconButtonRtl
-                          : styles.restoreIconButtonLtr,
-                      ]}
-                      disabled={Boolean(restoringProfileId)}
-                      onPress={() => restoreProfile(card)}>
-                      <RestoreSvg width={22} height={22} />
-                    </TouchableOpacity>
-                  </View>
-                </View>
+                  <CustomButton
+                    variant="secondary"
+                    text="restoreToActiveList"
+                    accessibilityLabel={t('restoreToActiveList')}
+                    customStyle={[
+                      styles.restoreButton,
+                      isRTL
+                        ? styles.restoreButtonRtl
+                        : styles.restoreButtonLtr,
+                    ]}
+                    customTextStyle={styles.restoreButtonText}
+                    icon={
+                      <RestoreSvg
+                        width={BUTTON_ICON_SIZE}
+                        height={BUTTON_ICON_SIZE}
+                      />
+                    }
+                    onPress={() => restoreProfile(card)}
+                  />
+                </WhiteCard>
               ))
             ) : (
               <WhiteCard customStyle={styles.emptyCard}>

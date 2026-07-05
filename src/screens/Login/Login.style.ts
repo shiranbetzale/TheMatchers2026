@@ -1,17 +1,13 @@
-import { StyleSheet } from 'react-native';
-import { FontsStyle } from '../../utils/FontsStyle';
+import {StyleSheet} from 'react-native';
+import {FontSize, FontsStyle} from '../../utils/FontsStyle';
 import GeneralStyle from '../../utils/GeneralStyle';
 import Colors from '../../utils/Colors';
+import SharedStyles from '../../utils/SharedStyles';
 
 export const styles = StyleSheet.create({
+  ...SharedStyles,
   container: {
     flex: 1,
-  },
-  row: {
-    flexDirection: 'row',
-  },
-  rowReverse: {
-    flexDirection: 'row-reverse',
   },
   langSwitchContainer: {
     alignItems: 'flex-end',
@@ -25,7 +21,7 @@ export const styles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: GeneralStyle.radius.md,
     borderColor: Colors.borderSoft,
-    backgroundColor: Colors.surfaceElevated,
+    backgroundColor: Colors.white,
     ...Colors.Shadow,
   },
   langRow: {
@@ -35,7 +31,7 @@ export const styles = StyleSheet.create({
   langSwitchText: {
     ...FontsStyle.text,
     color: Colors.darkGreen,
-    fontSize: 14,
+    fontSize: FontSize.small,
   },
   errorContainer: {
     marginHorizontal: GeneralStyle.spacing.sm,
@@ -48,28 +44,52 @@ export const styles = StyleSheet.create({
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.3)',
+    backgroundColor: Colors.overlay,
     justifyContent: 'flex-end',
   },
   modalContent: {
-    backgroundColor: Colors.surfaceElevated,
+    width: '100%',
+    backgroundColor: Colors.white,
     padding: GeneralStyle.spacing.lg,
-    borderTopLeftRadius: GeneralStyle.radius.sm,
-    borderTopRightRadius: GeneralStyle.radius.sm,
+    borderTopLeftRadius: GeneralStyle.radius.lg,
+    borderTopRightRadius: GeneralStyle.radius.lg,
     borderTopWidth: 2,
     borderTopColor: Colors.color1,
   },
   modalTitle: {
     ...FontsStyle.title,
-    marginBottom: GeneralStyle.spacing.sm,
     textAlign: 'center',
+  },
+  languageOptions: {
+    width: '100%',
+    gap: GeneralStyle.spacing.sm,
   },
   modalOption: {
-    paddingVertical: GeneralStyle.spacing.sm,
+    width: '100%',
+    minHeight: GeneralStyle.size.largeControl,
+    paddingHorizontal: GeneralStyle.spacing.md,
+    flexDirection: 'row-reverse',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    borderWidth: 1,
+    borderColor: Colors.borderSoft,
+    borderRadius: GeneralStyle.radius.md,
+    backgroundColor: Colors.ivory,
+  },
+  modalOptionSelected: {
+    borderColor: Colors.premiumLine,
+    backgroundColor: Colors.navyDeep,
   },
   modalOptionText: {
+    ...FontsStyle.textDecoration,
+    color: Colors.darkGreen,
+  },
+  modalOptionTextSelected: {
+    color: Colors.white,
+  },
+  languageCode: {
     ...FontsStyle.text,
-    textAlign: 'center',
+    color: Colors.slate,
   },
   codeModalOverlay: {
     flex: 1,
@@ -87,7 +107,7 @@ export const styles = StyleSheet.create({
     borderColor: Colors.borderSoft,
     borderTopWidth: 2,
     borderTopColor: Colors.premiumLine,
-    backgroundColor: Colors.surfaceElevated,
+    backgroundColor: Colors.white,
     ...Colors.Shadow,
   },
   codeModalHeader: {
@@ -99,7 +119,7 @@ export const styles = StyleSheet.create({
   codeModalTitle: {
     ...FontsStyle.subTitle,
     color: Colors.darkGreen,
-    fontSize: 20,
+    fontSize: FontSize.title,
   },
   codeModalSubtitle: {
     ...FontsStyle.text,
@@ -107,8 +127,8 @@ export const styles = StyleSheet.create({
     lineHeight: 22,
   },
   codeModalCloseButton: {
-    width: 34,
-    height: 34,
+    width: GeneralStyle.size.icon,
+    height: GeneralStyle.size.icon,
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: GeneralStyle.radius.sm,
@@ -117,18 +137,41 @@ export const styles = StyleSheet.create({
     backgroundColor: Colors.ivory,
   },
   codeModalCloseText: {
+    ...SharedStyles.iconGlyphText,
     ...FontsStyle.subTitle,
     color: Colors.darkGreen,
-    fontSize: 22,
-    lineHeight: 24,
   },
   codeModalActions: {
     gap: GeneralStyle.spacing.sm,
     marginTop: GeneralStyle.spacing.sm,
   },
+  resendButton: {
+    width: '100%',
+    minHeight: GeneralStyle.size.control,
+    borderWidth: 0,
+    backgroundColor: Colors.transparent,
+  },
+  resendButtonText: {
+    ...FontsStyle.textDecoration,
+    color: Colors.info,
+  },
+  verificationAlternatives: {
+    width: '100%',
+    gap: GeneralStyle.spacing.xs,
+  },
+  modalVoiceButton: {
+    width: '100%',
+    minHeight: GeneralStyle.size.control,
+    borderColor: Colors.color1Light,
+    backgroundColor: Colors.goldWash,
+  },
+  modalVoiceButtonText: {
+    ...FontsStyle.textDecoration,
+    color: Colors.darkGreen,
+  },
   codeCancelButton: {
     flex: 1,
-    minHeight: 48,
+    minHeight: GeneralStyle.size.field,
     borderRadius: GeneralStyle.radius.md,
     borderColor: Colors.borderSoft,
     backgroundColor: Colors.ivory,
@@ -139,7 +182,7 @@ export const styles = StyleSheet.create({
   },
   codeConfirmButton: {
     flex: 1,
-    minHeight: 48,
+    minHeight: GeneralStyle.size.field,
     borderRadius: GeneralStyle.radius.md,
     borderColor: Colors.premiumLine,
     backgroundColor: Colors.navyDeep,
@@ -153,8 +196,7 @@ export const styles = StyleSheet.create({
     marginBottom: GeneralStyle.spacing.xs,
     color: Colors.darkGreen,
     zIndex: 2,
-    fontSize: 38,
-    lineHeight: 44,
+    lineHeight: 30,
   },
   heroContent: {
     alignItems: 'center',
@@ -163,8 +205,8 @@ export const styles = StyleSheet.create({
   },
   brandMark: {
     alignSelf: 'center',
-    width: 58,
-    height: 58,
+    width: GeneralStyle.size.largeControl,
+    height: GeneralStyle.size.largeControl,
     borderRadius: 29,
     alignItems: 'center',
     justifyContent: 'center',
@@ -175,7 +217,7 @@ export const styles = StyleSheet.create({
   },
   brandMarkText: {
     ...FontsStyle.textDecoration,
-    fontSize: 18,
+    fontSize: FontSize.large,
     color: Colors.goldDark,
     letterSpacing: 0,
   },
@@ -183,7 +225,7 @@ export const styles = StyleSheet.create({
     ...FontsStyle.textDecoration,
     color: Colors.goldDark,
     textAlign: 'center',
-    fontSize: 14,
+    fontSize: FontSize.small,
     marginBottom: GeneralStyle.spacing.xs,
   },
   subtitle: {
@@ -195,30 +237,18 @@ export const styles = StyleSheet.create({
   },
   whiteCardContainer: {
     alignSelf: 'center',
-    maxWidth: 560,
+    maxWidth: GeneralStyle.size.content,
     marginTop: GeneralStyle.spacing.md,
     padding: GeneralStyle.spacing.lg,
-    borderTopWidth: 1,
-    borderLeftWidth: 1,
-    borderLeftColor: Colors.borderSoft,
-    borderTopColor: Colors.premiumLine,
-    borderBottomWidth: 2,
-    borderBottomColor: Colors.color1Light,
   },
   formContent: {
     width: '100%',
-  },
-  textRight: {
-    textAlign: 'right',
-  },
-  textLeft: {
-    textAlign: 'left',
   },
   space: {
     marginVertical: GeneralStyle.spacing.sm,
   },
   loginButton: {
-    minHeight: 56,
+    minHeight: GeneralStyle.size.largeControl,
     borderRadius: GeneralStyle.radius.md,
     backgroundColor: Colors.navyDeep,
     borderColor: Colors.premiumLine,
@@ -227,6 +257,17 @@ export const styles = StyleSheet.create({
   loginButtonText: {
     ...FontsStyle.textDecoration,
     color: Colors.white,
-    fontSize: 18,
+    fontSize: FontSize.large,
+  },
+  voiceButton: {
+    width: '100%',
+    minHeight: GeneralStyle.size.field,
+    marginTop: GeneralStyle.spacing.xs,
+    borderColor: Colors.color1Light,
+    backgroundColor: Colors.goldWash,
+  },
+  voiceButtonText: {
+    ...FontsStyle.textDecoration,
+    color: Colors.darkGreen,
   },
 });

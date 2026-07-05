@@ -1,5 +1,6 @@
 import React, {useEffect, useState} from 'react';
-import {Pressable, TextInput, useWindowDimensions, View} from 'react-native';
+import CustomButton from '../CustomButton/CustomButton';
+import {TextInput, useWindowDimensions, View} from 'react-native';
 import CustomText from '../CustomText/CustomText';
 import { styles } from './CustomRange.style';
 import { CustomRangeType } from './CustomRange.type';
@@ -99,12 +100,12 @@ const CustomRange = (props: CustomRangeType) => {
 
     return (
       <View style={styles.stepper}>
-        <Pressable
+        <CustomButton unstyled
           disabled={!canDecrease}
           onPress={() => updateRangeValue(index, -1)}
           style={[styles.stepButton, !canDecrease && styles.stepButtonDisabled]}>
           <CustomText text="-" customStyle={styles.stepButtonText} />
-        </Pressable>
+        </CustomButton>
         <TextInput
           value={inputValues[index] ?? String(value)}
           onChangeText={nextValue => updateInputValue(index, nextValue)}
@@ -114,12 +115,12 @@ const CustomRange = (props: CustomRangeType) => {
           selectTextOnFocus
           style={styles.stepValue}
         />
-        <Pressable
+        <CustomButton unstyled
           disabled={!canIncrease}
           onPress={() => updateRangeValue(index, 1)}
           style={[styles.stepButton, !canIncrease && styles.stepButtonDisabled]}>
           <CustomText text="+" customStyle={styles.stepButtonText} />
-        </Pressable>
+        </CustomButton>
       </View>
     );
   };

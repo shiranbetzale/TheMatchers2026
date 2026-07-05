@@ -5,7 +5,7 @@ import {Option} from '../../utils/FormFields.type';
 import generateField from '../../utils/GenerateField';
 import CustomButton from '../CustomButton/CustomButton';
 import CustomText from '../CustomText/CustomText';
-import {styles} from './CustomFilter.style';
+import {filterStyles as styles} from '../SelectionPanelStyles';
 import {CustomFilterType} from './CustomFilter.type';
 
 const CustomFilter = (props: CustomFilterType) => {
@@ -170,6 +170,7 @@ const CustomFilter = (props: CustomFilterType) => {
             onPress={handleApply}
           />
           <CustomButton
+            variant="secondary"
             customStyle={styles.resetButton}
             customTextStyle={styles.resetButtonText}
             text="reset"

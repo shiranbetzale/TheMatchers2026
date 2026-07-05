@@ -1,9 +1,11 @@
 import {StyleSheet} from 'react-native';
 import Colors from '../../utils/Colors';
-import {FontsStyle} from '../../utils/FontsStyle';
+import {FontSize, FontsStyle} from '../../utils/FontsStyle';
 import GeneralStyle from '../../utils/GeneralStyle';
+import SharedStyles from '../../utils/SharedStyles';
 
 export const styles = StyleSheet.create({
+  ...SharedStyles,
   commitmentGateScreen: {
     flex: 1,
     backgroundColor: Colors.ivory,
@@ -12,7 +14,7 @@ export const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: GeneralStyle.spacing.lg,
+    paddingHorizontal: GeneralStyle.spacing.md,
     backgroundColor: Colors.overlay,
   },
   commitmentModal: {
@@ -22,15 +24,20 @@ export const styles = StyleSheet.create({
     borderRadius: GeneralStyle.radius.lg,
     borderWidth: 1,
     borderColor: Colors.premiumLine,
-    backgroundColor: Colors.surfaceElevated,
+    backgroundColor: Colors.white,
     ...Colors.Shadow,
     elevation: 10,
   },
   commitmentTitle: {
     ...FontsStyle.menuTitle,
+    flex: 1,
     color: Colors.darkGreen,
-    fontSize: 24,
+    fontSize: FontSize.section,
     textAlign: 'center',
+  },
+  commitmentHeader: {
+    alignItems: 'center',
+    gap: GeneralStyle.spacing.sm,
   },
   commitmentIntro: {
     ...FontsStyle.text,
@@ -46,9 +53,9 @@ export const styles = StyleSheet.create({
     gap: GeneralStyle.spacing.sm,
   },
   commitmentCheck: {
-    width: 24,
+    width: GeneralStyle.size.iconXs,
     color: Colors.goldDark,
-    fontSize: 20,
+    fontSize: FontSize.title,
     fontWeight: '700',
     textAlign: 'center',
   },
@@ -59,7 +66,7 @@ export const styles = StyleSheet.create({
     lineHeight: 24,
   },
   commitmentAcceptButton: {
-    minHeight: 52,
+    minHeight: GeneralStyle.size.action,
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: GeneralStyle.radius.md,
@@ -70,11 +77,11 @@ export const styles = StyleSheet.create({
   commitmentAcceptText: {
     ...FontsStyle.textDecoration,
     color: Colors.white,
-    fontSize: 17,
+    fontSize: FontSize.body,
     textAlign: 'center',
   },
   commitmentDeclineButton: {
-    minHeight: 46,
+    minHeight: GeneralStyle.size.field,
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: GeneralStyle.spacing.sm,
@@ -86,7 +93,7 @@ export const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
-    width: "100%",
+    width: '100%',
   },
   wizardContainer: {
     borderBottomWidth: 1,
@@ -98,9 +105,9 @@ export const styles = StyleSheet.create({
     ...Colors.Shadow,
   },
   headerTopRow: {
-    justifyContent: "space-between",
-    flexDirection: "row-reverse",
-    alignItems: "center",
+    justifyContent: 'space-between',
+    flexDirection: 'row-reverse',
+    alignItems: 'center',
     gap: GeneralStyle.spacing.sm,
   },
   containerDynamicComp: {
@@ -121,23 +128,19 @@ export const styles = StyleSheet.create({
   },
   relationshipModal: {
     width: '100%',
-    maxWidth: 360,
-    padding: GeneralStyle.spacing.lg,
-    borderRadius: GeneralStyle.radius.lg,
-    backgroundColor: Colors.surfaceElevated,
-    borderTopWidth: 1,
-    borderTopColor: Colors.premiumLine,
-    borderLeftWidth: 1,
-    borderLeftColor: Colors.borderSoft,
-    ...Colors.Shadow,
-    elevation: 8,
+    maxWidth: GeneralStyle.size.modal,
+    padding: GeneralStyle.spacing.md,
+    borderRadius: GeneralStyle.radius.md,
+    backgroundColor: Colors.white,
+    borderWidth: 1,
+    borderColor: Colors.borderSoft,
   },
   relationshipFloatingButton: {
     position: 'absolute',
     left: GeneralStyle.spacing.lg,
     bottom: GeneralStyle.spacing.xl,
-    width: 54,
-    height: 54,
+    width: GeneralStyle.size.action,
+    height: GeneralStyle.size.action,
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: 27,
@@ -150,8 +153,8 @@ export const styles = StyleSheet.create({
     zIndex: 20,
   },
   relationshipFloatingImage: {
-    width: 54,
-    height: 54,
+    width: GeneralStyle.size.action,
+    height: GeneralStyle.size.action,
     borderRadius: 27,
     resizeMode: 'cover',
   },
@@ -170,9 +173,9 @@ export const styles = StyleSheet.create({
   },
   relationshipHeader: {
     flexDirection: 'row-reverse',
-    alignItems: 'flex-start',
+    alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: GeneralStyle.spacing.md,
+    marginBottom: GeneralStyle.spacing.sm,
     gap: GeneralStyle.spacing.sm,
   },
   relationshipTitleBlock: {
@@ -182,7 +185,7 @@ export const styles = StyleSheet.create({
   relationshipTitle: {
     ...FontsStyle.menuTitle,
     color: Colors.darkGreen,
-    fontSize: 22,
+    fontSize: FontSize.heading,
   },
   relationshipSubtitle: {
     ...FontsStyle.text,
@@ -190,8 +193,8 @@ export const styles = StyleSheet.create({
     marginTop: 2,
   },
   relationshipCloseButton: {
-    width: 38,
-    height: 38,
+    width: GeneralStyle.size.icon,
+    height: GeneralStyle.size.icon,
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: GeneralStyle.radius.sm,
@@ -200,37 +203,28 @@ export const styles = StyleSheet.create({
     backgroundColor: Colors.ivory,
   },
   relationshipCloseText: {
+    ...SharedStyles.iconGlyphText,
     ...FontsStyle.subTitle,
     color: Colors.darkGreen,
-    fontSize: 22,
-    lineHeight: 24,
-    textAlign: 'center',
-  },
-  row: {
-    flexDirection: 'row',
-  },
-  rowReverse: {
-    flexDirection: 'row-reverse',
   },
   statusOptions: {
+    alignItems: 'stretch',
     gap: GeneralStyle.spacing.xs,
-    marginBottom: GeneralStyle.spacing.md,
+    marginBottom: GeneralStyle.spacing.sm,
   },
   statusOption: {
-    minHeight: 54,
+    flex: 1,
+    minHeight: GeneralStyle.size.field,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
     borderColor: Colors.borderSoft,
     borderRadius: GeneralStyle.radius.md,
-    backgroundColor: Colors.surfaceElevated,
-    borderLeftWidth: 3,
-    borderLeftColor: Colors.borderSoft,
+    backgroundColor: Colors.white,
   },
   statusOptionActive: {
     backgroundColor: Colors.goldWash,
     borderColor: Colors.premiumLine,
-    borderLeftColor: Colors.premiumLine,
   },
   statusOptionText: {
     ...FontsStyle.subTitle,
@@ -245,11 +239,11 @@ export const styles = StyleSheet.create({
   },
   relationshipActions: {
     gap: GeneralStyle.spacing.sm,
-    marginTop: GeneralStyle.spacing.lg,
+    marginTop: GeneralStyle.spacing.md,
   },
   relationshipActionButton: {
     flex: 1,
-    minHeight: 50,
+    minHeight: GeneralStyle.size.action,
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: GeneralStyle.radius.md,
@@ -257,7 +251,7 @@ export const styles = StyleSheet.create({
   },
   cancelButton: {
     borderColor: Colors.premiumLine,
-    backgroundColor: Colors.surfaceElevated,
+    backgroundColor: Colors.white,
   },
   saveButton: {
     borderColor: Colors.premiumLine,
@@ -266,30 +260,33 @@ export const styles = StyleSheet.create({
   relationshipActionText: {
     ...FontsStyle.textDecoration,
     color: Colors.darkGreen,
-    fontSize: 16,
+    fontSize: FontSize.body,
     textAlign: 'center',
   },
   saveButtonText: {
     color: Colors.white,
   },
   partnerSearchContainer: {
-    gap: GeneralStyle.spacing.xs,
+    gap: GeneralStyle.spacing.sm,
+    paddingTop: GeneralStyle.spacing.sm,
+    borderTopWidth: 1,
+    borderTopColor: Colors.line,
   },
   partnerSearchLabel: {
     ...FontsStyle.textDecoration,
     color: Colors.darkGreen,
-    fontSize: 15,
+    fontSize: FontSize.small,
   },
   partnerSearchInput: {
     ...FontsStyle.text,
-    minHeight: 52,
+    minHeight: GeneralStyle.size.control,
     paddingHorizontal: GeneralStyle.spacing.md,
     paddingVertical: GeneralStyle.spacing.sm,
     color: Colors.black,
     borderWidth: 1,
     borderColor: Colors.borderSoft,
     borderRadius: GeneralStyle.radius.md,
-    backgroundColor: Colors.surfaceElevated,
+    backgroundColor: Colors.white,
   },
   readOnlyInput: {
     backgroundColor: Colors.surfaceMuted,
@@ -318,17 +315,9 @@ export const styles = StyleSheet.create({
     paddingHorizontal: GeneralStyle.spacing.md,
     paddingVertical: GeneralStyle.spacing.sm,
   },
-  textRight: {
-    textAlign: 'right',
-    writingDirection: 'rtl',
-  },
-  textLeft: {
-    textAlign: 'left',
-    writingDirection: 'ltr',
-  },
   btn: {
-    minWidth: 76,
-    minHeight: 44,
+    minWidth: GeneralStyle.size.avatarSmall,
+    minHeight: GeneralStyle.size.control,
     paddingHorizontal: GeneralStyle.spacing.md,
     paddingVertical: GeneralStyle.spacing.sm,
     backgroundColor: Colors.ivory,
@@ -339,7 +328,23 @@ export const styles = StyleSheet.create({
     elevation: 0,
   },
   btnPlaceholder: {
-    minWidth: 76,
+    minWidth: GeneralStyle.size.avatarSmall,
+  },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: GeneralStyle.spacing.xs,
+  },
+  exitEditBtn: {
+    width: GeneralStyle.size.control,
+    height: GeneralStyle.size.control,
+    minWidth: GeneralStyle.size.control,
+    minHeight: GeneralStyle.size.control,
+    padding: 0,
+    borderColor: Colors.borderSoft,
+    backgroundColor: Colors.white,
+    shadowOpacity: 0,
+    elevation: 0,
   },
   primaryBtn: {
     backgroundColor: Colors.navyDeep,
@@ -354,13 +359,13 @@ export const styles = StyleSheet.create({
   title: {
     ...FontsStyle.wizardTitle,
     color: Colors.darkGreen,
-    fontSize: 24,
+    fontSize: FontSize.section,
     textAlign: 'center',
   },
   stepCaption: {
     ...FontsStyle.text,
     color: Colors.slate,
-    fontSize: 12,
+    fontSize: FontSize.caption,
     textAlign: 'center',
     marginTop: 2,
   },
@@ -379,7 +384,7 @@ export const styles = StyleSheet.create({
     marginTop: GeneralStyle.spacing.sm,
   },
   progressDot: {
-    width: 38,
+    width: GeneralStyle.size.iconLarge,
     height: 4,
     borderRadius: 999,
     backgroundColor: Colors.line,

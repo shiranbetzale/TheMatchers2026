@@ -1,29 +1,23 @@
 import { StyleSheet } from 'react-native';
 import Colors from '../../utils/Colors';
-import { FontsStyle } from '../../utils/FontsStyle';
+import {FontSize, FontsStyle} from '../../utils/FontsStyle';
 import GeneralStyle from '../../utils/GeneralStyle';
+import {
+    CardSurfaceStyle,
+    ProfileImageStyle,
+} from '../../utils/SharedStyles';
 
 export const styles = StyleSheet.create({
     container: {
         alignItems: "center",
-        padding: GeneralStyle.spacing.sm,
-        borderWidth: 1,
-        borderColor: Colors.borderSoft,
-        borderRadius: GeneralStyle.radius.md,
-        backgroundColor: Colors.ivory,
+        ...CardSurfaceStyle,
         ...Colors.Shadow,
     },
     imgContainer: {
-        borderColor: Colors.borderSoft,
-        borderWidth: 2,
-        width: 76,
-        height: 76,
-        borderRadius: 38,
+        ...ProfileImageStyle,
         alignItems: "center",
         marginTop: GeneralStyle.spacing.xs,
         marginBottom: GeneralStyle.spacing.xs,
-        overflow: 'hidden',
-        backgroundColor: Colors.surface,
     },
     infoContainer: {
         width: "80%",
@@ -39,7 +33,7 @@ export const styles = StyleSheet.create({
     girl: {},
     txt: {
         ...FontsStyle.menuTitle,
-        fontSize: 20,
+        fontSize: FontSize.title,
         color: Colors.darkGreen,
         textAlign: 'center',
     },
@@ -58,13 +52,13 @@ export const styles = StyleSheet.create({
     actionItem: {
         alignItems: "center",
         justifyContent: "center",
-        minWidth: 52,
+        minWidth: GeneralStyle.size.action,
     },
     icon: {
-        width: 40,
-        height: 40,
-        minWidth: 40,
-        minHeight: 40,
+        width: GeneralStyle.size.iconLarge,
+        height: GeneralStyle.size.iconLarge,
+        minWidth: GeneralStyle.size.iconLarge,
+        minHeight: GeneralStyle.size.iconLarge,
         backgroundColor: Colors.ivory,
         justifyContent: "center",
         alignItems: "center",
@@ -77,7 +71,7 @@ export const styles = StyleSheet.create({
     },
     actionLabel: {
         marginTop: 3,
-        fontSize: 10,
+        fontSize: FontSize.micro,
         color: Colors.darkGreen,
         textAlign: "center",
     }

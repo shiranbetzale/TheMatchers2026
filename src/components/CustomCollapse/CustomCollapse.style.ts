@@ -1,7 +1,8 @@
 import { StyleSheet } from 'react-native';
 import Colors from '../../utils/Colors';
-import {FontsStyle} from '../../utils/FontsStyle';
+import {FontSize, FontsStyle} from '../../utils/FontsStyle';
 import GeneralStyle from '../../utils/GeneralStyle';
+import {CardBorderStyle} from '../../utils/SharedStyles';
 
 export const styles = StyleSheet.create({
   container: {
@@ -18,22 +19,16 @@ export const styles = StyleSheet.create({
   requiredFieldsNote: {
     ...FontsStyle.text,
     color: Colors.inkMuted,
-    fontSize: 14,
+    fontSize: FontSize.small,
     marginBottom: GeneralStyle.spacing.sm,
     paddingHorizontal: GeneralStyle.spacing.xs,
   },
   whiteCardContainer: {
+    ...CardBorderStyle,
     marginBottom: GeneralStyle.spacing.md,
     paddingHorizontal: GeneralStyle.spacing.md,
     paddingVertical: GeneralStyle.spacing.md,
-    borderTopWidth: 1,
-    borderLeftWidth: 1,
-    borderColor: Colors.borderSoft,
-    borderLeftColor: Colors.borderSoft,
-    borderTopColor: Colors.borderSoft,
-    borderBottomWidth: 2,
-    borderBottomColor: Colors.color1Light,
-    backgroundColor: Colors.surfaceElevated,
+    backgroundColor: Colors.white,
     overflow: 'visible',
     zIndex: 1,
   },
@@ -42,14 +37,10 @@ export const styles = StyleSheet.create({
     elevation: 12,
   },
   collapseBtn: {
+    ...CardBorderStyle,
     alignItems: 'flex-end',
     marginBottom: GeneralStyle.spacing.sm,
-    borderColor: Colors.borderSoft,
-    borderWidth: 1,
-    borderTopWidth: 2,
-    borderTopColor: Colors.premiumLine,
     backgroundColor: Colors.ivory,
-    borderRadius: GeneralStyle.radius.md,
     paddingVertical: GeneralStyle.spacing.md,
     paddingHorizontal: GeneralStyle.spacing.md,
     ...Colors.Shadow,
@@ -59,9 +50,9 @@ export const styles = StyleSheet.create({
     opacity: 0.35,
   },
   collapseTitle: {
-    ...FontsStyle.subTitle,
+    ...FontsStyle.menuTitle,
     color: Colors.darkGreen,
-    fontSize: 18,
+    fontSize: FontSize.section,
     textAlign: 'right',
   },
 });

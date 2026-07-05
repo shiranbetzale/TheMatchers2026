@@ -1,16 +1,14 @@
 import {StyleSheet} from 'react-native';
 import Colors from '../../utils/Colors';
-import {FontsStyle} from '../../utils/FontsStyle';
+import {FontSize, FontsStyle} from '../../utils/FontsStyle';
 import GeneralStyle from '../../utils/GeneralStyle';
+import SharedStyles from '../../utils/SharedStyles';
 
 export const styles = StyleSheet.create({
+  ...SharedStyles,
   whiteCardContainer: {
     marginBottom: GeneralStyle.spacing.sm,
     padding: GeneralStyle.spacing.lg,
-    borderTopWidth: 1,
-    borderTopColor: Colors.premiumLine,
-    borderLeftWidth: 1,
-    borderLeftColor: Colors.borderSoft,
   },
   relationshipHeader: {
     flexDirection: 'row-reverse',
@@ -19,9 +17,9 @@ export const styles = StyleSheet.create({
     marginBottom: GeneralStyle.spacing.md,
   },
   relationshipTitle: {
-    ...FontsStyle.subTitle,
+    ...FontsStyle.menuTitle,
     color: Colors.darkGreen,
-    fontSize: 18,
+    fontSize: FontSize.section,
   },
   relationshipBadge: {
     ...FontsStyle.text,
@@ -34,25 +32,19 @@ export const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.color1Light,
   },
-  row: {
-    flexDirection: 'row',
-  },
-  rowReverse: {
-    flexDirection: 'row-reverse',
-  },
   statusOptions: {
     gap: GeneralStyle.spacing.sm,
     marginBottom: GeneralStyle.spacing.md,
   },
   statusOption: {
     flex: 1,
-    minHeight: 48,
+    minHeight: GeneralStyle.size.field,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
     borderColor: Colors.borderSoft,
     borderRadius: GeneralStyle.radius.md,
-    backgroundColor: Colors.surfaceElevated,
+    backgroundColor: Colors.white,
   },
   statusOptionActive: {
     backgroundColor: Colors.navyDeep,
@@ -75,18 +67,18 @@ export const styles = StyleSheet.create({
   partnerSearchLabel: {
     ...FontsStyle.textDecoration,
     color: Colors.darkGreen,
-    fontSize: 15,
+    fontSize: FontSize.small,
   },
   partnerSearchInput: {
     ...FontsStyle.text,
-    minHeight: 52,
+    minHeight: GeneralStyle.size.action,
     paddingHorizontal: GeneralStyle.spacing.md,
     paddingVertical: GeneralStyle.spacing.sm,
     color: Colors.black,
     borderWidth: 1,
     borderColor: Colors.borderSoft,
     borderRadius: GeneralStyle.radius.md,
-    backgroundColor: Colors.surfaceElevated,
+    backgroundColor: Colors.white,
   },
   readOnlyInput: {
     backgroundColor: Colors.surfaceMuted,
@@ -114,13 +106,5 @@ export const styles = StyleSheet.create({
     color: Colors.slate,
     paddingHorizontal: GeneralStyle.spacing.md,
     paddingVertical: GeneralStyle.spacing.sm,
-  },
-  textRight: {
-    textAlign: 'right',
-    writingDirection: 'rtl',
-  },
-  textLeft: {
-    textAlign: 'left',
-    writingDirection: 'ltr',
   },
 });

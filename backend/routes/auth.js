@@ -23,6 +23,55 @@ function normalizeLocalPhone(phone) {
   return normalizedPhone;
 }
 
+function toInternationalPhone(phone) {
+  const localPhone = normalizeLocalPhone(phone);
+
+  return localPhone.startsWith('0')
+    ? `+972${localPhone.slice(1)}`
+    : `+${normalizePhone(localPhone)}`;
+}
+
+function getTwilioVerifyConfig() {
+  const accountSid = process.env.TWILIO_ACCOUNT_SID;
+  const authToken = process.env.TWILIO_AUTH_TOKEN;
+  const serviceSid = process.env.TWILIO_VERIFY_SERVICE_SID;
+
+  if (!accountSid || !authToken || !serviceSid) {
+    throw createHttpError('voice verification is not configured', 503);
+  }
+
+  return {accountSid, authToken, serviceSid};
+}
+
+async function requestTwilioVerify(path, params) {
+  const {accountSid, authToken, serviceSid} = getTwilioVerifyConfig();
+  const response = await fetch(
+    `https://verify.twilio.com/v2/Services/${serviceSid}/${path}`,
+    {
+      method: 'POST',
+      headers: {
+        Authorization: `Basic ${Buffer.from(
+          `${accountSid}:${authToken}`,
+        ).toString('base64')}`,
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: new URLSearchParams(params),
+    },
+  );
+  const result = await response.json().catch(() => ({}));
+
+  if (!response.ok) {
+    console.error('Twilio Verify request failed', {
+      status: response.status,
+      code: result.code,
+      message: result.message,
+    });
+    throw createHttpError('voice verification failed', 502);
+  }
+
+  return result;
+}
+
 function normalizeEmail(email) {
   return String(email || '')
     .trim()
@@ -157,7 +206,20 @@ async function findUserByPhoneFast(phone) {
 }
 
 async function findUserByPhone(phone) {
-  return findUserByPhoneFast(phone);
+  const fastMatch = await findUserByPhoneFast(phone);
+
+  if (fastMatch) {
+    return fastMatch;
+  }
+
+  const normalizedPhone = normalizeLocalPhone(phone);
+  const users = await findAllUsers();
+
+  return (
+    users.find(
+      user => normalizeLocalPhone(user.phone) === normalizedPhone,
+    ) || null
+  );
 }
 
 async function findUserByPhoneOrEmail(phone, email) {
@@ -363,6 +425,73 @@ router.post('/candidate/send-code', async (req, res, next) => {
       phone,
       matchmakerPhone,
       channel: 'firebase',
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.post('/candidate/send-voice-code', async (req, res, next) => {
+  try {
+    requireFields(['phone', 'matchmakerPhone'], req.body);
+
+    const phone = normalizeLocalPhone(req.body.phone);
+    const matchmakerPhone = normalizePhone(req.body.matchmakerPhone);
+    const matchmaker = await findUserByPhone(matchmakerPhone);
+
+    if (
+      !matchmaker ||
+      matchmaker.isActive === false ||
+      (matchmaker.role !== 'matchmaker' && matchmaker.role !== 'admin')
+    ) {
+      throw createHttpError('matchmaker not found', 404);
+    }
+
+    await requestTwilioVerify('Verifications', {
+      To: toInternationalPhone(phone),
+      Channel: 'call',
+    });
+
+    res.json({ok: true, channel: 'call'});
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.post('/candidate/verify-voice-code', async (req, res, next) => {
+  try {
+    requireFields(['phone', 'matchmakerPhone', 'code'], req.body);
+
+    const phone = normalizeLocalPhone(req.body.phone);
+    const matchmakerPhone = normalizePhone(req.body.matchmakerPhone);
+    const matchmaker = await findUserByPhone(matchmakerPhone);
+
+    if (
+      !matchmaker ||
+      matchmaker.isActive === false ||
+      (matchmaker.role !== 'matchmaker' && matchmaker.role !== 'admin')
+    ) {
+      throw createHttpError('matchmaker not found', 404);
+    }
+
+    const verification = await requestTwilioVerify('VerificationCheck', {
+      To: toInternationalPhone(phone),
+      Code: String(req.body.code).replace(/\D/g, ''),
+    });
+
+    if (verification.status !== 'approved') {
+      throw createHttpError('invalid candidate code', 401);
+    }
+
+    res.json({
+      user: {
+        id: matchmaker.id || matchmaker._id,
+        phone,
+        role: 'user',
+        matchmakerPhone,
+      },
+      token: createCandidateToken(matchmaker, phone),
+      nextScreen: 'Wizard',
     });
   } catch (error) {
     next(error);

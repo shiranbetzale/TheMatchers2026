@@ -1,5 +1,6 @@
 import React, {useEffect, useMemo, useState} from 'react';
-import {TouchableOpacity, View} from 'react-native';
+import CustomButton from '../CustomButton/CustomButton';
+import {View} from 'react-native';
 import {CustomRadioButtonType} from './CustomRadioButton.type';
 import {styles} from './CustomRadioButton.style';
 import CustomText from '../CustomText/CustomText';
@@ -60,7 +61,14 @@ const CustomRadioButton = (props: CustomRadioButtonType) => {
       <>
         {radiosArray.map(radioItem => {
           return (
-            <TouchableOpacity
+            <CustomButton
+              unstyled
+              accessibilityLabel={radioItem.label}
+              accessibilityRole="radio"
+              accessibilityState={{
+                checked: selectedOption?.id === radioItem.id,
+                disabled: !isEditable,
+              }}
               key={`${radioItem.name}_${radioItem.id}`}
               style={isSmallSize ? styles.smallBtn : styles.btn}
               disabled={!isEditable}
@@ -79,7 +87,7 @@ const CustomRadioButton = (props: CustomRadioButtonType) => {
                   customStyle={FontsStyle.text}
                 />
               </View>
-            </TouchableOpacity>
+            </CustomButton>
           );
         })}
       </>

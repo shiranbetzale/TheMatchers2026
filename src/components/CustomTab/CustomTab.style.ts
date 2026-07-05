@@ -1,60 +1,41 @@
-import { StyleSheet } from "react-native";
-import Colors from "../../utils/Colors";
-import GeneralStyle from "../../utils/GeneralStyle";
+import {StyleSheet} from 'react-native';
+import Colors from '../../utils/Colors';
+import {FontsStyle} from '../../utils/FontsStyle';
+import GeneralStyle from '../../utils/GeneralStyle';
+import SharedStyles from '../../utils/SharedStyles';
 
 export const styles = StyleSheet.create({
+  ...SharedStyles,
   tabContainer: {
-    width: "100%",
+    width: '100%',
     marginBottom: GeneralStyle.spacing.sm,
-    padding: GeneralStyle.spacing.xs,
-    borderWidth: 1,
-    borderColor: Colors.borderSoft,
-    borderRadius: GeneralStyle.radius.md,
-    backgroundColor: Colors.ivory,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.borderSoft,
+    backgroundColor: Colors.white,
   },
   tabsRow: {
-    alignItems: "center",
-  },
-  alignLeft: {
-    alignSelf: "flex-start",
-  },
-  alignRight: {
-    alignSelf: "flex-end",
-  },
-  row: {
-    flexDirection: "row",
-  },
-  rowReverse: {
-    flexDirection: "row-reverse",
+    width: '100%',
+    alignItems: 'center',
   },
   tab: {
-    paddingVertical: GeneralStyle.spacing.sm,
-    paddingHorizontal: GeneralStyle.spacing.lg,
-    backgroundColor: Colors.transparent,
-    borderRadius: GeneralStyle.radius.sm,
-    borderWidth: 0,
-    margin: 1,
-    shadowOpacity: 0,
-    elevation: 0,
+    flex: 1,
+    minHeight: GeneralStyle.size.largeControl,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: GeneralStyle.spacing.sm,
+    backgroundColor: Colors.white,
+    borderBottomWidth: 3,
+    borderBottomColor: Colors.transparent,
   },
   activeTabTxt: {
-    color: Colors.white
+    color: Colors.darkGreen,
   },
   activeTab: {
-    backgroundColor: Colors.darkGreen,
-    borderColor: Colors.darkGreen,
-  },
-  tabBorder: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  separator: {
-    width: 1,
-    height: 48,
-    backgroundColor: Colors.line,
-    marginHorizontal: GeneralStyle.spacing.md,
+    backgroundColor: Colors.goldWash,
+    borderBottomColor: Colors.premiumLine,
   },
   tabText: {
-    color: Colors.darkGreen,
-  }
+    ...FontsStyle.textDecoration,
+    color: Colors.slate,
+  },
 });

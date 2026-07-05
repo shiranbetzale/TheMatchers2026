@@ -1,11 +1,12 @@
 import { StyleSheet } from 'react-native';
 import Colors from '../../utils/Colors';
-import {FontsStyle} from '../../utils/FontsStyle';
+import {FontSize, FontsStyle} from '../../utils/FontsStyle';
 import GeneralStyle from '../../utils/GeneralStyle';
+import {CardBorderStyle} from '../../utils/SharedStyles';
 
 export const styles = StyleSheet.create({
     headerStyle: {
-        height: 92,
+        height: GeneralStyle.size.avatar,
         backgroundColor: Colors.darkGreen,
     },
     drawerStyle: {
@@ -29,8 +30,8 @@ export const styles = StyleSheet.create({
         borderBottomColor: Colors.line,
     },
     drawerLogo: {
-        width: 62,
-        height: 62,
+        width: GeneralStyle.size.badge,
+        height: GeneralStyle.size.badge,
         borderRadius: 31,
         alignItems: 'center',
         justifyContent: 'center',
@@ -42,22 +43,23 @@ export const styles = StyleSheet.create({
     drawerLogoText: {
         ...FontsStyle.textDecoration,
         color: Colors.goldDark,
-        fontSize: 18,
+        fontSize: FontSize.large,
     },
     drawerBrand: {
         ...FontsStyle.menuTitle,
         color: Colors.darkGreen,
-        fontSize: 24,
+        fontSize: FontSize.section,
         textAlign: 'center',
     },
     drawerSubtitle: {
         ...FontsStyle.text,
         color: Colors.slate,
-        fontSize: 13,
+        fontSize: FontSize.caption,
         marginTop: 2,
         textAlign: 'center',
     },
     drawerProfileCard: {
+        ...CardBorderStyle,
         flexDirection: 'row-reverse',
         alignItems: 'center',
         gap: GeneralStyle.spacing.sm,
@@ -65,14 +67,11 @@ export const styles = StyleSheet.create({
         paddingVertical: GeneralStyle.spacing.md,
         marginTop: GeneralStyle.spacing.md,
         marginBottom: GeneralStyle.spacing.md,
-        borderWidth: 1,
-        borderColor: Colors.borderSoft,
-        borderRadius: GeneralStyle.radius.md,
-        backgroundColor: Colors.surfaceElevated,
+        backgroundColor: Colors.white,
     },
     profileAvatar: {
-        width: 42,
-        height: 42,
+        width: GeneralStyle.size.control,
+        height: GeneralStyle.size.control,
         borderRadius: 21,
         alignItems: 'center',
         justifyContent: 'center',
@@ -83,7 +82,7 @@ export const styles = StyleSheet.create({
     profileAvatarText: {
         ...FontsStyle.textDecoration,
         color: Colors.white,
-        fontSize: 18,
+        fontSize: FontSize.large,
     },
     profileTextBlock: {
         flex: 1,
@@ -92,18 +91,18 @@ export const styles = StyleSheet.create({
     profileName: {
         ...FontsStyle.textDecoration,
         color: Colors.darkGreen,
-        fontSize: 16,
+        fontSize: FontSize.body,
     },
     profileRole: {
         ...FontsStyle.text,
         color: Colors.slate,
-        fontSize: 12,
+        fontSize: FontSize.caption,
     },
     drawerSection: {
         gap: GeneralStyle.spacing.xs,
     },
     drawerItem: {
-        minHeight: 56,
+        minHeight: GeneralStyle.size.largeControl,
         alignItems: 'center',
         gap: GeneralStyle.spacing.sm,
         paddingHorizontal: GeneralStyle.spacing.sm,
@@ -118,16 +117,16 @@ export const styles = StyleSheet.create({
         flexDirection: 'row',
     },
     drawerItemActive: {
-        backgroundColor: Colors.navyTint,
+        backgroundColor: Colors.softBlue,
         borderColor: Colors.borderSoft,
     },
     drawerItemIcon: {
-        width: 34,
-        height: 34,
+        width: GeneralStyle.size.icon,
+        height: GeneralStyle.size.icon,
         borderRadius: 17,
         alignItems: 'center',
         justifyContent: 'center',
-        backgroundColor: Colors.surfaceElevated,
+        backgroundColor: Colors.white,
         borderWidth: 1,
         borderColor: Colors.borderSoft,
     },
@@ -139,7 +138,7 @@ export const styles = StyleSheet.create({
         ...FontsStyle.textDecoration,
         flex: 1,
         color: Colors.slate,
-        fontSize: 16,
+        fontSize: FontSize.body,
     },
     drawerItemTextActive: {
         color: Colors.darkGreen,
@@ -151,36 +150,37 @@ export const styles = StyleSheet.create({
         textAlign: 'left',
     },
     logoutButton: {
-        minHeight: 56,
-        flexDirection: 'row',
-        justifyContent: 'center',
+        minHeight: GeneralStyle.size.largeControl,
         alignItems: 'center',
+        justifyContent: 'center',
         gap: GeneralStyle.spacing.sm,
-        paddingHorizontal: GeneralStyle.spacing.md,
+        paddingHorizontal: GeneralStyle.spacing.sm,
         marginTop: GeneralStyle.spacing.lg,
-        borderRadius: GeneralStyle.radius.lg,
+        borderRadius: GeneralStyle.radius.md,
         borderWidth: 1,
-        borderColor: Colors.premiumLine,
-        backgroundColor: Colors.navyDeep,
-        shadowColor: Colors.darkGreen,
-        shadowOpacity: 0.12,
-        shadowRadius: 10,
-        shadowOffset: {width: 0, height: 5},
-        elevation: 3,
+        borderColor: Colors.danger,
+        backgroundColor: Colors.dangerSoft,
+    },
+    logoutButtonRtl: {
+        flexDirection: 'row-reverse',
+    },
+    logoutButtonLtr: {
+        flexDirection: 'row',
     },
     logoutIcon: {
-        width: 34,
-        height: 34,
+        width: GeneralStyle.size.icon,
+        height: GeneralStyle.size.icon,
         borderRadius: 17,
         alignItems: 'center',
         justifyContent: 'center',
-        backgroundColor: Colors.surfaceElevated,
+        backgroundColor: Colors.dangerSoft,
         borderWidth: 1,
-        borderColor: Colors.color1Light,
+        borderColor: Colors.danger,
     },
     logoutText: {
         ...FontsStyle.textDecoration,
-        color: Colors.white,
-        fontSize: 16,
+        color: Colors.danger,
+        fontSize: FontSize.body,
+        textAlign: 'center',
     },
 });

@@ -1,5 +1,5 @@
 import React, {useCallback, useMemo, useState} from 'react';
-import {FlatList, Text, TouchableOpacity, View} from 'react-native';
+import {FlatList, Text, View} from 'react-native';
 import {useFocusEffect} from '@react-navigation/native';
 import {AxiosError} from 'axios';
 
@@ -10,54 +10,7 @@ import api from '../../services/api';
 import {useLanguage} from '../../utils/LanguageProvider';
 import {useMessage} from '../../utils/MessageProvider';
 import {styles} from './ContactRequestsScreen.style';
-
-type ContactRequestStatus = 'new' | 'read' | 'handled';
-
-type ContactRequest = {
-  id: string;
-  name: string;
-  email: string;
-  phone?: string;
-  message: string;
-  status: ContactRequestStatus;
-  emailSent?: boolean;
-  emailError?: string;
-  createdAt?: string;
-  readAt?: string;
-  handledAt?: string;
-};
-
-const getRequestStatusKey = (status: ContactRequestStatus) => {
-  if (status === 'handled') {
-    return 'contactRequestHandled';
-  }
-
-  if (status === 'read') {
-    return 'contactRequestRead';
-  }
-
-  return 'contactRequestNew';
-};
-
-const formatDateTime = (value?: string) => {
-  if (!value) {
-    return '';
-  }
-
-  const date = new Date(value);
-
-  if (Number.isNaN(date.getTime())) {
-    return '';
-  }
-
-  return date.toLocaleString('he-IL', {
-    day: '2-digit',
-    month: '2-digit',
-    year: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-  });
-};
+import ContactRequestCard, {ContactRequest} from './ContactRequestCard';
 
 const ContactRequestsScreen = () => {
   const {t, isRTL} = useLanguage();
@@ -102,10 +55,7 @@ const ContactRequestsScreen = () => {
     [requests],
   );
 
-  const updateRequest = async (
-    request: ContactRequest,
-    action: 'read' | 'handled',
-  ) => {
+  const updateRequest = async (request: ContactRequest) => {
     if (updatingId) {
       return;
     }
@@ -113,7 +63,7 @@ const ContactRequestsScreen = () => {
     try {
       setUpdatingId(request.id);
       const response = await api.patch(`/api/contact/requests/${request.id}`, {
-        action,
+        action: 'handled',
       });
       const updatedRequest = response.data?.request;
 
@@ -129,10 +79,7 @@ const ContactRequestsScreen = () => {
 
       showMessage({
         type: 'success',
-        message:
-          action === 'handled'
-            ? t('contactRequestMarkedHandled')
-            : t('contactRequestMarkedRead'),
+        message: t('contactRequestMarkedHandled'),
       });
     } catch (error) {
       const axiosError = error as AxiosError;
@@ -150,102 +97,6 @@ const ContactRequestsScreen = () => {
     }
   };
 
-  const renderRequest = ({item}: {item: ContactRequest}) => {
-    const isHandled = item.status === 'handled';
-    const isRead = item.status === 'read' || isHandled;
-    const isUpdating = updatingId === item.id;
-    const createdAtText = formatDateTime(item.createdAt);
-
-    return (
-      <WhiteCard customStyle={styles.card}>
-        <View
-          style={[
-            styles.cardHeader,
-            isRTL ? styles.rowReverse : styles.row,
-          ]}>
-          <View style={styles.titleBlock}>
-            <Text
-              style={[
-                styles.requestName,
-                isRTL ? styles.textRight : styles.textLeft,
-              ]}>
-              {item.name || t('unknown')}
-            </Text>
-            <Text
-              style={[
-                styles.requestMeta,
-                isRTL ? styles.textRight : styles.textLeft,
-              ]}>
-              {[item.email, item.phone, createdAtText].filter(Boolean).join(' | ')}
-            </Text>
-          </View>
-
-          <View
-            style={[
-              styles.statusBadge,
-              item.status === 'new' && styles.statusBadgeNew,
-              isHandled && styles.statusBadgeHandled,
-            ]}>
-            <CustomText
-              text={getRequestStatusKey(item.status)}
-              customStyle={styles.statusText}
-            />
-          </View>
-        </View>
-
-        <Text
-          style={[
-            styles.messageText,
-            isRTL ? styles.textRight : styles.textLeft,
-          ]}>
-          {item.message}
-        </Text>
-
-        {!item.emailSent && item.emailError ? (
-          <CustomText
-            text={`${t('contactRequestEmailFailed')}: ${item.emailError}`}
-            customStyle={styles.emailError}
-          />
-        ) : null}
-
-        <View
-          style={[
-            styles.actions,
-            isRTL ? styles.rowReverse : styles.row,
-          ]}>
-          <TouchableOpacity
-            activeOpacity={0.84}
-            disabled={isRead || isUpdating}
-            style={[
-              styles.actionButton,
-              isRead && styles.actionButtonDisabled,
-            ]}
-            onPress={() => updateRequest(item, 'read')}>
-            <CustomText
-              text="markAsRead"
-              customStyle={styles.actionButtonText}
-            />
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            activeOpacity={0.84}
-            disabled={isHandled || isUpdating}
-            style={[
-              styles.actionButton,
-              styles.handledButton,
-              isHandled && styles.actionButtonDisabled,
-            ]}
-            onPress={() => updateRequest(item, 'handled')}>
-            <CustomText
-              text="markAsHandled"
-              customStyle={styles.handledButtonText}
-            />
-          </TouchableOpacity>
-        </View>
-      </WhiteCard>
-    );
-  };
-
   return (
     <HomeScreen
       disableScroll
@@ -257,14 +108,18 @@ const ContactRequestsScreen = () => {
             customStyle={styles.subtitle}
           />
 
-          <View style={[styles.statsRow, isRTL ? styles.rowReverse : styles.row]}>
+          <View
+            style={[styles.statsRow, isRTL ? styles.rowReverse : styles.row]}>
             <View style={styles.statChip}>
               <Text style={styles.statValue}>{stats.total}</Text>
               <CustomText text="all" customStyle={styles.statLabel} />
             </View>
             <View style={styles.statChip}>
               <Text style={styles.statValue}>{stats.unread}</Text>
-              <CustomText text="contactRequestNew" customStyle={styles.statLabel} />
+              <CustomText
+                text="contactRequestNew"
+                customStyle={styles.statLabel}
+              />
             </View>
             <View style={styles.statChip}>
               <Text style={styles.statValue}>{stats.handled}</Text>
@@ -280,7 +135,13 @@ const ContactRequestsScreen = () => {
         <FlatList
           data={requests}
           keyExtractor={item => item.id}
-          renderItem={renderRequest}
+          renderItem={({item}) => (
+            <ContactRequestCard
+              request={item}
+              isUpdating={updatingId === item.id}
+              onUpdate={updateRequest}
+            />
+          )}
           refreshing={false}
           onRefresh={fetchRequests}
           contentContainerStyle={styles.listContent}

@@ -1,13 +1,13 @@
 import React from 'react';
 import { View } from 'react-native';
-import { styles } from './WhiteCard.style';
 import { WhiteCardType } from './WhiteCard.type';
+import SharedStyles from '../../utils/SharedStyles';
 
 const WhiteCard = (props: WhiteCardType) => {
   const { children, customStyle } = props;
 
   return (
-    <View style={[styles.container, customStyle]}>
+    <View style={[SharedStyles.card, customStyle]}>
       {children}
     </View>
   );

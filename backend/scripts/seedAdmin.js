@@ -3,9 +3,11 @@ require('dotenv').config({path: path.join(__dirname, '..', '.env')});
 const {connectToDatabase} = require('../config/db');
 const User = require('../models/User');
 
+const normalizePhone = value => String(value || '').replace(/\D/g, '');
+
 const admin = {
   fullName: process.env.ADMIN_FULL_NAME,
-  phone: process.env.ADMIN_PHONE,
+  phone: normalizePhone(process.env.ADMIN_PHONE),
   email: process.env.ADMIN_EMAIL,
   password: process.env.ADMIN_PASSWORD,
 };

@@ -1,9 +1,11 @@
 import {TextStyle, ViewStyle} from 'react-native';
 import Colors from '../../utils/Colors';
-import {FontsStyle} from '../../utils/FontsStyle';
+import {FontSize, FontsStyle} from '../../utils/FontsStyle';
 import GeneralStyle from '../../utils/GeneralStyle';
+import SharedStyles from '../../utils/SharedStyles';
 
 export const styles = {
+  ...SharedStyles,
   container: {
     gap: GeneralStyle.spacing.md,
     marginBottom: GeneralStyle.spacing.lg,
@@ -12,51 +14,47 @@ export const styles = {
     gap: GeneralStyle.spacing.md,
     paddingHorizontal: GeneralStyle.spacing.lg,
     paddingVertical: GeneralStyle.spacing.lg,
-    borderRadius: GeneralStyle.radius.lg,
     backgroundColor: Colors.ivory,
-    borderLeftWidth: 0,
-    borderTopWidth: 3,
-    borderTopColor: Colors.premiumLine,
   } satisfies ViewStyle,
   heroTextBlock: {
     gap: GeneralStyle.spacing.xs,
   } satisfies ViewStyle,
-  heroStats: {
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: GeneralStyle.spacing.sm,
-    paddingHorizontal: GeneralStyle.spacing.md,
-    borderRadius: GeneralStyle.radius.md,
-    backgroundColor: Colors.navyTint,
+  pilotBadge: {
+    paddingHorizontal: GeneralStyle.spacing.sm,
+    paddingVertical: 4,
+    borderRadius: GeneralStyle.radius.sm,
     borderWidth: 1,
-    borderColor: Colors.line,
+    borderColor: Colors.premiumLine,
+    backgroundColor: Colors.goldWash,
+  } satisfies ViewStyle,
+  pilotText: {
+    ...FontsStyle.textDecoration,
+    color: Colors.goldDark,
+    fontSize: FontSize.caption,
+    textAlign: 'center',
+  } satisfies TextStyle,
+  heroStats: {
+    alignItems: 'stretch',
+    justifyContent: 'space-between',
+    gap: GeneralStyle.spacing.xs,
   } satisfies ViewStyle,
   heroStat: {
     flex: 1,
+    minWidth: 0,
     alignItems: 'center',
+    justifyContent: 'flex-start',
     gap: 2,
-  } satisfies ViewStyle,
-  heroStatDivider: {
-    width: 1,
-    height: 34,
-    backgroundColor: Colors.borderSoft,
+    paddingVertical: GeneralStyle.spacing.sm,
+    paddingHorizontal: GeneralStyle.spacing.xs,
+    borderWidth: 1,
+    borderColor: Colors.borderSoft,
+    borderRadius: GeneralStyle.radius.md,
+    backgroundColor: Colors.champagne,
   } satisfies ViewStyle,
   sectionHeader: {
     marginTop: GeneralStyle.spacing.xs,
     marginBottom: GeneralStyle.spacing.xs,
   } satisfies ViewStyle,
-  alignEnd: {
-    alignItems: 'flex-end',
-  } satisfies ViewStyle,
-  alignStart: {
-    alignItems: 'flex-start',
-  } satisfies ViewStyle,
-  textRight: {
-    textAlign: 'right',
-  } satisfies TextStyle,
-  textLeft: {
-    textAlign: 'left',
-  } satisfies TextStyle,
   matchCard: {
     padding: 0,
     paddingHorizontal: 0,
@@ -77,17 +75,11 @@ export const styles = {
   shortButtons: {
     gap: GeneralStyle.spacing.sm,
   } satisfies ViewStyle,
-  row: {
-    flexDirection: 'row',
-  } satisfies ViewStyle,
-  rowReverse: {
-    flexDirection: 'row-reverse',
-  } satisfies ViewStyle,
   name: {
     ...FontsStyle.menuTitle,
     ...FontsStyle.textDecoration,
     color: Colors.darkGreen,
-    fontSize: 28,
+    fontSize: FontSize.display,
   } satisfies TextStyle,
   heroSubTitle: {
     ...FontsStyle.text,
@@ -95,20 +87,25 @@ export const styles = {
   } satisfies TextStyle,
   heroStatValue: {
     ...FontsStyle.menuTitle,
-    color: Colors.darkGreen,
-    fontSize: 22,
+    color: Colors.color1,
+    fontSize: FontSize.heading,
+    lineHeight: 28,
+    height: 28,
     textAlign: 'center',
   } satisfies TextStyle,
   heroStatLabel: {
     ...FontsStyle.text,
-    color: Colors.slate,
-    fontSize: 12,
+    color: Colors.darkGreen,
+    fontSize: FontSize.caption,
+    lineHeight: 20,
+    minHeight: 40,
     textAlign: 'center',
+    textAlignVertical: 'top',
   } satisfies TextStyle,
   sectionTitle: {
-    ...FontsStyle.subTitle,
+    ...FontsStyle.menuTitle,
     color: Colors.darkGreen,
-    fontSize: 18,
+    fontSize: FontSize.section,
     textAlign: 'right',
   } satisfies TextStyle,
   actionsCard: {

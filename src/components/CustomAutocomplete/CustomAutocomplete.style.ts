@@ -2,11 +2,13 @@ import {StyleSheet} from 'react-native';
 import Colors from '../../utils/Colors';
 import {FontsStyle} from '../../utils/FontsStyle';
 import GeneralStyle from '../../utils/GeneralStyle';
+import SharedStyles from '../../utils/SharedStyles';
 
 export const styles = StyleSheet.create({
+  ...SharedStyles,
   container: {
     width: '100%',
-    minHeight: 48,
+    minHeight: GeneralStyle.size.field,
     alignItems: 'center',
     justifyContent: 'space-between',
     position: 'relative',
@@ -15,20 +17,14 @@ export const styles = StyleSheet.create({
   },
   smallContainer: {
     width: '100%',
-    minHeight: 48,
+    minHeight: GeneralStyle.size.field,
     alignItems: 'center',
     position: 'relative',
     zIndex: 20,
   },
-  row: {
-    flexDirection: 'row',
-  },
-  rowReverse: {
-    flexDirection: 'row-reverse',
-  },
   labelWrapper: {
     width: '42%',
-    minWidth: 104,
+    minWidth: GeneralStyle.size.label,
     flexShrink: 0,
   },
   label: {
@@ -44,25 +40,25 @@ export const styles = StyleSheet.create({
   },
   input: {
     width: '100%',
-    minHeight: 44,
+    minHeight: GeneralStyle.size.control,
     paddingHorizontal: GeneralStyle.spacing.md,
     paddingVertical: GeneralStyle.spacing.sm,
   },
   smallInput: {
     width: '100%',
-    minHeight: 40,
+    minHeight: GeneralStyle.size.iconLarge,
     paddingHorizontal: GeneralStyle.spacing.sm,
     paddingVertical: GeneralStyle.spacing.xs,
     marginTop: GeneralStyle.spacing.xs,
   },
   baseInput: {
     ...FontsStyle.text,
-    color: Colors.black,
+    color: Colors.darkGreen,
     textAlignVertical: 'center',
     borderWidth: 1,
     borderColor: Colors.borderSoft,
     borderRadius: GeneralStyle.radius.md,
-    backgroundColor: Colors.surfaceElevated,
+    backgroundColor: Colors.white,
   },
   readOnlyInput: {
     backgroundColor: Colors.surfaceMuted,
@@ -74,7 +70,7 @@ export const styles = StyleSheet.create({
     right: 0,
     left: 0,
     width: '100%',
-    maxHeight: 220,
+    maxHeight: GeneralStyle.size.options,
     marginTop: GeneralStyle.spacing.xs,
     overflow: 'hidden',
     borderWidth: 1,
@@ -99,20 +95,12 @@ export const styles = StyleSheet.create({
     paddingVertical: GeneralStyle.spacing.sm,
     borderBottomWidth: 1,
     borderBottomColor: Colors.line,
-    minHeight: 48,
+    minHeight: GeneralStyle.size.field,
     justifyContent: 'center',
   },
   suggestionText: {
     ...FontsStyle.text,
     color: Colors.darkGreen,
-  },
-  textRight: {
-    textAlign: 'right',
-    writingDirection: 'rtl',
-  },
-  textLeft: {
-    textAlign: 'left',
-    writingDirection: 'ltr',
   },
   emptyItem: {
     paddingHorizontal: GeneralStyle.spacing.md,

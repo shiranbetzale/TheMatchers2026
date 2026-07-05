@@ -1,13 +1,17 @@
 import React, {useEffect, useMemo, useState} from 'react';
-import { Image } from 'react-native';
-import { styles } from './CustomImage.style';
-import { CustomImageType } from './CustomImage.type';
+import {Image} from 'react-native';
+import {CustomImageType} from './CustomImage.type';
 import {getDefaultProfileImage} from '../../utils/generalFunction';
+import SharedStyles from '../../utils/SharedStyles';
 
 const DEFAULT_IMAGE_URI = getDefaultProfileImage();
+export const HIGH_QUALITY_IMAGE_PROPS = {
+  resizeMethod: 'resize',
+  resizeMultiplier: 3,
+} as any;
 
 const CustomImage = (props: CustomImageType) => {
-  const { src, customImgStyle } = props;
+  const {accessibilityLabel, src, customImgStyle} = props;
   const [hasError, setHasError] = useState(false);
 
   useEffect(() => {
@@ -23,7 +27,10 @@ const CustomImage = (props: CustomImageType) => {
 
   return (
     <Image
-      style={[styles.container, customImgStyle]}
+      {...HIGH_QUALITY_IMAGE_PROPS}
+      accessible={Boolean(accessibilityLabel)}
+      accessibilityLabel={accessibilityLabel}
+      style={[SharedStyles.flex, customImgStyle]}
       source={{uri: imageUri}}
       resizeMode="cover"
       onError={() => setHasError(true)}

@@ -1,5 +1,4 @@
 import React, {useEffect, useMemo, useState} from 'react';
-import {TouchableOpacity, View} from 'react-native';
 import {
   RouteProp,
   useFocusEffect,
@@ -8,26 +7,17 @@ import {
 } from '@react-navigation/native';
 import {StackNavigationProp} from '@react-navigation/stack';
 
-import CustomButton from '../../components/CustomButton/CustomButton';
 import CustomFilter from '../../components/CustomFilter/CustomFilter';
 import CustomOrderBy from '../../components/CustomOrderBy/CustomOrderBy';
-import WhiteCard from '../../components/WhiteCard/WhiteCard';
 import {CardsFilterValues} from '../../components/CustomFilter/CustomFilter.type';
 import {CardsSortValue} from '../../components/CustomOrderBy/CustomOrderBy.type';
-import MatchCard from '../../components/MatchCard/MatchCard';
 import {MatchCardType} from '../../components/MatchCard/MatchCard.type';
-import FilterSvg from '../../assets/images/filter.svg';
-import OrderBySvg from '../../assets/images/orderBy.svg';
-import UserAddSvg from '../../assets/images/userAdd.svg';
 import HomeScreen from '../HomeScreen/HomeScreen';
-import {styles} from './AllCardsScreen.style';
-import CustomText from '../../components/CustomText/CustomText';
-import {FontsStyle} from '../../utils/FontsStyle';
 import {RootStackParamList} from '../../components/MainStackNavigation/MainStackNavigation.type';
 import {getSessionUser} from '../../services/session';
 import api from '../../services/api';
 import {mapProfileToCard} from '../../utils/generalFunction';
-import {useLanguage} from '../../utils/LanguageProvider';
+import {AllCardsContent, AllCardsToolbar} from './AllCardsSections';
 
 type NavigationProp = StackNavigationProp<RootStackParamList>;
 type AllCardsRouteProp = RouteProp<RootStackParamList, 'AllCardsScreen'>;
@@ -36,8 +26,6 @@ const NO_MATCHER_FILTER_VALUE = 'noMatcher';
 const AllCardsScreen = () => {
   const navigation = useNavigation<NavigationProp>();
   const route = useRoute<AllCardsRouteProp>();
-  const {isRTL} = useLanguage();
-
   const onlyMine = route.params?.onlyMine === true;
 
   const [isShowFilter, setIsShowFilter] = useState(false);
@@ -257,63 +245,12 @@ const AllCardsScreen = () => {
   return (
     <HomeScreen
       pinChildren={
-        <View style={styles.pinChildrenContainer}>
-          <View
-            style={[
-              styles.actionsBar,
-              isRTL ? styles.actionsBarRtl : styles.actionsBarLtr,
-            ]}>
-            <TouchableOpacity
-              activeOpacity={0.84}
-              style={[
-                styles.actionButton,
-                isRTL ? styles.actionButtonRtl : styles.actionButtonLtr,
-              ]}
-              onPress={addNewCandidate}>
-              <UserAddSvg width={20} height={20} />
-              <CustomText
-                text="addCandidate"
-                customStyle={styles.actionText}
-              />
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              activeOpacity={0.84}
-              style={[
-                styles.actionButton,
-                isShowFilter && styles.actionButtonActive,
-                isRTL ? styles.actionButtonRtl : styles.actionButtonLtr,
-              ]}
-              onPress={toggleFilter}>
-              <FilterSvg width={20} height={20} />
-              <CustomText
-                text="filter"
-                customStyle={[
-                  styles.actionText,
-                  isShowFilter && styles.actionTextActive,
-                ]}
-              />
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              activeOpacity={0.84}
-              style={[
-                styles.actionButton,
-                isShowOrderBy && styles.actionButtonActive,
-                isRTL ? styles.actionButtonRtl : styles.actionButtonLtr,
-              ]}
-              onPress={toggleOrderBy}>
-              <OrderBySvg width={20} height={20} />
-              <CustomText
-                text="sort"
-                customStyle={[
-                  styles.actionText,
-                  isShowOrderBy && styles.actionTextActive,
-                ]}
-              />
-            </TouchableOpacity>
-          </View>
-
+        <AllCardsToolbar
+          isFilterOpen={isShowFilter}
+          isSortOpen={isShowOrderBy}
+          onAdd={addNewCandidate}
+          onFilter={toggleFilter}
+          onSort={toggleOrderBy}>
           {isShowFilter && (
             <CustomFilter
               values={{
@@ -335,79 +272,17 @@ const AllCardsScreen = () => {
               onReset={resetSort}
             />
           )}
-        </View>
+        </AllCardsToolbar>
       }>
-      <View style={styles.container}>
-        <WhiteCard customStyle={styles.headerCard}>
-          <CustomText
-            text={onlyMine ? 'myCardsTitle' : 'allMatchmakersCardsTitle'}
-            customStyle={[styles.title, isRTL ? styles.textRtl : styles.textLtr]}
-          />
-          <CustomText
-            text={
-              onlyMine
-                ? 'myCardsSubtitle'
-                : 'allMatchmakersCardsSubtitle'
-            }
-            customStyle={[
-              styles.subtitle,
-              isRTL ? styles.textRtl : styles.textLtr,
-            ]}
-          />
-        </WhiteCard>
-
-        {!isMenuOpen && (
-          <>
-            <View style={styles.statsRow}>
-              <View style={styles.statChip}>
-                <CustomText
-                  text={`${filteredAndSortedCards.length}`}
-                  customStyle={styles.statValue}
-                />
-                <CustomText text="cardsCount" customStyle={styles.statLabel} />
-              </View>
-
-              <View style={styles.statChip}>
-                <CustomText
-                  text={`${maleCount}`}
-                  customStyle={styles.statValue}
-                />
-                <CustomText text="male" customStyle={styles.statLabel} />
-              </View>
-
-              <View style={styles.statChip}>
-                <CustomText
-                  text={`${femaleCount}`}
-                  customStyle={styles.statValue}
-                />
-                <CustomText text="female" customStyle={styles.statLabel} />
-              </View>
-            </View>
-
-          {!hasLoadedCards ? null : filteredAndSortedCards.length === 0 ? (
-            <CustomText
-              text={onlyMine ? 'noAssignedCards' : 'noCardsYet'}
-              customStyle={FontsStyle.text}
-            />
-          ) : (
-            filteredAndSortedCards.map((matchItem, index) => (
-              <CustomButton
-                key={matchItem.profileId || matchItem.phone || String(index)}
-                onPress={() =>
-                  navigation.navigate('MatchCardsScreen', {card: matchItem})
-                }
-                customStyle={styles.matchCard}>
-                <MatchCard
-                  {...matchItem}
-                  isSlide={false}
-                  isShowMeetingInfo={false}
-                />
-              </CustomButton>
-            ))
-          )}
-          </>
-        )}
-      </View>
+      <AllCardsContent
+        cards={filteredAndSortedCards}
+        femaleCount={femaleCount}
+        hasLoaded={hasLoadedCards}
+        isMenuOpen={isMenuOpen}
+        maleCount={maleCount}
+        onlyMine={onlyMine}
+        onCardPress={card => navigation.navigate('MatchCardsScreen', {card})}
+      />
     </HomeScreen>
   );
 };

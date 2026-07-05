@@ -1,9 +1,11 @@
 import { StyleSheet } from 'react-native';
 import Colors from '../../utils/Colors';
-import { FontsStyle } from '../../utils/FontsStyle';
+import {FontSize, FontsStyle} from '../../utils/FontsStyle';
 import GeneralStyle from '../../utils/GeneralStyle';
+import SharedStyles from '../../utils/SharedStyles';
 
 export const styles = StyleSheet.create({
+  ...SharedStyles,
   container: {
     alignItems: 'center',
     gap: GeneralStyle.spacing.sm,
@@ -14,25 +16,19 @@ export const styles = StyleSheet.create({
   },
   error: {
     backgroundColor: Colors.dangerSoft,
-    borderColor: '#E4AAA2',
+    borderColor: Colors.danger,
   },
   warning: {
     backgroundColor: Colors.champagne,
     borderColor: Colors.color1Light,
   },
   info: {
-    backgroundColor: Colors.surface,
+    backgroundColor: Colors.ivory,
     borderColor: Colors.borderSoft,
   },
-  row: {
-    flexDirection: 'row',
-  },
-  rowReverse: {
-    flexDirection: 'row-reverse',
-  },
   iconBadge: {
-    width: 28,
-    height: 28,
+    width: GeneralStyle.size.iconSm,
+    height: GeneralStyle.size.iconSm,
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: GeneralStyle.radius.md,
@@ -41,19 +37,11 @@ export const styles = StyleSheet.create({
     borderColor: Colors.color1Light,
   },
   icon: {
-    fontSize: 14,
+    fontSize: FontSize.small,
   },
   text: {
     ...FontsStyle.text,
     flex: 1,
     color: Colors.darkGreen,
-  },
-  rtlText: {
-    textAlign: 'right',
-    writingDirection: 'rtl',
-  },
-  ltrText: {
-    textAlign: 'left',
-    writingDirection: 'ltr',
   },
 });

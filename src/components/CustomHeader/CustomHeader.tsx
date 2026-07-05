@@ -16,6 +16,7 @@ const CustomHeader = (props: CustomHeaderType) => {
           return (
             <CustomButton
               key={index}
+              accessibilityLabel={item.accessibilityLabel}
               customStyle={styles.iconButton}
               onPress={item.onPress}
               icon={item.comp}

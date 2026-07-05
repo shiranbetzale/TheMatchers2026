@@ -24,3 +24,8 @@ Push notifications:
   - Android: `android/app/google-services.json`
   - iOS: `ios/GoogleService-Info.plist`, then run `pod install` in `ios/`
 - The server sends pushes when a profile is created and when a match status changes to `engaged` or `married`.
+
+Voice verification for kosher phones:
+- Create a Twilio Verify Service with Voice enabled.
+- Configure `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, and `TWILIO_VERIFY_SERVICE_SID` on the backend.
+- Keep these values on the server only. The app calls the backend to start and verify the call.

@@ -173,16 +173,35 @@ async function syncPartnerRelationship(profile, relationshipStatus) {
 }
 
 async function syncPartnerMeeting(profile, previousPartner = null) {
-  const partner = (await resolvePartnerProfile(profile)) || previousPartner;
+  const meetingStatus = String(profile.meetingStatus || 'available');
+  const isBusy = meetingStatus === 'busy';
+  const currentPartner = await resolvePartnerProfile(profile);
+  const partnerChanged =
+    previousPartner &&
+    (!currentPartner || String(previousPartner.id) !== String(currentPartner.id));
+
+  if (partnerChanged) {
+    previousPartner.meetingStatus = 'available';
+    previousPartner.meetingDate = '';
+    previousPartner.meetingTime = '';
+    previousPartner.meetingLocation = '';
+    previousPartner.partnerName = '';
+    previousPartner.partnerProfileId = '';
+    previousPartner.partnerOutsideApp = false;
+    previousPartner.collaborationMatchmaker = '';
+    previousPartner.meetingReminderDayFor = '';
+    previousPartner.meetingReminderDaySentAt = undefined;
+    previousPartner.meetingReminderHourFor = '';
+    previousPartner.meetingReminderHourSentAt = undefined;
+    await previousPartner.save();
+  }
+
+  const partner = currentPartner || (!isBusy ? previousPartner : null);
 
   if (!partner) {
     return null;
   }
 
-  const meetingStatus = String(profile.meetingStatus || 'available');
-  const isBusy = meetingStatus === 'busy';
-
-  partner.met = isBusy;
   partner.meetingStatus = meetingStatus;
   partner.meetingDate = isBusy ? profile.meetingDate || '' : '';
   partner.meetingTime = isBusy ? profile.meetingTime || '' : '';
@@ -391,12 +410,6 @@ router.put(
 
       if (hasMeetingUpdate) {
         const meetingStatus = String(profile.meetingStatus || 'available');
-        const hasMeetingPartner = Boolean(
-          String(profile.partnerProfileId || '').trim() ||
-            String(profile.partnerName || '').trim(),
-        );
-
-        profile.met = meetingStatus === 'busy' && hasMeetingPartner;
         profile.meetingReminderDayFor = '';
         profile.meetingReminderDaySentAt = undefined;
         profile.meetingReminderHourFor = '';

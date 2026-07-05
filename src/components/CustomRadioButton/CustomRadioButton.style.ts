@@ -1,8 +1,10 @@
 import { StyleSheet } from "react-native";
 import Colors from "../../utils/Colors";
 import GeneralStyle from "../../utils/GeneralStyle";
+import SharedStyles from '../../utils/SharedStyles';
 
 export const styles = StyleSheet.create({
+  ...SharedStyles,
   smallBtn: {
     marginTop: GeneralStyle.spacing.sm / 2
   },
@@ -26,8 +28,8 @@ export const styles = StyleSheet.create({
     borderWidth: 2,
   },
   circle: {
-    width: 30,
-    height: 30,
+    width: GeneralStyle.size.controlSm,
+    height: GeneralStyle.size.controlSm,
     borderRadius: 15,
     marginLeft: GeneralStyle.spacing.sm,
   },
@@ -35,13 +37,11 @@ export const styles = StyleSheet.create({
     backgroundColor: Colors.color1,
   },
   textRight: {
-    textAlign: 'right',
-    writingDirection: 'rtl',
+    ...SharedStyles.textRight,
     width: '100%',
   },
   textLeft: {
-    textAlign: 'left',
-    writingDirection: 'ltr',
+    ...SharedStyles.textLeft,
     width: '100%',
   },
 });

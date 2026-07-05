@@ -1,6 +1,6 @@
 import { StyleSheet } from 'react-native';
 import Colors from '../../utils/Colors';
-import {FontsStyle} from '../../utils/FontsStyle';
+import {FontSize, FontsStyle} from '../../utils/FontsStyle';
 import GeneralStyle from '../../utils/GeneralStyle';
 
 export const styles = StyleSheet.create({
@@ -34,7 +34,7 @@ export const styles = StyleSheet.create({
         gap: GeneralStyle.spacing.sm,
     },
     sideSlot: {
-        width: 54,
+        width: GeneralStyle.size.action,
         alignItems: "center",
         justifyContent: "center",
     },
@@ -51,19 +51,19 @@ export const styles = StyleSheet.create({
         flexShrink: 1,
     },
     brandLogo: {
-        width: 34,
-        height: 34,
+        width: GeneralStyle.size.icon,
+        height: GeneralStyle.size.icon,
         borderRadius: 17,
         borderWidth: 1,
         borderColor: Colors.border,
         alignItems: "center",
         justifyContent: "center",
-        backgroundColor: Colors.surface,
+        backgroundColor: Colors.ivory,
     },
     brandLogoText: {
         ...FontsStyle.subTitle,
         color: Colors.goldDark,
-        fontSize: 16,
+        fontSize: FontSize.body,
     },
     row: {
         flexDirection: "row",
@@ -83,7 +83,7 @@ export const styles = StyleSheet.create({
     title: {
         ...FontsStyle.menuTitle,
         color: Colors.darkGreen,
-        fontSize: 30,
+        fontSize: FontSize.section,
         textAlign: "center",
         flexShrink: 1,
     },

@@ -1,11 +1,13 @@
 import {StyleSheet} from 'react-native';
 import Colors from '../../utils/Colors';
 import GeneralStyle from '../../utils/GeneralStyle';
+import {FontSize} from '../../utils/FontsStyle';
+import SharedStyles from '../../utils/SharedStyles';
 
 export const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.9)',
+    backgroundColor: Colors.overlayImage,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -14,17 +16,16 @@ export const styles = StyleSheet.create({
     top: GeneralStyle.spacing.sm * 4,
     right: GeneralStyle.spacing.sm * 2,
     zIndex: 2,
-    width: 44,
-    height: 44,
+    width: GeneralStyle.size.control,
+    height: GeneralStyle.size.control,
     borderRadius: 22,
-    backgroundColor: Colors.surface,
+    backgroundColor: Colors.ivory,
     justifyContent: 'center',
     alignItems: 'center',
   },
   closeText: {
+    ...SharedStyles.iconGlyphText,
     color: Colors.darkGreen,
-    fontSize: 32,
-    lineHeight: 36,
   },
   slider: {
     width: '100%',
@@ -44,13 +45,13 @@ export const styles = StyleSheet.create({
     flexDirection: 'row',
   },
   dot: {
-    color: '#777',
-    fontSize: 34,
+    color: Colors.inkMuted,
+    fontSize: FontSize.iconLarge,
     marginHorizontal: 2,
   },
   activeDot: {
-    color: Colors.surface,
-    fontSize: 34,
+    color: Colors.ivory,
+    fontSize: FontSize.iconLarge,
     marginHorizontal: 2,
   },
 });

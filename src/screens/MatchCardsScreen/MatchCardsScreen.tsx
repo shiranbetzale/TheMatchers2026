@@ -1,12 +1,5 @@
 import React, {useEffect, useState} from 'react';
-import {
-  Modal,
-  ScrollView,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import {ScrollView, Text, TextInput, View} from 'react-native';
 import {
   RouteProp,
   useFocusEffect,
@@ -15,9 +8,14 @@ import {
 } from '@react-navigation/native';
 import {StackNavigationProp} from '@react-navigation/stack';
 import DatePicker from 'react-native-date-picker';
+import Colors from '../../utils/Colors';
 
 import CurrentCard from '../../components/CurrentCard/CurrentCard';
-import CustomButton from '../../components/CustomButton/CustomButton';
+import CustomButton, {
+  BUTTON_ICON_SIZE,
+} from '../../components/CustomButton/CustomButton';
+import CustomModal from '../../components/CustomModal/CustomModal';
+import CloseIcon from '../../components/CloseIcon/CloseIcon';
 import CustomSelect from '../../components/CustomSelect/CustomSelect';
 import CustomText from '../../components/CustomText/CustomText';
 import MatchCard from '../../components/MatchCard/MatchCard';
@@ -48,11 +46,18 @@ type NavigationProp = StackNavigationProp<RootStackParamList>;
 type MatchCardsRouteProp = RouteProp<RootStackParamList, 'MatchCardsScreen'>;
 type MeetingStatus = NonNullable<MatchCardType['meetingStatus']>;
 
-const normalizePhone = (value: unknown) => String(value || '').replace(/\D/g, '');
+const normalizePhone = (value: unknown) =>
+  String(value || '').replace(/\D/g, '');
 const getCardId = (card: Partial<MatchCardType> & Record<string, unknown>) =>
   String(card.profileId || card.id || card._id || '').trim();
+const getMatchProfileId = (value: unknown) =>
+  value && typeof value === 'object'
+    ? getCardId(value as Partial<MatchCardType> & Record<string, unknown>)
+    : String(value || '').trim();
 const normalizeGender = (value: unknown) => {
-  const gender = String(value || '').trim().toLowerCase();
+  const gender = String(value || '')
+    .trim()
+    .toLowerCase();
 
   if (gender === '1' || gender === 'male' || gender === 'זכר') {
     return 'male';
@@ -170,12 +175,46 @@ const MatchCardsScreen = () => {
   const [currentCard, setCurrentCard] = useState<MatchCardType>(
     route.params?.card ?? DEFAULT_CURRENT_CARD,
   );
+  const [meetingTrackingPartnerId, setMeetingTrackingPartnerId] = useState(
+    String(route.params?.card?.partnerProfileId || ''),
+  );
+
+  const markPairAsOffered = React.useCallback(
+    async (matchWithId: string) => {
+      const candidateId = getCardId(
+        currentCard as MatchCardType & Record<string, unknown>,
+      );
+
+      if (!candidateId || !matchWithId) {
+        return;
+      }
+
+      await api.put('/api/matches/tracking', {
+        candidateId,
+        matchWithId,
+        offered: true,
+      });
+
+      setMatchArray(matches =>
+        matches.map(match =>
+          getCardId(match) === matchWithId ? {...match, offered: true} : match,
+        ),
+      );
+    },
+    [currentCard],
+  );
 
   useEffect(() => {
     if (route.params?.card) {
       setCurrentCard(route.params.card);
     }
   }, [route.params?.card]);
+
+  useEffect(() => {
+    if (currentCard.partnerProfileId) {
+      setMeetingTrackingPartnerId(String(currentCard.partnerProfileId));
+    }
+  }, [currentCard.partnerProfileId]);
 
   useEffect(() => {
     if (!route.params?.openMeetingModal || userRole === null) {
@@ -295,16 +334,22 @@ const MatchCardsScreen = () => {
     setHasLoadedMatches(false);
 
     try {
-      const [profilesResponse, matchmakersResponse] = await Promise.all([
-        api.get('/api/profiles'),
-        api.get('/api/users/matchmakers'),
-      ]);
+      const [profilesResponse, matchmakersResponse, trackingResponse] =
+        await Promise.all([
+          api.get('/api/profiles'),
+          api.get('/api/users/matchmakers'),
+          api.get('/api/matches'),
+        ]);
       const profiles = Array.isArray(profilesResponse.data?.profiles)
         ? profilesResponse.data.profiles
         : [];
       const matchmakers = Array.isArray(matchmakersResponse.data?.users)
         ? matchmakersResponse.data.users
         : [];
+      const trackedMatches = Array.isArray(trackingResponse.data?.matches)
+        ? trackingResponse.data.matches
+        : [];
+      const currentProfileId = getCardId(currentCard);
       const matchmakerEmailMap = buildMatchmakerEmailMap(matchmakers);
       setAllProfiles(profiles);
       setMatchmakerEmailById(matchmakerEmailMap);
@@ -358,6 +403,19 @@ const MatchCardsScreen = () => {
       setMatchArray(
         mapped.map(card => ({
           ...card,
+          ...(() => {
+            const cardId = getCardId(card);
+            const tracking = trackedMatches.find(
+              (match: any) =>
+                getMatchProfileId(match.candidate) === currentProfileId &&
+                getMatchProfileId(match.matchWith) === cardId,
+            );
+
+            return {
+              offered: Boolean(tracking?.offered),
+              met: Boolean(tracking?.met),
+            };
+          })(),
           matcherMail:
             card.matcherMail ||
             matchmakerEmailMap[String(card.assignedMatchmaker || '')] ||
@@ -436,8 +494,9 @@ const MatchCardsScreen = () => {
         id: String(profile._id || profile.id || ''),
         name: String(profile.fullName || profile.name || '').trim(),
       }))
-      .find(profile => profile.id === String(currentCard.partnerProfileId || ''))
-      ?.name ||
+      .find(
+        profile => profile.id === String(currentCard.partnerProfileId || ''),
+      )?.name ||
     currentCard.partnerName ||
     '';
   const currentMeetingDate = currentCard.meetingDate
@@ -530,29 +589,12 @@ const MatchCardsScreen = () => {
     setCurrentCard(card => ({...card, [field]: value}));
   };
 
-  const updateCurrentTrackingField = (
-    field: 'offered',
-    value: boolean,
-  ) => {
-    if (!canManageMeetings) {
-      return;
-    }
-
-    setCurrentCard(card => ({...card, [field]: value}));
-  };
-
   const hasInvalidMeetingTime =
     Boolean(currentCard.meetingTime) &&
     !isValidMeetingTime(currentCard.meetingTime);
   const hasPastMeetingDateTime =
     currentCard.meetingStatus === 'busy' &&
     isMeetingDateTimeInPast(currentCard.meetingDate, currentCard.meetingTime);
-  const hasMeetingTogether =
-    currentCard.meetingStatus === 'busy' &&
-    Boolean(
-      String(currentCard.partnerProfileId || '').trim() ||
-        String(currentCard.partnerName || '').trim(),
-    );
   const currentMeetingTimeText =
     normalizeMeetingTime(currentCard.meetingTime) ?? 'meetingTime';
   const [selectedHour, selectedMinute] = timePickerValue.split(':').map(Number);
@@ -642,17 +684,11 @@ const MatchCardsScreen = () => {
       }
 
       await api.put(`/api/profiles/${profileId}`, {
-        offered: Boolean(currentCard.offered),
-        met: hasMeetingTogether,
         meetingStatus: currentCard.meetingStatus || 'available',
         meetingDate:
-          currentCard.meetingStatus === 'busy'
-            ? currentCard.meetingDate
-            : '',
+          currentCard.meetingStatus === 'busy' ? currentCard.meetingDate : '',
         meetingTime:
-          currentCard.meetingStatus === 'busy'
-            ? normalizedMeetingTime
-            : '',
+          currentCard.meetingStatus === 'busy' ? normalizedMeetingTime : '',
         meetingLocation:
           currentCard.meetingStatus === 'busy'
             ? currentCard.meetingLocation?.trim()
@@ -671,7 +707,40 @@ const MatchCardsScreen = () => {
             : '',
       });
 
-      await fetchCurrentCardDetails();
+      const trackedPartnerId =
+        String(currentCard.partnerProfileId || '') || meetingTrackingPartnerId;
+
+      if (trackedPartnerId) {
+        void api
+          .put(
+            '/api/matches/tracking',
+            {
+              candidateId: profileId,
+              matchWithId: trackedPartnerId,
+              meetingStatus: currentCard.meetingStatus || 'available',
+              meetingDate:
+                currentCard.meetingStatus === 'busy'
+                  ? currentCard.meetingDate
+                  : '',
+              meetingTime:
+                currentCard.meetingStatus === 'busy'
+                  ? normalizedMeetingTime
+                  : '',
+              meetingLocation:
+                currentCard.meetingStatus === 'busy'
+                  ? currentCard.meetingLocation?.trim()
+                  : '',
+            },
+            {skipLoader: true},
+          )
+          .catch(trackingError => {
+            console.warn(
+              'Meeting saved, but pair tracking update failed',
+              trackingError,
+            );
+          });
+      }
+
       return true;
     } catch (error) {
       console.warn('Failed to save meeting', error);
@@ -721,17 +790,17 @@ const MatchCardsScreen = () => {
               <CustomText text="matchesCount" customStyle={styles.countLabel} />
             </View>
           </View>
-          <CurrentCard
-            {...currentCard}
-            isShowCardActions={true}
-            isShowMeetingButton={canManageMeetings}
-            onMeetingPress={() => setIsMeetingModalOpen(true)}
-            isShowInfoButtons={false}
-            currentUserRole={userRole || undefined}
-            currentUserId={currentUserId}
-          />
         </View>
       }>
+      <CurrentCard
+        {...currentCard}
+        isShowCardActions={true}
+        isShowMeetingButton={canManageMeetings}
+        onMeetingPress={() => setIsMeetingModalOpen(true)}
+        isShowInfoButtons={false}
+        currentUserRole={userRole || undefined}
+        currentUserId={currentUserId}
+      />
       <View
         style={[
           styles.sectionHeader,
@@ -746,7 +815,8 @@ const MatchCardsScreen = () => {
         />
       </View>
       {matchArray.map((matchItem, index) => (
-        <TouchableOpacity
+        <CustomButton
+          unstyled
           key={matchItem.profileId || matchItem.phone || String(index)}
           activeOpacity={0.9}
           style={styles.card}
@@ -756,10 +826,7 @@ const MatchCardsScreen = () => {
             })
           }>
           <View
-            style={[
-              styles.aiScoreBar,
-              isRTL ? styles.rowReverse : styles.row,
-            ]}>
+            style={[styles.aiScoreBar, isRTL ? styles.rowReverse : styles.row]}>
             <View style={styles.aiScoreBadge}>
               <CustomText
                 text={`${matchItem.aiMatchScore || 1}%`}
@@ -805,8 +872,9 @@ const MatchCardsScreen = () => {
             isImagePreviewEnabled={true}
             currentUserRole={userRole || undefined}
             currentUserId={currentUserId}
+            onOfferSent={markPairAsOffered}
           />
-        </TouchableOpacity>
+        </CustomButton>
       ))}
       {hasLoadedMatches && matchArray.length === 0 && (
         <View
@@ -823,7 +891,7 @@ const MatchCardsScreen = () => {
           />
         </View>
       )}
-      <Modal
+      <CustomModal
         transparent
         animationType="fade"
         visible={isMeetingModalOpen}
@@ -847,14 +915,15 @@ const MatchCardsScreen = () => {
                     isRTL ? styles.textRight : styles.textLeft,
                   ]}
                 />
-                <TouchableOpacity
+                <CustomButton
+                  variant="icon"
                   style={styles.modalCloseButton}
                   onPress={() => {
                     setIsMeetingTimeOpen(false);
                     setIsMeetingModalOpen(false);
                   }}>
-                  <CustomText text="×" customStyle={styles.modalCloseText} />
-                </TouchableOpacity>
+                  <CloseIcon />
+                </CustomButton>
               </View>
 
               <View
@@ -862,7 +931,8 @@ const MatchCardsScreen = () => {
                   styles.meetingStatusRow,
                   isRTL ? styles.rowReverse : styles.row,
                 ]}>
-                <TouchableOpacity
+                <CustomButton
+                  unstyled
                   activeOpacity={0.85}
                   style={[
                     styles.statusButton,
@@ -879,8 +949,9 @@ const MatchCardsScreen = () => {
                         styles.statusButtonTextActive,
                     ]}
                   />
-                </TouchableOpacity>
-                <TouchableOpacity
+                </CustomButton>
+                <CustomButton
+                  unstyled
                   activeOpacity={0.85}
                   style={[
                     styles.statusButton,
@@ -897,61 +968,7 @@ const MatchCardsScreen = () => {
                         styles.statusButtonTextActive,
                     ]}
                   />
-                </TouchableOpacity>
-              </View>
-
-              <View style={styles.trackingPanel}>
-                <CustomText
-                  text="matchTracking"
-                  customStyle={[
-                    styles.fieldLabel,
-                    isRTL ? styles.textRight : styles.textLeft,
-                  ]}
-                />
-                <View
-                  style={[
-                    styles.meetingStatusRow,
-                    isRTL ? styles.rowReverse : styles.row,
-                  ]}>
-                  <TouchableOpacity
-                    activeOpacity={0.85}
-                    style={[
-                      styles.statusButton,
-                      currentCard.offered && styles.statusButtonActive,
-                    ]}
-                    onPress={() =>
-                      updateCurrentTrackingField(
-                        'offered',
-                        !currentCard.offered,
-                      )
-                    }>
-                    <View style={styles.statusDot} />
-                    <CustomText
-                      text="cardOffered"
-                      customStyle={[
-                        styles.statusButtonText,
-                        currentCard.offered && styles.statusButtonTextActive,
-                      ]}
-                    />
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    activeOpacity={0.85}
-                    style={[
-                      styles.statusButton,
-                      styles.statusButtonReadonly,
-                      hasMeetingTogether && styles.statusButtonActive,
-                    ]}
-                    disabled>
-                    <View style={styles.statusDot} />
-                    <CustomText
-                      text="cardMet"
-                      customStyle={[
-                        styles.statusButtonText,
-                        hasMeetingTogether && styles.statusButtonTextActive,
-                      ]}
-                    />
-                  </TouchableOpacity>
-                </View>
+                </CustomButton>
               </View>
 
               {isMeetingBusy ? (
@@ -964,7 +981,8 @@ const MatchCardsScreen = () => {
                         isRTL ? styles.textRight : styles.textLeft,
                       ]}
                     />
-                    <TouchableOpacity
+                    <CustomButton
+                      unstyled
                       activeOpacity={0.85}
                       style={[
                         styles.meetingField,
@@ -972,7 +990,10 @@ const MatchCardsScreen = () => {
                       ]}
                       onPress={() => setIsMeetingDateOpen(true)}>
                       <View style={styles.meetingIconBox}>
-                        <DatePickerSvg width={22} height={22} />
+                        <DatePickerSvg
+                          width={BUTTON_ICON_SIZE}
+                          height={BUTTON_ICON_SIZE}
+                        />
                       </View>
                       <Text
                         style={[
@@ -983,7 +1004,7 @@ const MatchCardsScreen = () => {
                           ? t('meetingDate')
                           : currentMeetingDateText}
                       </Text>
-                    </TouchableOpacity>
+                    </CustomButton>
                   </View>
                   <View style={styles.fieldGroup}>
                     <CustomText
@@ -993,7 +1014,8 @@ const MatchCardsScreen = () => {
                         isRTL ? styles.textRight : styles.textLeft,
                       ]}
                     />
-                    <TouchableOpacity
+                    <CustomButton
+                      unstyled
                       activeOpacity={0.85}
                       style={[
                         styles.meetingField,
@@ -1002,7 +1024,10 @@ const MatchCardsScreen = () => {
                       ]}
                       onPress={openMeetingTimePicker}>
                       <View style={styles.meetingIconBox}>
-                        <ClockSvg width={22} height={22} />
+                        <ClockSvg
+                          width={BUTTON_ICON_SIZE}
+                          height={BUTTON_ICON_SIZE}
+                        />
                       </View>
                       <Text
                         style={[
@@ -1015,7 +1040,7 @@ const MatchCardsScreen = () => {
                           ? t('meetingTime')
                           : currentMeetingTimeText}
                       </Text>
-                    </TouchableOpacity>
+                    </CustomButton>
                   </View>
                   {isMeetingTimeOpen && (
                     <View style={styles.inlineTimePicker}>
@@ -1029,25 +1054,27 @@ const MatchCardsScreen = () => {
                             text="minutes"
                             customStyle={styles.timePickerLabel}
                           />
-                          <TouchableOpacity
+                          <CustomButton
+                            unstyled
                             style={styles.timePickerButton}
                             onPress={() => updateTimePickerValue('minute', 5)}>
                             <CustomText
                               text="+"
                               customStyle={styles.timePickerButtonText}
                             />
-                          </TouchableOpacity>
+                          </CustomButton>
                           <Text style={styles.timePickerPart}>
                             {formatTimePart(selectedMinute)}
                           </Text>
-                          <TouchableOpacity
+                          <CustomButton
+                            unstyled
                             style={styles.timePickerButton}
                             onPress={() => updateTimePickerValue('minute', -5)}>
                             <CustomText
                               text="-"
                               customStyle={styles.timePickerButtonText}
                             />
-                          </TouchableOpacity>
+                          </CustomButton>
                         </View>
 
                         <View style={styles.timePickerSeparator} />
@@ -1057,25 +1084,27 @@ const MatchCardsScreen = () => {
                             text="hour"
                             customStyle={styles.timePickerLabel}
                           />
-                          <TouchableOpacity
+                          <CustomButton
+                            unstyled
                             style={styles.timePickerButton}
                             onPress={() => updateTimePickerValue('hour', 1)}>
                             <CustomText
                               text="+"
                               customStyle={styles.timePickerButtonText}
                             />
-                          </TouchableOpacity>
+                          </CustomButton>
                           <Text style={styles.timePickerPart}>
                             {formatTimePart(selectedHour)}
                           </Text>
-                          <TouchableOpacity
+                          <CustomButton
+                            unstyled
                             style={styles.timePickerButton}
                             onPress={() => updateTimePickerValue('hour', -1)}>
                             <CustomText
                               text="-"
                               customStyle={styles.timePickerButtonText}
                             />
-                          </TouchableOpacity>
+                          </CustomButton>
                         </View>
                       </View>
 
@@ -1113,7 +1142,10 @@ const MatchCardsScreen = () => {
                         isRTL ? styles.rowReverse : styles.row,
                       ]}>
                       <View style={styles.meetingIconBox}>
-                        <LocationSvg width={22} height={22} />
+                        <LocationSvg
+                          width={BUTTON_ICON_SIZE}
+                          height={BUTTON_ICON_SIZE}
+                        />
                       </View>
                       <TextInput
                         style={[
@@ -1121,7 +1153,7 @@ const MatchCardsScreen = () => {
                           isRTL ? styles.textRight : styles.textLeft,
                         ]}
                         placeholder={t('meetingLocation')}
-                        placeholderTextColor="#9CA3AF"
+                        placeholderTextColor={Colors.placeholder}
                         value={currentCard.meetingLocation ?? ''}
                         onChangeText={value =>
                           updateCurrentMeetingField('meetingLocation', value)
@@ -1176,10 +1208,9 @@ const MatchCardsScreen = () => {
                           (option?.label
                             ? partnerByName[option.label] || ''
                             : '');
-                        const collaborationMatchmaker =
-                          partnerProfileId
-                            ? partnerMatchmakerById[partnerProfileId] || ''
-                            : '';
+                        const collaborationMatchmaker = partnerProfileId
+                          ? partnerMatchmakerById[partnerProfileId] || ''
+                          : '';
 
                         setCurrentCard(card => ({
                           ...card,
@@ -1211,25 +1242,45 @@ const MatchCardsScreen = () => {
                   />
                 </View>
               )}
-              <CustomButton
-                text="save"
-                customStyle={styles.modalSaveButton}
-                customTextStyle={styles.modalSaveText}
-                onPress={async () => {
-                  const didSave = await saveMeetingToServer();
+              <View
+                style={[
+                  styles.modalActions,
+                  isRTL ? styles.rowReverse : styles.row,
+                ]}>
+                <CustomButton
+                  variant="secondary"
+                  text="cancel"
+                  customStyle={styles.modalCancelButton}
+                  customTextStyle={styles.modalCancelText}
+                  onPress={() => {
+                    setIsMeetingTimeOpen(false);
+                    setIsMeetingModalOpen(false);
+                  }}
+                />
+                <CustomButton
+                  text="save"
+                  customStyle={styles.modalSaveButton}
+                  customTextStyle={styles.modalSaveText}
+                  onPress={async () => {
+                    const didSave = await saveMeetingToServer();
 
-                  if (!didSave) {
-                    return;
+                    if (!didSave) {
+                      return;
+                    }
+
+                    setIsMeetingTimeOpen(false);
+                    setIsMeetingModalOpen(false);
+                    showMessage({
+                      type: 'success',
+                      message: t('meetingSavedSuccess'),
+                    });
+                  }}
+                  isDisabled={
+                    isMeetingBusy &&
+                    (hasInvalidMeetingTime || hasPastMeetingDateTime)
                   }
-
-                  setIsMeetingTimeOpen(false);
-                  setIsMeetingModalOpen(false);
-                }}
-                isDisabled={
-                  isMeetingBusy &&
-                  (hasInvalidMeetingTime || hasPastMeetingDateTime)
-                }
-              />
+                />
+              </View>
               <DatePicker
                 modal
                 open={isMeetingDateOpen}
@@ -1245,7 +1296,7 @@ const MatchCardsScreen = () => {
             </View>
           </ScrollView>
         </View>
-      </Modal>
+      </CustomModal>
     </HomeScreen>
   );
 };

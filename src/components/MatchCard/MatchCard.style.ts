@@ -1,16 +1,22 @@
 import {StyleSheet} from 'react-native';
 import Colors from '../../utils/Colors';
 import GeneralStyle from '../../utils/GeneralStyle';
-import {FontsStyle} from '../../utils/FontsStyle';
+import {FontSize, FontsStyle} from '../../utils/FontsStyle';
+import SharedStyles, {ProfileImageStyle} from '../../utils/SharedStyles';
 
 export const styles = StyleSheet.create({
+  ...SharedStyles,
   container: {
     width: '100%',
     alignItems: 'stretch',
-    borderLeftWidth: 0,
-    borderTopWidth: 0,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.line,
+    borderWidth: 1,
+    borderColor: Colors.borderSoft,
+  },
+  embeddedContainer: {
+    padding: 0,
+    borderWidth: 0,
+    borderRadius: 0,
+    backgroundColor: Colors.transparent,
   },
   content: {
     alignItems: 'center',
@@ -25,15 +31,8 @@ export const styles = StyleSheet.create({
     flexDirection: 'row',
   },
   imgContainer: {
-    width: 92,
-    height: 92,
-    borderRadius: 46,
-    overflow: 'hidden',
-    borderWidth: 3,
-    borderColor: Colors.goldWash,
-    backgroundColor: Colors.surfaceElevated,
+    ...ProfileImageStyle,
     flexShrink: 0,
-    ...Colors.Shadow,
   },
   imgContainerRtl: {
     marginLeft: GeneralStyle.spacing.sm,
@@ -65,13 +64,7 @@ export const styles = StyleSheet.create({
   cardName: {
     ...FontsStyle.menuTitle,
     color: Colors.darkGreen,
-    fontSize: 21,
-  },
-  textRight: {
-    textAlign: 'right',
-  },
-  textLeft: {
-    textAlign: 'left',
+    fontSize: FontSize.title,
   },
   statusPill: {
     paddingHorizontal: GeneralStyle.spacing.sm,
@@ -90,7 +83,7 @@ export const styles = StyleSheet.create({
   statusPillText: {
     ...FontsStyle.text,
     color: Colors.goldDark,
-    fontSize: 12,
+    fontSize: FontSize.caption,
     textAlign: 'center',
   },
   info: {
@@ -108,10 +101,10 @@ export const styles = StyleSheet.create({
     alignSelf: 'flex-start',
   },
   icon: {
-    width: 40,
-    height: 40,
-    minWidth: 40,
-    minHeight: 40,
+    width: GeneralStyle.size.iconLarge,
+    height: GeneralStyle.size.iconLarge,
+    minWidth: GeneralStyle.size.iconLarge,
+    minHeight: GeneralStyle.size.iconLarge,
     backgroundColor: Colors.ivory,
     justifyContent: 'center',
     alignItems: 'center',
@@ -123,10 +116,10 @@ export const styles = StyleSheet.create({
     paddingVertical: 0,
   },
   mailIcon: {
-    width: 40,
-    height: 40,
-    minWidth: 40,
-    minHeight: 40,
+    width: GeneralStyle.size.iconLarge,
+    height: GeneralStyle.size.iconLarge,
+    minWidth: GeneralStyle.size.iconLarge,
+    minHeight: GeneralStyle.size.iconLarge,
     backgroundColor: Colors.ivory,
     justifyContent: 'center',
     alignItems: 'center',
@@ -173,7 +166,7 @@ export const styles = StyleSheet.create({
   },
   actionLabel: {
     marginTop: 3,
-    fontSize: 10,
+    fontSize: FontSize.micro,
     color: Colors.darkGreen,
     textAlign: 'center',
     width: '100%',

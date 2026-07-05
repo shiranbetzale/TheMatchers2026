@@ -162,6 +162,9 @@ const MainScreen = () => {
               styles.heroTextBlock,
               isRTL ? styles.alignEnd : styles.alignStart,
             ]}>
+            <View style={styles.pilotBadge}>
+              <CustomText text="pilotVersion" customStyle={styles.pilotText} />
+            </View>
             <View style={[isRTL ? styles.rowReverse : styles.row]}>
               <CustomText
                 text="hello"
@@ -230,23 +233,17 @@ const MainScreen = () => {
                   : '...',
                 label: 'marriedThroughApp',
               },
-            ].map((stat, index, stats) => (
-              <React.Fragment key={stat.label}>
-                <View style={styles.heroStat}>
-                  <CustomText
-                    text={stat.value}
-                    customStyle={styles.heroStatValue}
-                  />
-                  <CustomText
-                    text={stat.label}
-                    customStyle={styles.heroStatLabel}
-                  />
-                </View>
-
-                {index < stats.length - 1 && (
-                  <View style={styles.heroStatDivider} />
-                )}
-              </React.Fragment>
+            ].map(stat => (
+              <View key={stat.label} style={styles.heroStat}>
+                <CustomText
+                  text={stat.value}
+                  customStyle={styles.heroStatValue}
+                />
+                <CustomText
+                  text={stat.label}
+                  customStyle={styles.heroStatLabel}
+                />
+              </View>
             ))}
           </View>
         </WhiteCard>
@@ -259,15 +256,7 @@ const MainScreen = () => {
           <CustomText text="lastCards" customStyle={styles.sectionTitle} />
         </View>
 
-        {!hasLoadedProfiles ? (
-          <CustomText
-            text="loading"
-            customStyle={[
-              styles.heroSubTitle,
-              isRTL ? styles.textRight : styles.textLeft,
-            ]}
-          />
-        ) : lastCardsArray.length === 0 ? (
+        {!hasLoadedProfiles ? null : lastCardsArray.length === 0 ? (
           <CustomText
             text="noCardsYet"
             customStyle={[
@@ -278,6 +267,7 @@ const MainScreen = () => {
         ) : (
           lastCardsArray.map((item, index) => (
             <CustomButton
+              unstyled
               key={item.profileId || item.phone || String(index)}
               onPress={() =>
                 navigation.navigate('MatchCardsScreen', {card: item})
@@ -298,6 +288,7 @@ const MainScreen = () => {
 
           {shouldShowMyCards && (
             <CustomButton
+              variant="secondary"
               customStyle={styles.secondaryFullButton}
               customTextStyle={styles.secondaryButtonText}
               text="matchmakerCards"
@@ -321,6 +312,7 @@ const MainScreen = () => {
         <View
           style={[styles.shortButtons, isRTL ? styles.rowReverse : styles.row]}>
           <CustomButton
+            variant="secondary"
             customStyle={styles.secondaryButton}
             customTextStyle={styles.secondaryButtonText}
             text="singleRegistration"
@@ -333,6 +325,7 @@ const MainScreen = () => {
           />
 
           <CustomButton
+            variant="secondary"
             customStyle={styles.secondaryButton}
             customTextStyle={styles.secondaryButtonText}
             text="contact"
@@ -340,7 +333,6 @@ const MainScreen = () => {
           />
         </View>
       </WhiteCard>
-
     </HomeScreen>
   );
 };

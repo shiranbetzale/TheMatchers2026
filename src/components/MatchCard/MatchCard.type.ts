@@ -26,6 +26,7 @@ export type MatchCardType = {
   matcherName?: string;
   isShowMoreInfo?: boolean;
   isImagePreviewEnabled?: boolean;
+  isEmbedded?: boolean;
   relationshipStatus?: 'engaged' | 'married';
   partnerName?: string;
   partnerProfileId?: string;
@@ -50,4 +51,5 @@ export type MatchCardType = {
   pairedCard?: MatchCardType;
   aiMatchScore?: number;
   aiMatchReasons?: string[];
+  onOfferSent?: (profileId: string) => void | Promise<void>;
 };

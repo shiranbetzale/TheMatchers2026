@@ -1,9 +1,11 @@
 import {StyleSheet} from 'react-native';
-import {FontsStyle} from '../../utils/FontsStyle';
+import {FontSize, FontsStyle} from '../../utils/FontsStyle';
 import GeneralStyle from '../../utils/GeneralStyle';
 import Colors from '../../utils/Colors';
+import SharedStyles, {CardSurfaceStyle} from '../../utils/SharedStyles';
 
 export const styles = StyleSheet.create({
+  ...SharedStyles,
   headerWrapper: {
     paddingHorizontal: GeneralStyle.spacing.md,
     paddingTop: GeneralStyle.spacing.md,
@@ -16,7 +18,7 @@ export const styles = StyleSheet.create({
   },
   title: {
     ...FontsStyle.wizardTitle,
-    color: '#102A56',
+    color: Colors.darkGreen,
   },
   headerRow: {
     flexDirection: 'row',
@@ -25,32 +27,17 @@ export const styles = StyleSheet.create({
     marginBottom: GeneralStyle.spacing.md,
     gap: GeneralStyle.spacing.sm,
   },
-  headerRowRtl: {
-    flexDirection: 'row-reverse',
-  },
-  headerRowLtr: {
-    flexDirection: 'row',
-  },
   searchInput: {
-    minHeight: 44,
+    minHeight: GeneralStyle.size.control,
     borderWidth: 1,
-    borderColor: '#CFD7E5',
+    borderColor: Colors.borderSoft,
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 9,
     marginBottom: GeneralStyle.spacing.sm,
     ...FontsStyle.text,
-    color: '#102A56',
-    backgroundColor: '#fff',
-  },
-  addButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: '#B9C4D3',
+    color: Colors.darkGreen,
+    backgroundColor: Colors.white,
   },
   listContent: {
     flexGrow: 1,
@@ -59,15 +46,10 @@ export const styles = StyleSheet.create({
   },
   list: {
     flex: 1,
-    borderRadius: 10,
-    padding: 8,
   },
   card: {
-    backgroundColor: '#fff',
-    borderColor: '#E3E8F0',
-    borderWidth: 1,
-    borderRadius: 8,
-    padding: GeneralStyle.spacing.md,
+    ...CardSurfaceStyle,
+    backgroundColor: Colors.white,
   },
   viewRow: {
     flexDirection: 'row',
@@ -75,67 +57,44 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
     gap: GeneralStyle.spacing.md,
   },
-  viewRowRtl: {
-    flexDirection: 'row-reverse',
-  },
-  viewRowLtr: {
-    flexDirection: 'row',
-  },
   userDetails: {
     flex: 1,
     gap: 4,
   },
   primaryText: {
     ...FontsStyle.subTitle,
-    fontSize: 22,
-    color: '#102A56',
+    fontSize: FontSize.heading,
+    color: Colors.darkGreen,
   },
   secondaryText: {
     ...FontsStyle.text,
-    color: '#2F3A4D',
+    color: Colors.slate,
   },
   metaText: {
     ...FontsStyle.text,
-    fontSize: 13,
-    color: '#708099',
+    fontSize: FontSize.caption,
+    color: Colors.inkMuted,
   },
   actionRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
   },
-  actionRowRtl: {
-    flexDirection: 'row-reverse',
-  },
-  actionRowLtr: {
-    flexDirection: 'row',
-  },
-  iconButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-  },
   editButton: {
-    borderColor: '#CBD5E1',
-    backgroundColor: '#F8FAFC',
+    borderColor: Colors.borderSoft,
+    backgroundColor: Colors.softBlue,
   },
   deleteButton: {
-    borderColor: '#FECACA',
-    backgroundColor: '#FEF2F2',
+    borderColor: Colors.danger,
+    backgroundColor: Colors.dangerSoft,
   },
   saveButton: {
-    borderColor: '#BFDBFE',
-    backgroundColor: '#EFF6FF',
+    borderColor: Colors.borderSoft,
+    backgroundColor: Colors.softBlue,
   },
   cancelButton: {
-    borderColor: '#E2E8F0',
-    backgroundColor: '#F8FAFC',
-  },
-  deleteIcon: {
-    fontSize: 16,
+    borderColor: Colors.borderSoft,
+    backgroundColor: Colors.softBlue,
   },
   editorContainer: {
     gap: 8,
@@ -160,69 +119,62 @@ export const styles = StyleSheet.create({
   },
   input: {
     borderWidth: 1,
-    borderColor: '#CFD7E5',
+    borderColor: Colors.borderSoft,
     borderRadius: 8,
     paddingHorizontal: 10,
     paddingVertical: 9,
     ...FontsStyle.text,
-    color: '#102A56',
-    backgroundColor: '#fff',
+    color: Colors.darkGreen,
+    backgroundColor: Colors.white,
   },
   inputLabel: {
     ...FontsStyle.text,
-    fontSize: 13,
-    color: '#51607A',
+    fontSize: FontSize.caption,
+    color: Colors.slate,
     marginTop: 2,
-  },
-  inputRtl: {
-    textAlign: 'right',
-  },
-  inputLtr: {
-    textAlign: 'left',
   },
   choiceRow: {
     gap: 6,
   },
   choiceLabel: {
     ...FontsStyle.text,
-    fontSize: 13,
-    color: '#51607A',
+    fontSize: FontSize.caption,
+    color: Colors.slate,
   },
   choiceOptions: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 8,
   },
-  choiceOptionsRtl: {
-    flexDirection: 'row-reverse',
-  },
-  choiceOptionsLtr: {
-    flexDirection: 'row',
-  },
   choiceChip: {
+    minHeight: GeneralStyle.size.control,
+    minWidth: GeneralStyle.size.badge,
+    flexDirection: 'row-reverse',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: GeneralStyle.spacing.xs,
     borderWidth: 1,
-    borderColor: '#CFD7E5',
+    borderColor: Colors.borderSoft,
     borderRadius: 8,
     paddingHorizontal: 10,
     paddingVertical: 6,
-    backgroundColor: '#fff',
+    backgroundColor: Colors.white,
   },
   choiceChipActive: {
-    borderColor: '#0F2E63',
-    backgroundColor: '#EAF1FF',
+    borderWidth: 2,
+    borderColor: Colors.premiumLine,
+    backgroundColor: Colors.navyDeep,
   },
   choiceChipText: {
     ...FontsStyle.text,
-    fontSize: 13,
-    color: '#364259',
+    fontSize: FontSize.caption,
+    color: Colors.slate,
   },
   choiceChipTextActive: {
-    color: '#0F2E63',
+    color: Colors.white,
   },
-  textRtl: {
-    textAlign: 'right',
-  },
-  textLtr: {
-    textAlign: 'left',
+  choiceCheck: {
+    ...FontsStyle.textDecoration,
+    color: Colors.premiumLine,
   },
 });

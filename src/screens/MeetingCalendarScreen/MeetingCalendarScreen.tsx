@@ -1,17 +1,15 @@
 import React, {useEffect, useMemo, useState} from 'react';
-import {
-  Modal,
-  ScrollView,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import {ScrollView, Text, TextInput, View} from 'react-native';
 import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import {StackNavigationProp} from '@react-navigation/stack';
 import DatePicker from 'react-native-date-picker';
+import Colors from '../../utils/Colors';
 
-import CustomButton from '../../components/CustomButton/CustomButton';
+import CustomButton, {
+  BUTTON_ICON_SIZE,
+} from '../../components/CustomButton/CustomButton';
+import CustomModal from '../../components/CustomModal/CustomModal';
+import CloseIcon from '../../components/CloseIcon/CloseIcon';
 import CustomText from '../../components/CustomText/CustomText';
 import {MatchCardType} from '../../components/MatchCard/MatchCard.type';
 import WhiteCard from '../../components/WhiteCard/WhiteCard';
@@ -69,6 +67,27 @@ const formatMeetingDayTitle = (
 const getMeetingDayKey = (value: string) => {
   const date = new Date(value);
   return `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`;
+};
+
+const getMeetingPairKey = (meeting: MatchCardType) => {
+  const profileIds = [meeting.profileId, meeting.partnerProfileId]
+    .map(value => String(value || '').trim())
+    .filter(Boolean)
+    .sort();
+
+  if (profileIds.length === 2) {
+    return profileIds.join('|');
+  }
+
+  return [meeting.name, meeting.partnerName]
+    .map(value =>
+      String(value || '')
+        .trim()
+        .toLowerCase(),
+    )
+    .filter(Boolean)
+    .sort()
+    .join('|');
 };
 
 const isMeetingDateTimeInPast = (dateValue?: string, timeValue?: string) => {
@@ -154,6 +173,26 @@ const MeetingCalendarScreen = () => {
       meetings
         .filter(meeting => meeting.meetingStatus === 'busy')
         .filter(meeting => {
+          const partnerProfileId = String(
+            meeting.partnerProfileId || '',
+          ).trim();
+
+          if (!partnerProfileId) {
+            return true;
+          }
+
+          const partner = meetings.find(
+            candidate =>
+              String(candidate.profileId || '') === partnerProfileId,
+          );
+
+          return (
+            !partner ||
+            String(partner.partnerProfileId || '') ===
+              String(meeting.profileId || '')
+          );
+        })
+        .filter(meeting => {
           const sessionPhone = sessionUser?.phone.replace(/\D/g, '') ?? '';
           const matcherPhone = meeting.matcherPhone.replace(/\D/g, '');
           const candidatePhone = meeting.phone.replace(/\D/g, '');
@@ -197,6 +236,14 @@ const MeetingCalendarScreen = () => {
 
           return meetingDate >= today;
         })
+        .filter(
+          (meeting, index, filteredMeetings) =>
+            filteredMeetings.findIndex(
+              candidateMeeting =>
+                getMeetingPairKey(candidateMeeting) ===
+                getMeetingPairKey(meeting),
+            ) === index,
+        )
         .sort(
           (meetingA, meetingB) =>
             new Date(meetingA.meetingDate).getTime() -
@@ -263,6 +310,20 @@ const MeetingCalendarScreen = () => {
       openMeetingModal: true,
       meetingEditToken: Date.now(),
     });
+  };
+
+  const openProfile = (profileId?: string) => {
+    const normalizedProfileId = String(profileId || '').trim();
+    const profile = meetings.find(
+      meeting => String(meeting.profileId || '') === normalizedProfileId,
+    );
+
+    if (!profile) {
+      showMessage({type: 'error', message: t('profileNotFoundForUpdate')});
+      return;
+    }
+
+    navigation.navigate('MatchCardsScreen', {card: profile});
   };
 
   const closeEditMeeting = () => {
@@ -362,20 +423,62 @@ const MeetingCalendarScreen = () => {
                       isRTL ? styles.meetingTopRowRtl : styles.meetingTopRowLtr,
                     ]}>
                     <CustomButton
+                      accessibilityLabel={t('editMeeting')}
                       customStyle={styles.editMeetingButton}
-                      icon={<EditSvg width={18} height={18} />}
+                      icon={
+                        <EditSvg
+                          width={BUTTON_ICON_SIZE}
+                          height={BUTTON_ICON_SIZE}
+                        />
+                      }
                       onPress={() => openEditMeeting(meeting)}
                     />
 
                     <View style={styles.meetingMain}>
-                      <CustomText
-                        text={
+                      <View
+                        style={[
+                          styles.meetingNamesRow,
                           isRTL
-                            ? `${meeting.name} ו${meeting.partnerName || t('partner')}`
-                            : `${meeting.name} and ${meeting.partnerName || t('partner')}`
-                        }
-                        customStyle={styles.meetingName}
-                      />
+                            ? styles.meetingNamesRowRtl
+                            : styles.meetingNamesRowLtr,
+                        ]}>
+                        <CustomButton
+                          unstyled
+                          accessibilityLabel={meeting.name}
+                          onPress={() => openProfile(meeting.profileId)}>
+                          <CustomText
+                            text={meeting.name}
+                            customStyle={styles.meetingNameLink}
+                          />
+                        </CustomButton>
+
+                        {meeting.partnerName ? (
+                          <>
+                            <CustomText
+                              text={isRTL ? 'ו' : 'and'}
+                              customStyle={styles.meetingNameSeparator}
+                            />
+                            {meeting.partnerProfileId ? (
+                              <CustomButton
+                                unstyled
+                                accessibilityLabel={meeting.partnerName}
+                                onPress={() =>
+                                  openProfile(meeting.partnerProfileId)
+                                }>
+                                <CustomText
+                                  text={meeting.partnerName}
+                                  customStyle={styles.meetingNameLink}
+                                />
+                              </CustomButton>
+                            ) : (
+                              <CustomText
+                                text={meeting.partnerName}
+                                customStyle={styles.meetingName}
+                              />
+                            )}
+                          </>
+                        ) : null}
+                      </View>
                       <View style={styles.detailRow}>
                         <CustomText
                           text="meetingLocation"
@@ -419,7 +522,7 @@ const MeetingCalendarScreen = () => {
         )}
       </View>
 
-      <Modal
+      <CustomModal
         transparent
         animationType="fade"
         visible={Boolean(editingMeeting)}
@@ -439,11 +542,12 @@ const MeetingCalendarScreen = () => {
                   text="meetingManagement"
                   customStyle={styles.modalTitle}
                 />
-                <TouchableOpacity
+                <CustomButton
+                  variant="icon"
                   style={styles.modalCloseButton}
                   onPress={closeEditMeeting}>
-                  <CustomText text="×" customStyle={styles.modalCloseText} />
-                </TouchableOpacity>
+                  <CloseIcon />
+                </CustomButton>
               </View>
 
               <View style={styles.modalField}>
@@ -454,7 +558,8 @@ const MeetingCalendarScreen = () => {
                     isRTL ? styles.textRtl : styles.textLtr,
                   ]}
                 />
-                <TouchableOpacity
+                <CustomButton
+                  unstyled
                   activeOpacity={0.85}
                   style={styles.modalInputBox}
                   onPress={() => setIsEditDateOpen(true)}>
@@ -465,7 +570,7 @@ const MeetingCalendarScreen = () => {
                     ]}>
                     {editMeetingDateText}
                   </Text>
-                </TouchableOpacity>
+                </CustomButton>
               </View>
 
               <View style={styles.modalField}>
@@ -484,7 +589,7 @@ const MeetingCalendarScreen = () => {
                     isRTL ? styles.textRtl : styles.textLtr,
                   ]}
                   placeholder="HH:mm"
-                  placeholderTextColor="#9CA3AF"
+                  placeholderTextColor={Colors.placeholder}
                   keyboardType="default"
                 />
                 {hasInvalidEditMeetingTime && (
@@ -517,7 +622,7 @@ const MeetingCalendarScreen = () => {
                     isRTL ? styles.textRtl : styles.textLtr,
                   ]}
                   placeholder={t('meetingLocation')}
-                  placeholderTextColor="#9CA3AF"
+                  placeholderTextColor={Colors.placeholder}
                 />
               </View>
 
@@ -536,6 +641,7 @@ const MeetingCalendarScreen = () => {
                   }
                 />
                 <CustomButton
+                  variant="secondary"
                   text="cancel"
                   customStyle={styles.cancelButton}
                   customTextStyle={styles.cancelButtonText}
@@ -562,7 +668,7 @@ const MeetingCalendarScreen = () => {
             </View>
           </ScrollView>
         </View>
-      </Modal>
+      </CustomModal>
     </HomeScreen>
   );
 };

@@ -6,7 +6,7 @@ import {Option} from '../../utils/FormFields.type';
 import OrderByFields from '../../utils/OrderByFields';
 import CustomButton from '../CustomButton/CustomButton';
 import CustomText from '../CustomText/CustomText';
-import {styles} from './CustomOrderBy.style';
+import {orderByStyles as styles} from '../SelectionPanelStyles';
 import {CardsSortValue, CustomOrderByType} from './CustomOrderBy.type';
 
 const CustomOrderBy = (props: CustomOrderByType) => {
@@ -79,6 +79,7 @@ const CustomOrderBy = (props: CustomOrderByType) => {
           />
 
           <CustomButton
+            variant="secondary"
             customStyle={styles.resetButton}
             customTextStyle={styles.resetButtonText}
             text="reset"

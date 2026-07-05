@@ -1,9 +1,11 @@
 import React, {useEffect, useMemo, useState} from 'react';
-import {TextInput, View, TouchableOpacity, Text} from 'react-native';
+import CustomButton from '../CustomButton/CustomButton';
+import {TextInput, View, Text} from 'react-native';
 import CustomText from '../CustomText/CustomText';
 import {styles} from './CustomInput.style';
 import {CustomInputType} from './CustomInput.type';
 import {useLanguage} from '../../utils/LanguageProvider';
+import Colors from '../../utils/Colors';
 
 const formatDigitsWithCommas = (value: unknown) => {
   const digits = String(value || '').replace(/\D+/g, '');
@@ -13,6 +15,8 @@ const formatDigitsWithCommas = (value: unknown) => {
 
 const CustomInput = (props: CustomInputType) => {
   const {
+    accessibilityHint,
+    accessibilityLabel,
     maxLength,
     autoCapitalize,
     isSmallSize = false,
@@ -52,7 +56,12 @@ const CustomInput = (props: CustomInputType) => {
 
   const inputElement = (
     <TextInput
-      placeholderTextColor="#A8ADB7"
+      accessible
+      accessibilityHint={accessibilityHint ? t(accessibilityHint) : undefined}
+      accessibilityLabel={t(accessibilityLabel || String(labelText))}
+      accessibilityState={{disabled: !isEditable}}
+      accessibilityValue={errorText ? {text: t(errorText)} : undefined}
+      placeholderTextColor={Colors.placeholder}
       style={[
         isSmallSize ? styles.smallInput : styles.input,
         isMultiline && styles.textArea,
@@ -130,11 +139,13 @@ const CustomInput = (props: CustomInputType) => {
         <View style={styles.inputWrapper}>
           {inputElement}
           {showToggle && (
-            <TouchableOpacity
+            <CustomButton
+              unstyled
+              accessibilityLabel={isSecure ? 'showPassword' : 'hidePassword'}
               onPress={() => setIsSecure(prev => !prev)}
               style={[styles.toggleSecure, isRTL && styles.toggleSecureRtl]}>
               <Text style={styles.toggleSecureText}>{toggleText}</Text>
-            </TouchableOpacity>
+            </CustomButton>
           )}
           {errorElement}
         </View>

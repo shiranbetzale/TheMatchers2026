@@ -1,5 +1,5 @@
 import React, {useMemo, useState} from 'react';
-import {Linking, Pressable, Share, View} from 'react-native';
+import {Linking, Share, View} from 'react-native';
 import PhoneSvg from '../../assets/images/phone.svg';
 import WhatsappSvg from '../../assets/images/whatsapp.svg';
 import EmailSvg from '../../assets/images/email.svg';
@@ -10,9 +10,8 @@ import {
   getCardStatusText,
   getDefaultProfileImage,
 } from '../../utils/generalFunction';
-import CustomButton from '../CustomButton/CustomButton';
+import CustomButton, {BUTTON_ICON_SIZE} from '../CustomButton/CustomButton';
 import CustomImage from '../CustomImage/CustomImage';
-import CustomImageSlider from '../CustomImageSlider/CustomImageSlider';
 import CustomText from '../CustomText/CustomText';
 import ImagePreviewModal from '../ImagePreviewModal/ImagePreviewModal';
 import WhiteCard from '../WhiteCard/WhiteCard';
@@ -60,8 +59,8 @@ const MatchCard = (props: MatchCardType) => {
     matcherMail,
     matcherName,
     phone,
-    isSlide = true,
     isImagePreviewEnabled = false,
+    isEmbedded = false,
     isShowMeetingInfo = false,
     isShowInfoButtons = false,
     name,
@@ -78,6 +77,7 @@ const MatchCard = (props: MatchCardType) => {
     currentUserId,
     assignedMatchmaker,
     pairedCard,
+    onOfferSent,
 
     // שדות נוספים לכרטיס שידוכים
     tribe,
@@ -256,19 +256,31 @@ const MatchCard = (props: MatchCardType) => {
     t,
   ]);
 
-  const openURL = async (url: string, fallback?: () => void) => {
+  const openURL = async (url: string) => {
     try {
       const canOpen = await Linking.canOpenURL(url);
 
       if (canOpen) {
         await Linking.openURL(url);
-        return;
+        return true;
       }
     } catch (error) {
       console.warn('Unable to open URL:', url, error);
     }
 
-    fallback?.();
+    return false;
+  };
+
+  const markOfferSent = () => {
+    const profileId = String(props.profileId || '').trim();
+
+    if (!pairedCard || !profileId || !onOfferSent) {
+      return;
+    }
+
+    Promise.resolve(onOfferSent(profileId)).catch(error => {
+      console.warn('Failed to mark match as offered', error);
+    });
   };
 
   const handleCandidateCall = () => {
@@ -285,28 +297,46 @@ const MatchCard = (props: MatchCardType) => {
 
   const handleShare = async () => {
     try {
-      await Share.share({
+      const result = await Share.share({
         title: name,
         message: profileMessage,
       });
+
+      if (result.action === Share.sharedAction) {
+        markOfferSent();
+      }
     } catch (error) {
       console.warn('Share failed', error);
     }
   };
 
-  const handleWhatsapp = () => {
-    openURL(
+  const handleWhatsapp = async () => {
+    const opened = await openURL(
       `whatsapp://send?text=${encodeURIComponent(profileMessage)}`,
-      handleShare,
     );
+
+    if (opened) {
+      markOfferSent();
+      return;
+    }
+
+    handleShare();
   };
 
-  const handleSendEmail = () => {
+  const handleSendEmail = async () => {
     const recipient = String(matcherMail || '').trim();
     const subject = encodeURIComponent(`${t('candidateDetails')}: ${name}`);
     const body = encodeURIComponent(profileMessage);
+    const opened = await openURL(
+      `mailto:${recipient}?subject=${subject}&body=${body}`,
+    );
 
-    openURL(`mailto:${recipient}?subject=${subject}&body=${body}`, handleShare);
+    if (opened) {
+      markOfferSent();
+      return;
+    }
+
+    handleShare();
   };
 
   const openImagePreview = () => {
@@ -316,21 +346,28 @@ const MatchCard = (props: MatchCardType) => {
   };
 
   return (
-    <WhiteCard customStyle={styles.container}>
+    <WhiteCard
+      customStyle={[styles.container, isEmbedded && styles.embeddedContainer]}>
       <View style={[styles.content, isRTL ? styles.rtlRow : styles.ltrRow]}>
-        <Pressable
-          disabled={!isImagePreviewEnabled}
-          onPress={openImagePreview}
-          style={[
-            styles.imgContainer,
-            isRTL ? styles.imgContainerRtl : styles.imgContainerLtr,
-          ]}>
-          {displayImages.length > 1 && isSlide ? (
-            <CustomImageSlider images={displayImages} />
-          ) : (
+        {isImagePreviewEnabled ? (
+          <CustomButton
+            unstyled
+            onPress={openImagePreview}
+            style={[
+              styles.imgContainer,
+              isRTL ? styles.imgContainerRtl : styles.imgContainerLtr,
+            ]}>
             <CustomImage customImgStyle={styles.img} src={displayImages[0]} />
-          )}
-        </Pressable>
+          </CustomButton>
+        ) : (
+          <View
+            style={[
+              styles.imgContainer,
+              isRTL ? styles.imgContainerRtl : styles.imgContainerLtr,
+            ]}>
+            <CustomImage customImgStyle={styles.img} src={displayImages[0]} />
+          </View>
+        )}
 
         <View style={styles.detailsContainer}>
           <View
@@ -421,9 +458,10 @@ const MatchCard = (props: MatchCardType) => {
             style={[styles.infoButtons, isRTL ? styles.rtlRow : styles.ltrRow]}>
             <View style={styles.actionItem}>
               <CustomButton
+                unstyled
                 onPress={handleMatcherCall}
                 customStyle={styles.icon}>
-                <PhoneSvg width={18} height={18} />
+                <PhoneSvg width={BUTTON_ICON_SIZE} height={BUTTON_ICON_SIZE} />
               </CustomButton>
               <CustomText
                 text="cardMatchmaker"
@@ -434,33 +472,47 @@ const MatchCard = (props: MatchCardType) => {
             {canSeeCandidatePhone && (
               <View style={styles.actionItem}>
                 <CustomButton
+                  unstyled
                   onPress={handleCandidateCall}
                   customStyle={styles.icon}>
-                  <PhoneSvg width={18} height={18} />
+                  <PhoneSvg
+                    width={BUTTON_ICON_SIZE}
+                    height={BUTTON_ICON_SIZE}
+                  />
                 </CustomButton>
                 <CustomText text="candidate" customStyle={styles.actionLabel} />
               </View>
             )}
 
             <View style={styles.actionItem}>
-              <CustomButton onPress={handleWhatsapp} customStyle={styles.icon}>
-                <WhatsappSvg width={18} height={18} />
+              <CustomButton
+                unstyled
+                onPress={handleWhatsapp}
+                customStyle={styles.icon}>
+                <WhatsappSvg
+                  width={BUTTON_ICON_SIZE}
+                  height={BUTTON_ICON_SIZE}
+                />
               </CustomButton>
               <CustomText text="whatsapp" customStyle={styles.actionLabel} />
             </View>
 
             <View style={styles.actionItem}>
               <CustomButton
+                unstyled
                 onPress={handleSendEmail}
                 customStyle={styles.mailIcon}>
-                <EmailSvg width={18} height={18} />
+                <EmailSvg width={BUTTON_ICON_SIZE} height={BUTTON_ICON_SIZE} />
               </CustomButton>
               <CustomText text="email" customStyle={styles.actionLabel} />
             </View>
 
             <View style={styles.actionItem}>
-              <CustomButton onPress={handleShare} customStyle={styles.icon}>
-                <ShareSvg width={18} height={18} />
+              <CustomButton
+                unstyled
+                onPress={handleShare}
+                customStyle={styles.icon}>
+                <ShareSvg width={BUTTON_ICON_SIZE} height={BUTTON_ICON_SIZE} />
               </CustomButton>
               <CustomText text="share" customStyle={styles.actionLabel} />
             </View>

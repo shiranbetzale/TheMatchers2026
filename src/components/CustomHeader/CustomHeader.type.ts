@@ -1,6 +1,7 @@
 import {ReactNode} from 'react';
 
 type headerBtn = {
+  accessibilityLabel?: string;
   comp?: ReactNode;
   onPress: () => void;
 };

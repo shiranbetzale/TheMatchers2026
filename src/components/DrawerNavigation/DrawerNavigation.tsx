@@ -1,4 +1,5 @@
 import React, {useCallback, useEffect, useState} from 'react';
+import CustomButton, {BUTTON_ICON_SIZE} from '../CustomButton/CustomButton';
 import {
   createDrawerNavigator,
   DrawerContentComponentProps,
@@ -7,7 +8,7 @@ import {
   DrawerNavigationOptions,
 } from '@react-navigation/drawer';
 import {CommonActions, useFocusEffect} from '@react-navigation/native';
-import {Text, TouchableOpacity, View} from 'react-native';
+import {Text, View} from 'react-native';
 
 import ArchiveIcon from '../../assets/images/orderBy.svg';
 import CalendarIcon from '../../assets/images/datePicker.svg';
@@ -18,6 +19,7 @@ import EmailIcon from '../../assets/images/email.svg';
 import LogoutIcon from '../../assets/images/logout.svg';
 import MenuIcon from '../../assets/images/menu.svg';
 import UserAddIcon from '../../assets/images/userAdd.svg';
+import Colors from '../../utils/Colors';
 
 import {drawerData} from '../../data/drawerData';
 import {
@@ -158,7 +160,8 @@ const CustomDrawerContent = (props: DrawerContentComponentProps) => {
           const isFocused = state.routes[state.index]?.key === route.key;
 
           return (
-            <TouchableOpacity
+            <CustomButton
+              unstyled
               key={route.key}
               activeOpacity={0.84}
               onPress={() => {
@@ -193,21 +196,25 @@ const CustomDrawerContent = (props: DrawerContentComponentProps) => {
                   isRTL ? styles.drawerTextRight : styles.drawerTextLeft,
                 ]}
               />
-            </TouchableOpacity>
+            </CustomButton>
           );
         })}
       </View>
 
-      <TouchableOpacity
+      <CustomButton
+        unstyled
         activeOpacity={0.84}
         onPress={logout}
-        style={styles.logoutButton}>
+        style={[
+          styles.logoutButton,
+          isRTL ? styles.logoutButtonRtl : styles.logoutButtonLtr,
+        ]}>
         <View style={styles.logoutIcon}>
-          <LogoutIcon width={20} height={20} />
+          <LogoutIcon width={BUTTON_ICON_SIZE} height={BUTTON_ICON_SIZE} />
         </View>
 
         <CustomText text="logout" customStyle={styles.logoutText} />
-      </TouchableOpacity>
+      </CustomButton>
     </DrawerContentScrollView>
   );
 };
@@ -256,7 +263,7 @@ const DrawerNavigation = (props: DrawerNavigationType) => {
     drawerType: 'front',
     drawerPosition: isRTL ? 'right' : 'left',
     drawerStyle: styles.drawerStyle,
-    overlayColor: 'rgba(6, 26, 54, 0.42)',
+    overlayColor: Colors.overlay,
     swipeEnabled: canUseDrawer,
     headerShown: canUseDrawer,
     header: canUseDrawer ? DrawerHeader : undefined,

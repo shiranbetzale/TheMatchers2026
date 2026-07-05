@@ -3,7 +3,7 @@ import {View} from 'react-native';
 import DatePickerSvg from '../../assets/images/datePicker.svg';
 import EditSvg from '../../assets/images/edit.svg';
 import {FontsStyle} from '../../utils/FontsStyle';
-import CustomButton from '../CustomButton/CustomButton';
+import CustomButton, {BUTTON_ICON_SIZE} from '../CustomButton/CustomButton';
 import CustomText from '../CustomText/CustomText';
 import WhiteCard from '../WhiteCard/WhiteCard';
 import {styles} from './SelectedCard.style';
@@ -21,9 +21,10 @@ const SelectedCard = (props: SelectedCardType) => {
     isShowMeetingButton = false,
     onMeetingPress,
   } = props;
-  const {isRTL} = useLanguage();
+  const {isRTL, t} = useLanguage();
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
-  const shouldShowMeetingButton = isShowMeetingButton || Boolean(onMeetingPress);
+  const shouldShowMeetingButton =
+    isShowMeetingButton || Boolean(onMeetingPress);
 
   const handlePress = () => {
     navigation?.navigate('Wizard', {
@@ -34,7 +35,11 @@ const SelectedCard = (props: SelectedCardType) => {
   };
 
   return (
-    <WhiteCard customStyle={[styles.infoContainer, isRTL ? styles.rtlRow : styles.ltrRow]}>
+    <WhiteCard
+      customStyle={[
+        styles.infoContainer,
+        isRTL ? styles.rtlRow : styles.ltrRow,
+      ]}>
       <View
         style={[
           styles.detailsBlock,
@@ -42,7 +47,9 @@ const SelectedCard = (props: SelectedCardType) => {
         ]}>
         {details.map((infoItem, index) => {
           return (
-            <View style={[styles.info, isRTL ? styles.rtlRow : styles.ltrRow]} key={index}>
+            <View
+              style={[styles.info, isRTL ? styles.rtlRow : styles.ltrRow]}
+              key={index}>
               <CustomText
                 text={infoItem.text}
                 customStyle={[
@@ -72,15 +79,24 @@ const SelectedCard = (props: SelectedCardType) => {
         <View style={styles.actions}>
           {shouldShowMeetingButton && (
             <CustomButton
+              accessibilityLabel={t('meeting')}
               customStyle={styles.actionButton}
               onPress={() => onMeetingPress?.()}
-              icon={<DatePickerSvg width={28} height={28} />}
+              icon={
+                <DatePickerSvg
+                  width={BUTTON_ICON_SIZE}
+                  height={BUTTON_ICON_SIZE}
+                />
+              }
             />
           )}
           <CustomButton
+            accessibilityLabel={t('edit')}
             customStyle={styles.actionButton}
             onPress={() => handlePress()}
-            icon={<EditSvg width={28} height={28} />}
+            icon={
+              <EditSvg width={BUTTON_ICON_SIZE} height={BUTTON_ICON_SIZE} />
+            }
           />
         </View>
       )}
