@@ -31,7 +31,6 @@ export type WizardTxtType = {
 export type WizardHeaderType = {
   btnAProps: WizardBtnType;
   btnBProps: WizardBtnType;
-  exitBtnProps?: WizardBtnType;
   textProps: WizardTxtType;
   currentStep: number;
   totalSteps: number;

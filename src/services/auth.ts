@@ -176,3 +176,40 @@ export const verifyCandidateFallbackCode = async ({
 
   return response.data;
 };
+
+export const sendCandidateVoiceCode = async (
+  phone: string,
+  matchmakerPhone: string,
+) => {
+  await api.post(
+    '/auth/candidate/send-voice-code',
+    {phone, matchmakerPhone},
+    {
+      skipAuthToken: true,
+      timeout: AUTH_REQUEST_TIMEOUT_MS,
+    },
+  );
+};
+
+export const verifyCandidateVoiceCode = async ({
+  phone,
+  matchmakerPhone,
+  code,
+}: {
+  phone: string;
+  matchmakerPhone: string;
+  code: string;
+}): Promise<CandidateVerifyResponse> => {
+  const response = await api.post(
+    '/auth/candidate/verify-voice-code',
+    {phone, matchmakerPhone, code},
+    {
+      skipAuthToken: true,
+      timeout: AUTH_REQUEST_TIMEOUT_MS,
+    },
+  );
+
+  await setApiAuthToken(response.data.token);
+
+  return response.data;
+};

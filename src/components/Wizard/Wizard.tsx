@@ -1,5 +1,8 @@
-import React, {useEffect, useMemo, useState} from 'react';
-import {Image, Modal, TextInput, TouchableOpacity, View} from 'react-native';
+import React, {useEffect, useMemo, useRef, useState} from 'react';
+import CustomButton from '../CustomButton/CustomButton';
+import CustomModal from '../CustomModal/CustomModal';
+import CloseIcon from '../CloseIcon/CloseIcon';
+import {Image, Keyboard, TextInput, View} from 'react-native';
 import {AxiosError} from 'axios';
 import {
   CommonActions,
@@ -10,13 +13,13 @@ import {
 } from '@react-navigation/native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {styles} from './Wizard.style';
+import Colors from '../../utils/Colors';
 import {
   WizardBtnType,
   WizardFormValues,
   WizardTxtType,
   WizardStep,
 } from './Wizard.type';
-import {MatchCardType} from '../MatchCard/MatchCard.type';
 import WizardHeader from './WizardHeader';
 import Step1Screen from '../../screens/Step1Screen/Step1Screen';
 import Step2Screen from '../../screens/Step2Screen/Step2Screen';
@@ -26,13 +29,11 @@ import detailsFormArray from '../../utils/DetailsFormFields';
 import matchFormArray from '../../utils/MatchFormFields';
 import {
   hasVisibleFieldErrors,
-  findFieldOptionByValue,
   isFormComplete,
   normalizeWizardFieldValue,
-  validateWizardField,
 } from '../../utils/formCompletion';
 import {RootStackParamList} from '../MainStackNavigation/MainStackNavigation.type';
-import {FormField, Option} from '../../utils/FormFields.type';
+import {Option} from '../../utils/FormFields.type';
 import ErrorBanner from '../ErrorBanner/ErrorBanner';
 import {useLanguage} from '../../utils/LanguageProvider';
 import {useMessage} from '../../utils/MessageProvider';
@@ -42,587 +43,26 @@ import AppIconImage from '../../../assets/app-icon/app-icon-1024.png';
 import api from '../../services/api';
 import {clearSession, getSessionRole} from '../../services/session';
 import {uploadProfileImages} from '../../services/uploads';
+import {
+  applyCandidateRangeDefaults,
+  buildMatchmakerOptions,
+  buildProfilePayload,
+  clearRelationshipValues,
+  getAllWizardFields,
+  getInitialWizardValues,
+  getPartnerGenderFromValues,
+  getProfileId,
+  getRelationshipStatusTextKey,
+  getRelationshipValues,
+  getWizardValuesFromCard,
+  getWizardValuesFromProfile,
+  normalizeName,
+  normalizePhone,
+  validateWizardValues,
+} from './Wizard.helpers';
 
 type WizardNavigationProp = NativeStackNavigationProp<RootStackParamList>;
 type WizardRouteProp = RouteProp<RootStackParamList, 'Wizard'>;
-
-const getInitialWizardValues = (fields: FormField[]) =>
-  fields.reduce<WizardFormValues>((initialValues, field) => {
-    if (field.defaultValue !== undefined) {
-      initialValues[field.id] = String(field.defaultValue);
-    }
-
-    if (field.fieldType === 'radioButton' && field.options?.length) {
-      const defaultOption = field.options[0];
-      initialValues[field.id] = defaultOption.label;
-      initialValues[`${field.id}OptionId`] = String(defaultOption.id);
-    }
-
-    return initialValues;
-  }, {});
-
-const getAllWizardFields = () => [...detailsFormArray, ...matchFormArray];
-
-const normalizeStatusForWizard = (status?: string) => {
-  const normalizedStatus = String(status || '').trim();
-  const statusKey = normalizedStatus.toLowerCase();
-
-  if (statusKey === 'archived' || statusKey === 'active') {
-    return '';
-  }
-
-  const statusMap: Record<string, string> = {
-    single: 'singleStatus',
-    divorced: 'divorcedStatus',
-    widower: 'widowedStatus',
-    widowerWithChildren: 'widowedWithChildrenStatus',
-    divorcedWithChildren: 'divorcedWithChildrenStatus',
-  };
-
-  return normalizedStatus
-    ? (statusMap[normalizedStatus] ?? normalizedStatus)
-    : '';
-};
-
-const normalizeName = (value?: string) =>
-  String(value || '')
-    .trim()
-    .toLowerCase();
-
-const normalizePhone = (value?: string) => String(value || '').replace(/\D/g, '');
-
-const buildMatchmakerOptions = (users: any[], profiles: any[]): Option[] => {
-  const matchmakerMap = new Map<string, string>();
-
-  users.forEach(user => {
-    const userId = String(user.id || user._id || '').trim();
-    const userName = String(user.fullName || user.name || '').trim();
-    const userRole = String(user.role || '').trim();
-
-    if (
-      userId &&
-      userName &&
-      (userRole === 'matchmaker' || userRole === 'admin')
-    ) {
-      matchmakerMap.set(userId, userName);
-    }
-  });
-
-  profiles.forEach(profile => {
-    const assignedMatchmaker = String(profile.assignedMatchmaker || '').trim();
-    const matcherName = String(profile.matcherName || '').trim();
-
-    if (assignedMatchmaker && matcherName) {
-      matchmakerMap.set(assignedMatchmaker, matcherName);
-    }
-  });
-
-  return Array.from(matchmakerMap.entries()).map(
-    ([matchmakerId, matcherName], index) => ({
-      id: index + 1,
-      name: 'collaborationMatchmaker',
-      label: matcherName,
-      value: matchmakerId,
-    }),
-  );
-};
-
-const getGenderKey = (gender?: string) => {
-  const normalizedGender = String(gender || '').trim().toLowerCase();
-
-  if (normalizedGender === 'male' || normalizedGender === 'זכר' || normalizedGender === '1') {
-    return 'male';
-  }
-
-  if (
-    normalizedGender === 'female' ||
-    normalizedGender === 'נקבה' ||
-    normalizedGender === '2'
-  ) {
-    return 'female';
-  }
-
-  return undefined;
-};
-
-const getRelationshipStatusTextKey = (
-  status: 'engaged' | 'married' | '',
-  gender?: string,
-) => {
-  const genderKey = getGenderKey(gender);
-
-  if (status === 'engaged') {
-    return genderKey === 'male'
-      ? 'engagedStatusMale'
-      : genderKey === 'female'
-        ? 'engagedStatusFemale'
-        : 'engagedStatus';
-  }
-
-  if (status === 'married') {
-    return genderKey === 'male'
-      ? 'marriedStatusMale'
-      : genderKey === 'female'
-        ? 'marriedStatusFemale'
-        : 'marriedStatus';
-  }
-
-  return '';
-};
-
-const getPartnerGenderFromValues = (values: WizardFormValues) => {
-  const genderOptionId = String(values.genderOptionId || '').trim();
-  const gender = String(values.gender || '').trim().toLowerCase();
-
-  if (genderOptionId === '1' || gender === 'male' || gender === 'זכר') {
-    return 'female';
-  }
-
-  if (genderOptionId === '2' || gender === 'female' || gender === 'נקבה') {
-    return 'male';
-  }
-
-  return undefined;
-};
-
-const clearRelationshipValues = (values: WizardFormValues): WizardFormValues => ({
-  ...values,
-  status: '',
-  statusOptionId: '',
-  isEngaged: 'false',
-  isMarried: 'false',
-  partnerName: '',
-  partnerProfileId: '',
-  partnerOutsideApp: 'false',
-  collaborationMatchmaker: '',
-});
-
-const getRelationshipValues = (values: WizardFormValues): WizardFormValues => ({
-  isEngaged: values.isEngaged || 'false',
-  isMarried: values.isMarried || 'false',
-  partnerName: values.partnerName || '',
-  partnerProfileId: values.partnerProfileId || '',
-  partnerOutsideApp: values.partnerOutsideApp || 'false',
-  collaborationMatchmaker: values.collaborationMatchmaker || '',
-});
-
-const normalizeGenderForPayload = (values: WizardFormValues) => {
-  const genderOptionId = String(values.genderOptionId || '');
-  const gender = String(values.gender || '').trim().toLowerCase();
-
-  if (genderOptionId === '1' || gender === 'male' || gender === 'זכר') {
-    return 'male';
-  }
-
-  if (genderOptionId === '2' || gender === 'female' || gender === 'נקבה') {
-    return 'female';
-  }
-
-  return values.gender;
-};
-
-const normalizeGenderForWizard = (gender?: string) => {
-  const normalizedGender = String(gender || '').trim().toLowerCase();
-
-  if (
-    normalizedGender === 'male' ||
-    normalizedGender === 'זכר' ||
-    normalizedGender === '1'
-  ) {
-    return 'male';
-  }
-
-  if (
-    normalizedGender === 'female' ||
-    normalizedGender === 'נקבה' ||
-    normalizedGender === '2'
-  ) {
-    return 'female';
-  }
-
-  return String(gender || '');
-};
-
-const normalizeStatusForPayload = (values: WizardFormValues) => {
-  const statusByOptionId: Record<string, string> = {
-    '1': 'singleStatus',
-    '2': 'widowedStatus',
-    '3': 'divorcedStatus',
-    '4': 'widowedWithChildrenStatus',
-    '5': 'divorcedWithChildrenStatus',
-  };
-  const statusOptionId = String(values.statusOptionId || '');
-
-  return statusByOptionId[statusOptionId] ?? normalizeStatusForWizard(values.status);
-};
-
-const applyWizardOptionIds = (
-  values: WizardFormValues,
-  fields = getAllWizardFields(),
-) => {
-  const nextValues = {...values};
-
-  fields.forEach(field => {
-    if (
-      (field.fieldType !== 'radioButton' && field.fieldType !== 'select') ||
-      !field.options?.length
-    ) {
-      return;
-    }
-
-    const value = nextValues[field.id];
-
-    if (!value) {
-      return;
-    }
-
-    if (field.id === 'gender') {
-      const normalizedGender = normalizeGenderForWizard(value);
-      const genderOptionId = normalizedGender === 'male' ? '1' : normalizedGender === 'female' ? '2' : '';
-
-      if (genderOptionId) {
-        nextValues.gender = normalizedGender;
-        nextValues.genderOptionId = genderOptionId;
-        return;
-      }
-    }
-
-    const selectedOption = findFieldOptionByValue(field, value);
-
-    if (selectedOption) {
-      nextValues[field.id] = selectedOption.label;
-      nextValues[`${field.id}OptionId`] = String(selectedOption.id);
-    }
-  });
-
-  return nextValues;
-};
-
-const stringifyProfileImages = (images: unknown) => {
-  if (!Array.isArray(images)) {
-    return undefined;
-  }
-
-  return JSON.stringify(
-    images
-      .map(image => {
-        if (typeof image === 'string') {
-          return {uri: image};
-        }
-
-        if (image && typeof image === 'object' && 'uri' in image) {
-          return image;
-        }
-
-        return null;
-      })
-      .filter(Boolean),
-  );
-};
-
-const parsePositiveInteger = (value?: string | number) => {
-  const numberValue = Number(String(value || '').replace(/[^\d]/g, ''));
-
-  return Number.isFinite(numberValue) && numberValue > 0 ? numberValue : null;
-};
-
-const parseHeightInCm = (value?: string | number) => {
-  const cleanValue = String(value || '').trim();
-
-  if (!cleanValue) {
-    return null;
-  }
-
-  if (/^\d{3}$/.test(cleanValue)) {
-    return Number(cleanValue);
-  }
-
-  if (/^[1-2]\.\d{1,2}$/.test(cleanValue)) {
-    return Math.round(Number(cleanValue) * 100);
-  }
-
-  const digits = cleanValue.replace(/[^\d]/g, '');
-
-  return digits.length === 3 ? Number(digits) : null;
-};
-
-const hasRangeValue = (value?: string) => {
-  if (!value) {
-    return false;
-  }
-
-  try {
-    const parsed = JSON.parse(value);
-
-    return Array.isArray(parsed) && parsed.length === 2;
-  } catch {
-    return String(value).trim().length > 0;
-  }
-};
-
-const parseRangeValue = (value?: string) => {
-  if (!value) {
-    return null;
-  }
-
-  try {
-    const parsed = JSON.parse(value);
-
-    if (
-      Array.isArray(parsed) &&
-      parsed.length === 2 &&
-      parsed.every(item => Number.isFinite(Number(item)))
-    ) {
-      return parsed.map(item => Number(item));
-    }
-  } catch {
-    return null;
-  }
-
-  return null;
-};
-
-const buildHeightRangeDefault = (heightInCm: number) => [
-  heightInCm,
-  Math.min(heightInCm + 10, 200),
-];
-
-const isSameRange = (value: string | undefined, range: number[]) => {
-  const parsedRange = parseRangeValue(value);
-
-  return Boolean(
-    parsedRange &&
-      parsedRange.length === range.length &&
-      parsedRange.every((item, index) => item === range[index]),
-  );
-};
-
-const applyCandidateRangeDefaults = (
-  values: WizardFormValues,
-  previousValues?: WizardFormValues,
-): WizardFormValues => {
-  const nextValues = {...values};
-  const age = parsePositiveInteger(nextValues.age);
-  const heightInCm = parseHeightInCm(nextValues.hight);
-  const previousHeightInCm = parseHeightInCm(previousValues?.hight);
-
-  if (age && !hasRangeValue(nextValues.matchRangeAges)) {
-    nextValues.matchRangeAges = JSON.stringify([age, Math.min(age + 10, 90)]);
-  }
-
-  if (heightInCm) {
-    const nextHeightRange = buildHeightRangeDefault(heightInCm);
-    const previousHeightRange = previousHeightInCm
-      ? buildHeightRangeDefault(previousHeightInCm)
-      : null;
-    const shouldUpdateHeightRange =
-      !hasRangeValue(nextValues.matchRangeHeights) ||
-      Boolean(
-        previousHeightRange &&
-          isSameRange(nextValues.matchRangeHeights, previousHeightRange),
-      );
-
-    if (shouldUpdateHeightRange) {
-      nextValues.matchRangeHeights = JSON.stringify(nextHeightRange);
-    }
-  }
-
-  return nextValues;
-};
-
-const getWizardValuesFromCard = (card?: MatchCardType): WizardFormValues => {
-  if (!card) {
-    return {};
-  }
-
-  return applyCandidateRangeDefaults(applyWizardOptionIds({
-    fullName: card.name || '',
-    age: card.age ? String(card.age) : '',
-    hight: card.height || '',
-    city: card.city || '',
-    gender: card.gender || '',
-    status: normalizeStatusForWizard(card.maritalStatus || card.status),
-    countOfChildren:
-      card.numOfChildren !== undefined ? String(card.numOfChildren) : '',
-    phone: card.phone || '',
-    mail: card.mail || '',
-    isEngaged: String(card.relationshipStatus === 'engaged'),
-    isMarried: String(card.relationshipStatus === 'married'),
-    partnerName: card.partnerName || '',
-    partnerProfileId: card.partnerProfileId || '',
-    partnerOutsideApp: String(Boolean(card.partnerOutsideApp)),
-    collaborationMatchmaker: card.collaborationMatchmaker || '',
-    matchRangeAges: card.matchRangeAges || '',
-    matchRangeHeights: card.matchRangeHeights || '',
-    ...(stringifyProfileImages(card.images)
-      ? {images: stringifyProfileImages(card.images)}
-      : {}),
-  }));
-};
-
-const getWizardValuesFromProfile = (
-  profile: Record<string, unknown>,
-): WizardFormValues => {
-  const fields = getAllWizardFields();
-  const fieldIds = new Set(fields.map(field => field.id));
-  const relationshipStatus = String(profile.relationshipStatus || '');
-  const values: WizardFormValues = {};
-
-  fieldIds.forEach(fieldId => {
-    const rawValue = profile[fieldId];
-
-    if (rawValue === undefined || rawValue === null) {
-      return;
-    }
-
-    if (typeof rawValue === 'boolean') {
-      values[fieldId] = String(rawValue);
-      return;
-    }
-
-    if (Array.isArray(rawValue)) {
-      values[fieldId] = JSON.stringify(rawValue);
-      return;
-    }
-
-    values[fieldId] = String(rawValue);
-  });
-
-  return applyCandidateRangeDefaults(applyWizardOptionIds({
-    ...values,
-    fullName: String(profile.fullName || profile.name || values.fullName || ''),
-    gender: String(profile.gender || values.gender || ''),
-    age:
-      profile.age !== undefined && profile.age !== null
-        ? String(profile.age)
-        : values.age || '',
-    hight: String(profile.hight || profile.height || values.hight || ''),
-    city: String(profile.city || values.city || ''),
-    status: normalizeStatusForWizard(
-      String(profile.maritalStatus || profile.status || values.status || ''),
-    ),
-    countOfChildren:
-      profile.countOfChildren !== undefined && profile.countOfChildren !== null
-        ? String(profile.countOfChildren)
-        : values.countOfChildren || '',
-    phone: String(profile.phone || values.phone || ''),
-    mail: String(profile.mail || profile.email || values.mail || ''),
-    isEngaged: String(relationshipStatus === 'engaged'),
-    isMarried: String(relationshipStatus === 'married'),
-    partnerName: String(profile.partnerName || ''),
-    partnerProfileId: String(profile.partnerProfileId || ''),
-    partnerOutsideApp:
-      profile.partnerOutsideApp !== undefined
-        ? String(Boolean(profile.partnerOutsideApp))
-        : 'false',
-    collaborationMatchmaker: String(profile.collaborationMatchmaker || ''),
-    ...(stringifyProfileImages(profile.images)
-      ? {images: stringifyProfileImages(profile.images)}
-      : {}),
-  }));
-};
-
-type ProfilePayload = Record<string, unknown>;
-
-const buildProfilePayload = (values: WizardFormValues): ProfilePayload => {
-  const entries = Object.entries(values).filter(([key, value]) => {
-    if (key.endsWith('OptionId')) {
-      return false;
-    }
-
-    if (value === undefined || value === null) {
-      return false;
-    }
-
-    return String(value).trim().length > 0;
-  });
-
-  const payload: ProfilePayload = Object.fromEntries(
-    entries.map(([key, value]) => [
-      key,
-      normalizeWizardFieldValue(key, String(value)),
-    ]),
-  );
-
-  if (typeof payload.images === 'string') {
-    try {
-      payload.images = JSON.parse(payload.images);
-    } catch {
-      payload.images = [];
-    }
-  }
-
-  Object.entries(payload).forEach(([key, value]) => {
-    if (typeof value !== 'string' || key === 'images') {
-      return;
-    }
-
-    try {
-      const parsedValue = JSON.parse(value);
-
-      if (Array.isArray(parsedValue)) {
-        payload[key] = parsedValue;
-      }
-    } catch {
-      // Keep regular strings as-is.
-    }
-  });
-
-  if (values.gender) {
-    payload.gender = normalizeGenderForPayload(values);
-  }
-
-  if (values.status) {
-    const normalizedStatus = normalizeStatusForPayload(values);
-
-    payload.status = normalizedStatus;
-    payload.maritalStatus = normalizedStatus;
-  }
-
-  const relationshipStatus =
-    values.isMarried === 'true'
-      ? 'married'
-      : values.isEngaged === 'true'
-        ? 'engaged'
-        : '';
-  const partnerName = String(values.partnerName || '').trim();
-
-  if (relationshipStatus) {
-    payload.relationshipStatus = relationshipStatus;
-    payload.partnerName = partnerName;
-    payload.partnerProfileId = values.partnerProfileId || undefined;
-    payload.partnerOutsideApp = values.partnerOutsideApp === 'true';
-    payload.collaborationMatchmaker =
-      values.collaborationMatchmaker || undefined;
-  } else {
-    payload.relationshipStatus = undefined;
-    payload.partnerName = '';
-    payload.partnerProfileId = undefined;
-    payload.partnerOutsideApp = false;
-    payload.collaborationMatchmaker = undefined;
-  }
-
-  delete payload.isEngaged;
-  delete payload.isMarried;
-
-  return payload;
-};
-
-const validateWizardValues = (values: WizardFormValues) =>
-  Object.fromEntries(
-    Object.entries(values).map(([id, value]) => [
-      id,
-      validateWizardField(id, value, values),
-    ]),
-  );
-
-const getProfileId = (profile?: Record<string, unknown> | MatchCardType) =>
-  String(
-    (profile as any)?.profileId ||
-      (profile as any)?._id ||
-      (profile as any)?.id ||
-      '',
-  ).trim();
 
 const WizardContent = () => {
   const navigation = useNavigation<WizardNavigationProp>();
@@ -644,7 +84,9 @@ const WizardContent = () => {
       ...(routeParams?.restoreToAvailable
         ? clearRelationshipValues(getWizardValuesFromCard(routeParams?.card))
         : getWizardValuesFromCard(routeParams?.card)),
-      ...(routeParams?.candidatePhone ? {phone: routeParams.candidatePhone} : {}),
+      ...(routeParams?.candidatePhone
+        ? {phone: routeParams.candidatePhone}
+        : {}),
       ...(routeParams?.matchmakerPhone
         ? {matcherPhone: routeParams.matchmakerPhone}
         : {}),
@@ -659,6 +101,7 @@ const WizardContent = () => {
   const [relationshipDraft, setRelationshipDraft] = useState<WizardFormValues>(
     () => getRelationshipValues(formValues),
   );
+  const bypassExitConfirmationRef = useRef(false);
 
   const wizardSteps: WizardStep[] = [
     {id: 1, name: 'Step1', title: 'wizardAboutMe', comp: Step1Screen},
@@ -668,6 +111,29 @@ const WizardContent = () => {
 
   const currentStep =
     wizardSteps.find(step => step.id === wizardStep) ?? wizardSteps[0];
+
+  useEffect(
+    () =>
+      navigation.addListener('beforeRemove', event => {
+        if (!isEditMode || bypassExitConfirmationRef.current) {
+          return;
+        }
+
+        event.preventDefault();
+        showMessage({
+          type: 'info',
+          title: t('exitWithoutSaving'),
+          message: t('exitEditWithoutSavingConfirm'),
+          cancelText: t('continueEditing'),
+          confirmText: t('exitWithoutSaving'),
+          onConfirm: () => {
+            bypassExitConfirmationRef.current = true;
+            navigation.dispatch(event.data.action);
+          },
+        });
+      }),
+    [isEditMode, navigation, showMessage, t],
+  );
 
   useFocusEffect(
     React.useCallback(() => {
@@ -686,7 +152,9 @@ const WizardContent = () => {
     setFormValues({
       ...applyCandidateRangeDefaults({
         ...getInitialWizardValues(getAllWizardFields()),
-        ...(routeParams?.candidatePhone ? {phone: routeParams.candidatePhone} : {}),
+        ...(routeParams?.candidatePhone
+          ? {phone: routeParams.candidatePhone}
+          : {}),
         ...(routeParams?.matchmakerPhone
           ? {matcherPhone: routeParams.matchmakerPhone}
           : {}),
@@ -944,16 +412,19 @@ const WizardContent = () => {
   }, [relationshipDraft.partnerName, partnerSuggestions]);
 
   const partnerProfileByName = useMemo(() => {
-    return profilesCache.reduce<Record<string, string>>((profilesByName, profile) => {
-      const name = normalizeName(profile.fullName || profile.name);
-      const profileId = String(profile._id || profile.id || '');
+    return profilesCache.reduce<Record<string, string>>(
+      (profilesByName, profile) => {
+        const name = normalizeName(profile.fullName || profile.name);
+        const profileId = String(profile._id || profile.id || '');
 
-      if (name && profileId) {
-        profilesByName[name] = profileId;
-      }
+        if (name && profileId) {
+          profilesByName[name] = profileId;
+        }
 
-      return profilesByName;
-    }, {});
+        return profilesByName;
+      },
+      {},
+    );
   }, [profilesCache]);
 
   const checkPartnerOutsideApp = (
@@ -966,7 +437,8 @@ const WizardContent = () => {
 
     const partnerExists = profilesCache.some(
       (item: any) =>
-        normalizeName(item.fullName || item.name) === normalizeName(partnerName),
+        normalizeName(item.fullName || item.name) ===
+        normalizeName(partnerName),
     );
 
     return !partnerExists;
@@ -981,7 +453,9 @@ const WizardContent = () => {
       return editProfileId;
     }
 
-    const profilePhone = normalizePhone(formValues.phone || routeParams?.card?.phone);
+    const profilePhone = normalizePhone(
+      formValues.phone || routeParams?.card?.phone,
+    );
 
     if (!profilePhone) {
       return '';
@@ -1023,7 +497,8 @@ const WizardContent = () => {
   };
 
   const selectPartner = (partnerName: string) => {
-    const partnerProfileId = partnerProfileByName[normalizeName(partnerName)] || '';
+    const partnerProfileId =
+      partnerProfileByName[normalizeName(partnerName)] || '';
 
     setRelationshipDraft(currentDraft => ({
       ...currentDraft,
@@ -1044,10 +519,6 @@ const WizardContent = () => {
     : isDraftEngaged
       ? 'engaged'
       : '';
-  const draftRelationshipStatusTextKey = getRelationshipStatusTextKey(
-    draftRelationshipStatus,
-    formValues.gender,
-  );
   const engagedStatusTextKey = getRelationshipStatusTextKey(
     'engaged',
     formValues.gender,
@@ -1059,9 +530,11 @@ const WizardContent = () => {
   const selectedCollaborationMatchmakerLabel =
     matchmakerOptions.find(
       option =>
-        String(option.value || '') === relationshipDraft.collaborationMatchmaker,
+        String(option.value || '') ===
+        relationshipDraft.collaborationMatchmaker,
     )?.label || '';
-  const shouldShowPartnerSearch = isEditMode && Boolean(draftRelationshipStatus);
+  const shouldShowPartnerSearch =
+    isEditMode && Boolean(draftRelationshipStatus);
 
   const renderRelationshipSection = () => {
     if (!isEditMode) {
@@ -1069,219 +542,175 @@ const WizardContent = () => {
     }
 
     return (
-      <Modal
-        transparent
+      <CustomModal
         visible={isRelationshipModalOpen}
-        animationType="fade"
-        onRequestClose={closeRelationshipModal}>
-        <TouchableOpacity
-          activeOpacity={1}
-          style={styles.relationshipOverlay}
-          onPress={closeRelationshipModal}>
-          <TouchableOpacity
-            activeOpacity={1}
-            style={styles.relationshipModal}
-            onPress={() => {}}>
-            <View style={styles.relationshipHeader}>
-              <View style={styles.relationshipTitleBlock}>
-                <CustomText
-                  text="relationshipStatus"
-                  customStyle={[
-                    styles.relationshipTitle,
-                    isRTL ? styles.textRight : styles.textLeft,
-                  ]}
-                />
-                {draftRelationshipStatus ? (
-                  <CustomText
-                    text={draftRelationshipStatusTextKey}
-                    customStyle={[
-                      styles.relationshipSubtitle,
-                      isRTL ? styles.textRight : styles.textLeft,
-                    ]}
-                  />
-                ) : null}
-              </View>
+        onClose={closeRelationshipModal}
+        closeOnBackdropPress
+        showCloseButton
+        overlayStyle={styles.relationshipOverlay}
+        contentStyle={styles.relationshipModal}
+        headerStyle={styles.relationshipHeader}
+        title="relationshipStatus"
+        titleContainerStyle={styles.relationshipTitleBlock}
+        titleStyle={[
+          styles.relationshipTitle,
+          isRTL ? styles.textRight : styles.textLeft,
+        ]}
+        closeButtonStyle={styles.relationshipCloseButton}>
+        <View
+          style={[
+            styles.statusOptions,
+            isRTL ? styles.rowReverse : styles.row,
+          ]}>
+          {[
+            {
+              value: 'engaged' as const,
+              text: engagedStatusTextKey,
+              selected: isDraftEngaged,
+            },
+            {
+              value: 'married' as const,
+              text: marriedStatusTextKey,
+              selected: isDraftMarried,
+            },
+          ].map(option => (
+            <CustomButton
+              unstyled
+              key={option.value}
+              activeOpacity={0.85}
+              isDisabled={isSubmitting}
+              onPress={() => updateRelationshipStatus(option.value)}
+              text={option.text}
+              customStyle={[
+                styles.statusOption,
+                option.selected && styles.statusOptionActive,
+              ]}
+              customTextStyle={[
+                styles.statusOptionText,
+                option.selected && styles.statusOptionTextActive,
+              ]}
+            />
+          ))}
+        </View>
 
-              <TouchableOpacity
-                activeOpacity={0.8}
-                style={styles.relationshipCloseButton}
-                onPress={closeRelationshipModal}>
-                <CustomText
-                  text="×"
-                  customStyle={styles.relationshipCloseText}
-                />
-              </TouchableOpacity>
-            </View>
+        {shouldShowPartnerSearch ? (
+          <View style={styles.partnerSearchContainer}>
+            <CustomSelect
+              layout="column"
+              text="collaborationMatchmaker"
+              value={selectedCollaborationMatchmakerLabel}
+              options={matchmakerOptions}
+              onSelect={option =>
+                setRelationshipDraft(currentDraft => ({
+                  ...currentDraft,
+                  collaborationMatchmaker: option?.value || '',
+                  partnerName: '',
+                  partnerProfileId: '',
+                  partnerOutsideApp: 'false',
+                }))
+              }
+            />
 
-            <View style={styles.statusOptions}>
-              <TouchableOpacity
-                activeOpacity={0.85}
-                disabled={isSubmitting}
-                onPress={() => updateRelationshipStatus('engaged')}
-                style={[
-                  styles.statusOption,
-                  isDraftEngaged && styles.statusOptionActive,
-                  isSubmitting && styles.disabledOption,
-                ]}>
-                <CustomText
-                  text={engagedStatusTextKey}
-                  customStyle={[
-                    styles.statusOptionText,
-                    isDraftEngaged && styles.statusOptionTextActive,
-                  ]}
-                />
-              </TouchableOpacity>
+            <CustomText
+              text="partnerLink"
+              customStyle={[
+                styles.partnerSearchLabel,
+                isRTL ? styles.textRight : styles.textLeft,
+              ]}
+            />
 
-              <TouchableOpacity
-                activeOpacity={0.85}
-                disabled={isSubmitting}
-                onPress={() => updateRelationshipStatus('married')}
-                style={[
-                  styles.statusOption,
-                  isDraftMarried && styles.statusOptionActive,
-                  isSubmitting && styles.disabledOption,
-                ]}>
-                <CustomText
-                  text={marriedStatusTextKey}
-                  customStyle={[
-                    styles.statusOptionText,
-                    isDraftMarried && styles.statusOptionTextActive,
-                  ]}
-                />
-              </TouchableOpacity>
-            </View>
+            <TextInput
+              style={[
+                styles.partnerSearchInput,
+                isRTL ? styles.textRight : styles.textLeft,
+                isSubmitting && styles.readOnlyInput,
+              ]}
+              editable={!isSubmitting}
+              value={String(relationshipDraft.partnerName || '')}
+              placeholder={t('partnerSearchPlaceholder')}
+              placeholderTextColor={Colors.placeholder}
+              onFocus={() => setIsPartnerSearchFocused(true)}
+              onChangeText={value => {
+                const matchedPartnerProfileId =
+                  partnerProfileByName[normalizeName(value)] || '';
 
-            {shouldShowPartnerSearch ? (
-              <View style={styles.partnerSearchContainer}>
-                <CustomSelect
-                  layout="column"
-                  text="collaborationMatchmaker"
-                  value={selectedCollaborationMatchmakerLabel}
-                  options={matchmakerOptions}
-                  onSelect={option =>
-                    setRelationshipDraft(currentDraft => ({
-                      ...currentDraft,
-                      collaborationMatchmaker: option?.value || '',
-                      partnerName: '',
-                      partnerProfileId: '',
-                      partnerOutsideApp: 'false',
-                    }))
-                  }
-                />
+                setRelationshipDraft(currentDraft => ({
+                  ...currentDraft,
+                  partnerName: value,
+                  partnerProfileId: matchedPartnerProfileId,
+                  partnerOutsideApp: String(
+                    checkPartnerOutsideApp(
+                      draftRelationshipStatus,
+                      value.trim(),
+                    ),
+                  ),
+                }));
+                setIsPartnerSearchFocused(true);
+              }}
+            />
 
-                <CustomText
-                  text="partnerLink"
-                  customStyle={[
-                    styles.partnerSearchLabel,
-                    isRTL ? styles.textRight : styles.textLeft,
-                  ]}
-                />
-
-                <TextInput
-                  style={[
-                    styles.partnerSearchInput,
-                    isRTL ? styles.textRight : styles.textLeft,
-                    isSubmitting && styles.readOnlyInput,
-                  ]}
-                  editable={!isSubmitting}
-                  value={String(relationshipDraft.partnerName || '')}
-                  placeholder={t('partnerSearchPlaceholder')}
-                  placeholderTextColor="#A8ADB7"
-                  onFocus={() => setIsPartnerSearchFocused(true)}
-                  onChangeText={value => {
-                    const matchedPartnerProfileId =
-                      partnerProfileByName[normalizeName(value)] || '';
-
-                    setRelationshipDraft(currentDraft => ({
-                      ...currentDraft,
-                      partnerName: value,
-                      partnerProfileId: matchedPartnerProfileId,
-                      partnerOutsideApp: String(
-                        checkPartnerOutsideApp(
-                          draftRelationshipStatus,
-                          value.trim(),
-                        ),
-                      ),
-                    }));
-                    setIsPartnerSearchFocused(true);
-                  }}
-                />
-
-                {!isSubmitting && isPartnerSearchFocused ? (
-                  <View style={styles.suggestionsPanel}>
-                    {filteredPartnerSuggestions.length > 0 ? (
-                      filteredPartnerSuggestions
-                        .slice(0, 5)
-                        .map(partnerName => (
-                          <TouchableOpacity
-                            key={partnerName}
-                            activeOpacity={0.82}
-                            onPress={() => selectPartner(partnerName)}
-                            style={styles.suggestionItem}>
-                            <CustomText
-                              text={partnerName}
-                              customStyle={[
-                                styles.suggestionText,
-                                isRTL ? styles.textRight : styles.textLeft,
-                              ]}
-                            />
-                          </TouchableOpacity>
-                        ))
-                    ) : (
+            {!isSubmitting && isPartnerSearchFocused ? (
+              <View style={styles.suggestionsPanel}>
+                {filteredPartnerSuggestions.length > 0 ? (
+                  filteredPartnerSuggestions.slice(0, 5).map(partnerName => (
+                    <CustomButton
+                      unstyled
+                      key={partnerName}
+                      activeOpacity={0.82}
+                      onPress={() => selectPartner(partnerName)}
+                      style={styles.suggestionItem}>
                       <CustomText
-                        text="noPartnerResults"
+                        text={partnerName}
                         customStyle={[
-                          styles.emptySuggestion,
+                          styles.suggestionText,
                           isRTL ? styles.textRight : styles.textLeft,
                         ]}
                       />
-                    )}
-                  </View>
-                ) : null}
+                    </CustomButton>
+                  ))
+                ) : (
+                  <CustomText
+                    text="noPartnerResults"
+                    customStyle={[
+                      styles.emptySuggestion,
+                      isRTL ? styles.textRight : styles.textLeft,
+                    ]}
+                  />
+                )}
               </View>
             ) : null}
+          </View>
+        ) : null}
 
-            <View
-              style={[
-                styles.relationshipActions,
-                isRTL ? styles.rowReverse : styles.row,
-              ]}>
-              <TouchableOpacity
-                activeOpacity={0.85}
-                disabled={isSubmitting}
-                style={[
-                  styles.relationshipActionButton,
-                  styles.cancelButton,
-                  isSubmitting && styles.disabledOption,
-                ]}
-                onPress={closeRelationshipModal}>
-                <CustomText
-                  text="cancel"
-                  customStyle={styles.relationshipActionText}
-                />
-              </TouchableOpacity>
+        <View
+          style={[
+            styles.relationshipActions,
+            isRTL ? styles.rowReverse : styles.row,
+          ]}>
+          <CustomButton
+            unstyled
+            activeOpacity={0.85}
+            isDisabled={isSubmitting}
+            text="cancel"
+            customStyle={[styles.relationshipActionButton, styles.cancelButton]}
+            customTextStyle={styles.relationshipActionText}
+            onPress={closeRelationshipModal}
+          />
 
-              <TouchableOpacity
-                activeOpacity={0.85}
-                disabled={isSubmitting}
-                style={[
-                  styles.relationshipActionButton,
-                  styles.saveButton,
-                  isSubmitting && styles.disabledOption,
-                ]}
-                onPress={saveRelationshipDraft}>
-                <CustomText
-                  text="save"
-                  customStyle={[
-                    styles.relationshipActionText,
-                    styles.saveButtonText,
-                  ]}
-                />
-              </TouchableOpacity>
-            </View>
-          </TouchableOpacity>
-        </TouchableOpacity>
-      </Modal>
+          <CustomButton
+            unstyled
+            activeOpacity={0.85}
+            isDisabled={isSubmitting}
+            text="save"
+            customStyle={[styles.relationshipActionButton, styles.saveButton]}
+            customTextStyle={[
+              styles.relationshipActionText,
+              styles.saveButtonText,
+            ]}
+            onPress={saveRelationshipDraft}
+          />
+        </View>
+      </CustomModal>
     );
   };
 
@@ -1291,16 +720,23 @@ const WizardContent = () => {
     }
 
     return (
-      <TouchableOpacity
+      <CustomButton
+        unstyled
         activeOpacity={0.86}
         style={[
           styles.relationshipFloatingButton,
           relationshipStatus && styles.relationshipFloatingButtonActive,
         ]}
         onPress={openRelationshipModal}>
-        <Image source={AppIconImage} style={styles.relationshipFloatingImage} />
-        {relationshipStatus ? <View style={styles.relationshipFloatingDot} /> : null}
-      </TouchableOpacity>
+        <Image
+          accessible={false}
+          source={AppIconImage}
+          style={styles.relationshipFloatingImage}
+        />
+        {relationshipStatus ? (
+          <View style={styles.relationshipFloatingDot} />
+        ) : null}
+      </CustomButton>
     );
   };
 
@@ -1318,6 +754,7 @@ const WizardContent = () => {
 
   const goToStep = (step: number) => {
     if (step >= 1 && step <= wizardSteps.length) {
+      Keyboard.dismiss();
       setWizardStep(step);
     }
   };
@@ -1346,7 +783,9 @@ const WizardContent = () => {
 
       const payload = buildProfilePayload(formValues);
 
-      const targetProfileId = isEditMode ? await resolveEditProfileIdForSave() : '';
+      const targetProfileId = isEditMode
+        ? await resolveEditProfileIdForSave()
+        : '';
 
       if (isEditMode && !targetProfileId) {
         setSubmitErrorKey('profileNotFoundForUpdate');
@@ -1440,6 +879,7 @@ const WizardContent = () => {
         type: 'success',
         message: t('saveChangesSuccess'),
       });
+      bypassExitConfirmationRef.current = true;
       navigation.navigate('AllCardsScreen');
     } catch (error) {
       const axiosError = error as AxiosError<{
@@ -1500,7 +940,11 @@ const WizardContent = () => {
   const btnBProps: WizardBtnType = {
     isBtnDis: isSubmitting || !isStepComplete(wizardStep),
     btnTxt:
-      wizardStep === wizardSteps.length ? (isEditMode ? 'save' : 'finish') : 'next',
+      wizardStep === wizardSteps.length
+        ? isEditMode
+          ? 'save'
+          : 'finish'
+        : 'next',
     btnFunc: () =>
       wizardStep === wizardSteps.length
         ? finishWizard()
@@ -1592,7 +1036,7 @@ const Wizard = () => {
   if (requiresCommitment && !hasAcceptedCommitment) {
     return (
       <View style={styles.commitmentGateScreen}>
-        <Modal
+        <CustomModal
           transparent
           visible
           animationType="fade"
@@ -1600,13 +1044,26 @@ const Wizard = () => {
           onRequestClose={() => undefined}>
           <View style={styles.commitmentOverlay}>
             <View style={styles.commitmentModal}>
-              <CustomText
-                text="candidateCommitmentTitle"
-                customStyle={[
-                  styles.commitmentTitle,
-                  isRTL ? styles.textRight : styles.textLeft,
-                ]}
-              />
+              <View
+                style={[
+                  styles.commitmentHeader,
+                  isRTL ? styles.rowReverse : styles.row,
+                ]}>
+                <CustomText
+                  text="candidateCommitmentTitle"
+                  customStyle={[
+                    styles.commitmentTitle,
+                    isRTL ? styles.textRight : styles.textLeft,
+                  ]}
+                />
+                <CustomButton
+                  variant="icon"
+                  style={styles.relationshipCloseButton}
+                  disabled={isLeaving}
+                  onPress={declineCommitment}>
+                  <CloseIcon />
+                </CustomButton>
+              </View>
               <CustomText
                 text="candidateCommitmentIntro"
                 customStyle={[
@@ -1639,15 +1096,17 @@ const Wizard = () => {
                 ))}
               </View>
 
-              <TouchableOpacity
+              <CustomButton
+                variant="primary"
                 style={styles.commitmentAcceptButton}
                 onPress={() => setHasAcceptedCommitment(true)}>
                 <CustomText
                   text="candidateCommitmentAccept"
                   customStyle={styles.commitmentAcceptText}
                 />
-              </TouchableOpacity>
-              <TouchableOpacity
+              </CustomButton>
+              <CustomButton
+                variant="danger"
                 style={styles.commitmentDeclineButton}
                 disabled={isLeaving}
                 onPress={declineCommitment}>
@@ -1655,10 +1114,10 @@ const Wizard = () => {
                   text={isLeaving ? 'loading' : 'candidateCommitmentDecline'}
                   customStyle={styles.commitmentDeclineText}
                 />
-              </TouchableOpacity>
+              </CustomButton>
             </View>
           </View>
-        </Modal>
+        </CustomModal>
       </View>
     );
   }

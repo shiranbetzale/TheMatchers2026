@@ -187,11 +187,6 @@ export const styles = StyleSheet.create({
     color: Colors.darkGreen,
     fontSize: FontSize.heading,
   },
-  relationshipSubtitle: {
-    ...FontsStyle.text,
-    color: Colors.goldDark,
-    marginTop: 2,
-  },
   relationshipCloseButton: {
     width: GeneralStyle.size.icon,
     height: GeneralStyle.size.icon,
@@ -329,22 +324,6 @@ export const styles = StyleSheet.create({
   },
   btnPlaceholder: {
     minWidth: GeneralStyle.size.avatarSmall,
-  },
-  headerActions: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: GeneralStyle.spacing.xs,
-  },
-  exitEditBtn: {
-    width: GeneralStyle.size.control,
-    height: GeneralStyle.size.control,
-    minWidth: GeneralStyle.size.control,
-    minHeight: GeneralStyle.size.control,
-    padding: 0,
-    borderColor: Colors.borderSoft,
-    backgroundColor: Colors.white,
-    shadowOpacity: 0,
-    elevation: 0,
   },
   primaryBtn: {
     backgroundColor: Colors.navyDeep,

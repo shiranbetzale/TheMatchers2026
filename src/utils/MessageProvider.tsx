@@ -17,6 +17,7 @@ import Colors from './Colors';
 import GeneralStyle from './GeneralStyle';
 import CustomModal from '../components/CustomModal/CustomModal';
 import CloseIcon from '../components/CloseIcon/CloseIcon';
+import MoreInfoIcon from '../assets/images/moreInfo.svg';
 import {
   clearErrorMessageHandler,
   setErrorMessageHandler,
@@ -165,11 +166,23 @@ export const MessageProvider = ({children}: {children: React.ReactNode}) => {
                       backgroundColor: typeStyles.background,
                       borderColor: typeStyles.accent,
                     },
+                    type === 'info' && styles.infoIconWrap,
                   ]}>
-                  <CustomText
-                    text={typeStyles.icon}
-                    customStyle={[styles.iconText, {color: typeStyles.accent}]}
-                  />
+                  {type === 'info' ? (
+                    <MoreInfoIcon
+                      width={GeneralStyle.size.badge}
+                      height={GeneralStyle.size.badge}
+                      fill={typeStyles.accent}
+                    />
+                  ) : (
+                    <CustomText
+                      text={typeStyles.icon}
+                      customStyle={[
+                        styles.iconText,
+                        {color: typeStyles.accent},
+                      ]}
+                    />
+                  )}
                 </View>
 
                 <CustomText
@@ -280,6 +293,10 @@ const styles = StyleSheet.create({
     fontSize: FontSize.iconLarge,
     lineHeight: 40,
     textAlign: 'center',
+  },
+  infoIconWrap: {
+    borderWidth: 0,
+    backgroundColor: Colors.transparent,
   },
   title: {
     ...FontsStyle.textDecoration,
