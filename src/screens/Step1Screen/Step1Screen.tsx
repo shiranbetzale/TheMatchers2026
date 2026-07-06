@@ -31,7 +31,7 @@ const hasCandidateInput = (values: Record<string, string>) =>
   });
 
 const Step1Screen = (props: WizardStepComponentProps) => {
-  const {values, fieldErrors, onChange, onChangeMany} = props;
+  const {values, fieldErrors, onChange, onChangeMany, headerAction} = props;
   const hasRestoredDraftRef = useRef(false);
 
   useEffect(() => {
@@ -221,6 +221,7 @@ const Step1Screen = (props: WizardStepComponentProps) => {
       lockedSectionTitles={lockedSectionTitles}
       autoExpandUnlockedSection
       showRequiredFieldsNote
+      headerAction={headerAction}
     />
   );
 };

@@ -1,3 +1,4 @@
+import {ReactNode} from 'react';
 import {Option} from '../../utils/FormFields.type';
 
 export type CollapseSingleType = {
@@ -17,4 +18,5 @@ export type CustomCollapseType = {
   lockedSectionTitles?: string[];
   autoExpandUnlockedSection?: boolean;
   showRequiredFieldsNote?: boolean;
+  headerAction?: ReactNode;
 };

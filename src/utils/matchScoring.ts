@@ -79,6 +79,51 @@ const normalizeHeight = (height: unknown) => {
   return value < 3 ? Math.round(value * 100) : Math.round(value);
 };
 
+const isWithinRange = (
+  value: number,
+  range: [number, number] | null,
+) =>
+  Boolean(
+    range &&
+      Number.isFinite(value) &&
+      value > 0 &&
+      value >= range[0] &&
+      value <= range[1],
+  );
+
+export const isBasicMatchCompatible = (source: any, target: any) => {
+  const sourceGender = normalizeGender(source?.gender);
+  const targetGender = normalizeGender(target?.gender);
+
+  if (!sourceGender || !targetGender || sourceGender === targetGender) {
+    return false;
+  }
+
+  const sourceAge = Number(source?.age);
+  const targetAge = Number(target?.age);
+  const sourceAgeRange = parseRange(source?.matchRangeAges);
+  const targetAgeRange = parseRange(target?.matchRangeAges);
+  const agesMatch =
+    isWithinRange(targetAge, sourceAgeRange) &&
+    (!targetAgeRange || isWithinRange(sourceAge, targetAgeRange));
+
+  if (!agesMatch) {
+    return false;
+  }
+
+  const sourceHeight = normalizeHeight(source?.hight || source?.height);
+  const targetHeight = normalizeHeight(target?.hight || target?.height);
+  const sourceHeightRange = parseRange(source?.matchRangeHeights);
+  const targetHeightRange = parseRange(target?.matchRangeHeights);
+
+  return (
+    sourceAge > 0 &&
+    sourceHeight > 0 &&
+    isWithinRange(targetHeight, sourceHeightRange) &&
+    (!targetHeightRange || isWithinRange(sourceHeight, targetHeightRange))
+  );
+};
+
 const STATUS_MAP: Record<string, string> = {
   single: '1',
   singlestatus: '1',
@@ -561,7 +606,10 @@ export const buildAiSortedMatches = (
         (!currentProfileId || profileId !== currentProfileId) &&
         (!currentCardId || profileId !== currentCardId) &&
         (!currentPhone || profilePhone !== currentPhone) &&
-        (!currentGender || !profileGender || profileGender !== currentGender)
+        Boolean(currentGender) &&
+        Boolean(profileGender) &&
+        profileGender !== currentGender &&
+        isBasicMatchCompatible(currentProfile, profile)
       );
     })
     .map(profile => {

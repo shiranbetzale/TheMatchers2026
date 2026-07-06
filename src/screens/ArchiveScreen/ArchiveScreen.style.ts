@@ -56,7 +56,7 @@ export const styles = StyleSheet.create({
   },
 
   restoreButton: {
-    width: '100%',
+    flex: 1,
     minHeight: GeneralStyle.size.control,
     alignItems: 'center',
     justifyContent: 'center',
@@ -75,6 +75,22 @@ export const styles = StyleSheet.create({
   restoreButtonText: {
     ...FontsStyle.textDecoration,
     color: Colors.darkGreen,
+  },
+  archiveActions: {
+    width: '100%',
+    flexDirection: 'row-reverse',
+    alignItems: 'center',
+    gap: GeneralStyle.spacing.sm,
+  },
+  deleteCandidateButton: {
+    width: GeneralStyle.size.control,
+    height: GeneralStyle.size.control,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: Colors.danger,
+    borderRadius: GeneralStyle.radius.md,
+    backgroundColor: Colors.dangerSoft,
   },
   container: {
     gap: GeneralStyle.spacing.md,

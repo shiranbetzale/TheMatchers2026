@@ -9,13 +9,14 @@ import {
 } from 'react-native';
 import 'react-native-gesture-handler';
 import {
+  CommonActions,
   NavigationContainer,
   createNavigationContainerRef,
 } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import BootSplash from 'react-native-bootsplash';
 import DrawerNavigation from './src/components/DrawerNavigation/DrawerNavigation';
-import {LanguageProvider, useLanguage} from './src/utils/LanguageProvider';
+import {LanguageProvider} from './src/utils/LanguageProvider';
 import {
   getSessionRole,
   getSessionUser,
@@ -35,6 +36,7 @@ import {MessageProvider} from './src/utils/MessageProvider';
 import firebase from '@react-native-firebase/app';
 import {RootStackParamList} from './src/components/MainStackNavigation/MainStackNavigation.type';
 import api, {enableGlobalApiLoader} from './src/services/api';
+import {mapProfileToCard} from './src/utils/generalFunction';
 import {
   initializeMonitoring,
   logScreenView,
@@ -49,14 +51,18 @@ type Route = 'Login' | 'MainScreen' | 'OnBoarding' | 'Wizard';
 const navigationRef = createNavigationContainerRef<RootStackParamList>();
 setupBackgroundPushNotifications();
 
+type PendingNotificationRoute = {
+  name: keyof RootStackParamList;
+  params?: unknown;
+};
+
 const AppContent = () => {
   const [initialRoute, setInitialRoute] = useState<Route | null>(null);
   const [sessionVersion, setSessionVersion] = useState(0);
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const routeNameRef = useRef<string | undefined>();
   const pendingNotificationRouteRef =
-    useRef<keyof RootStackParamList | null>(null);
-  const {isRTL} = useLanguage();
+    useRef<PendingNotificationRoute | null>(null);
 
   const setupMonitoringUser = useCallback(async () => {
     const [role, user] = await Promise.all([getSessionRole(), getSessionUser()]);
@@ -69,13 +75,18 @@ const AppContent = () => {
   }, []);
 
   const navigateToNotificationTarget = useCallback(
-    (routeName: keyof RootStackParamList) => {
+    (routeName: keyof RootStackParamList, params?: unknown) => {
       if (navigationRef.isReady()) {
-        navigationRef.navigate(routeName as never);
+        navigationRef.dispatch(
+          CommonActions.navigate({
+            name: routeName,
+            params: params as object | undefined,
+          }),
+        );
         return;
       }
 
-      pendingNotificationRouteRef.current = routeName;
+      pendingNotificationRouteRef.current = {name: routeName, params};
     },
     [],
   );
@@ -88,9 +99,41 @@ const AppContent = () => {
 
     if (pendingRoute && navigationRef.isReady()) {
       pendingNotificationRouteRef.current = null;
-      navigationRef.navigate(pendingRoute as never);
+      navigationRef.dispatch(
+        CommonActions.navigate({
+          name: pendingRoute.name,
+          params: pendingRoute.params as object | undefined,
+        }),
+      );
     }
   }, []);
+
+  const openCreatedProfile = useCallback(
+    async (profileId: string) => {
+      try {
+        const response = await api.get('/api/profiles', {skipLoader: true});
+        const profiles = Array.isArray(response.data?.profiles)
+          ? response.data.profiles
+          : [];
+        const profile = profiles.find(
+          (item: any) => String(item._id || item.id || '') === profileId,
+        );
+
+        if (!profile) {
+          navigateToNotificationTarget('AllCardsScreen');
+          return;
+        }
+
+        navigateToNotificationTarget('MatchCardsScreen', {
+          card: mapProfileToCard(profile),
+        });
+      } catch (error) {
+        console.warn('Failed to open profile-created notification', error);
+        navigateToNotificationTarget('AllCardsScreen');
+      }
+    },
+    [navigateToNotificationTarget],
+  );
 
   const resolveInitialRoute = useCallback(async (): Promise<Route> => {
     const seen = await AsyncStorage.getItem('hasSeenOnboarding');
@@ -158,9 +201,25 @@ const AppContent = () => {
         data.type === 'relationship_status'
       ) {
         navigateToNotificationTarget('ArchiveScreen');
+        return;
+      }
+
+      if (
+        data.targetScreen === 'ContactRequestsScreen' ||
+        data.type === 'contact_request_created'
+      ) {
+        navigateToNotificationTarget('ContactRequestsScreen');
+        return;
+      }
+
+      if (
+        data.targetScreen === 'MatchCardsScreen' ||
+        data.type === 'profile_created'
+      ) {
+        openCreatedProfile(data.profileId || '');
       }
     });
-  }, [navigateToNotificationTarget]);
+  }, [navigateToNotificationTarget, openCreatedProfile]);
 
   useEffect(
     () =>
@@ -219,7 +278,7 @@ const AppContent = () => {
           }}
           key={`${isRTL ? 'rtl' : 'ltr'}-${initialRoute}-${sessionVersion}`}>
           <DrawerNavigation
-            key={`${isRTL ? 'rtl' : 'ltr'}-${sessionVersion}`}
+            key={`${sessionVersion}`}
             initialRoute={initialRoute}
           />
         </NavigationContainer>

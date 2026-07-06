@@ -1,7 +1,9 @@
 import React from 'react';
+import {View} from 'react-native';
 import UploadPictures from '../../components/UploadPictures/UploadPictures';
 import {UploadedPicture} from '../../components/UploadPictures/UploadPictures.type';
 import {WizardStepComponentProps} from '../../components/Wizard/Wizard.type';
+import {styles} from './Step3Screen.style';
 
 const parseImages = (value?: string): UploadedPicture[] => {
   if (!value) {
@@ -33,14 +35,19 @@ const parseImages = (value?: string): UploadedPicture[] => {
 };
 
 const Step3Screen = (props: WizardStepComponentProps) => {
-  const {values, onChange} = props;
+  const {values, onChange, headerAction} = props;
   const images = parseImages(values.images);
 
   return (
-    <UploadPictures
-      images={images}
-      onChange={nextImages => onChange('images', JSON.stringify(nextImages))}
-    />
+    <View style={styles.container}>
+      {headerAction ? (
+        <View style={styles.headerAction}>{headerAction}</View>
+      ) : null}
+      <UploadPictures
+        images={images}
+        onChange={nextImages => onChange('images', JSON.stringify(nextImages))}
+      />
+    </View>
   );
 };
 

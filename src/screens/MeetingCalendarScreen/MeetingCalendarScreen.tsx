@@ -182,8 +182,7 @@ const MeetingCalendarScreen = () => {
           }
 
           const partner = meetings.find(
-            candidate =>
-              String(candidate.profileId || '') === partnerProfileId,
+            candidate => String(candidate.profileId || '') === partnerProfileId,
           );
 
           return (
@@ -413,99 +412,127 @@ const MeetingCalendarScreen = () => {
                 )}
                 customStyle={styles.dayTitle}
               />
-              {group.meetings.map(meeting => (
-                <WhiteCard
-                  key={`${meeting.profileId}_${meeting.meetingDate}`}
-                  customStyle={styles.meetingCard}>
-                  <View
-                    style={[
-                      styles.meetingTopRow,
-                      isRTL ? styles.meetingTopRowRtl : styles.meetingTopRowLtr,
-                    ]}>
-                    <CustomButton
-                      accessibilityLabel={t('editMeeting')}
-                      customStyle={styles.editMeetingButton}
-                      icon={
-                        <EditSvg
-                          width={BUTTON_ICON_SIZE}
-                          height={BUTTON_ICON_SIZE}
-                        />
-                      }
-                      onPress={() => openEditMeeting(meeting)}
-                    />
+              {group.meetings.map(meeting => {
+                const hasMet =
+                  meeting.met ||
+                  isMeetingDateTimeInPast(
+                    meeting.meetingDate,
+                    meeting.meetingTime,
+                  );
 
-                    <View style={styles.meetingMain}>
-                      <View
-                        style={[
-                          styles.meetingNamesRow,
-                          isRTL
-                            ? styles.meetingNamesRowRtl
-                            : styles.meetingNamesRowLtr,
-                        ]}>
-                        <CustomButton
-                          unstyled
-                          accessibilityLabel={meeting.name}
-                          onPress={() => openProfile(meeting.profileId)}>
-                          <CustomText
-                            text={meeting.name}
-                            customStyle={styles.meetingNameLink}
+                return (
+                  <WhiteCard
+                    key={`${meeting.profileId}_${meeting.meetingDate}`}
+                    customStyle={styles.meetingCard}>
+                    <View
+                      style={[
+                        styles.meetingTopRow,
+                        isRTL
+                          ? styles.meetingTopRowRtl
+                          : styles.meetingTopRowLtr,
+                      ]}>
+                      <CustomButton
+                        accessibilityLabel={t('editMeeting')}
+                        customStyle={styles.editMeetingButton}
+                        icon={
+                          <EditSvg
+                            width={BUTTON_ICON_SIZE}
+                            height={BUTTON_ICON_SIZE}
                           />
-                        </CustomButton>
+                        }
+                        onPress={() => openEditMeeting(meeting)}
+                      />
 
-                        {meeting.partnerName ? (
-                          <>
+                      <View style={styles.meetingMain}>
+                        <View
+                          style={[
+                            styles.meetingNamesRow,
+                            isRTL
+                              ? styles.meetingNamesRowRtl
+                              : styles.meetingNamesRowLtr,
+                          ]}>
+                          <CustomButton
+                            unstyled
+                            accessibilityLabel={meeting.name}
+                            onPress={() => openProfile(meeting.profileId)}>
                             <CustomText
-                              text={isRTL ? 'ו' : 'and'}
-                              customStyle={styles.meetingNameSeparator}
+                              text={meeting.name}
+                              customStyle={styles.meetingNameLink}
                             />
-                            {meeting.partnerProfileId ? (
-                              <CustomButton
-                                unstyled
-                                accessibilityLabel={meeting.partnerName}
-                                onPress={() =>
-                                  openProfile(meeting.partnerProfileId)
-                                }>
+                          </CustomButton>
+
+                          {meeting.partnerName ? (
+                            <>
+                              <CustomText
+                                text={isRTL ? 'ו' : 'and'}
+                                customStyle={styles.meetingNameSeparator}
+                              />
+                              {meeting.partnerProfileId ? (
+                                <CustomButton
+                                  unstyled
+                                  accessibilityLabel={meeting.partnerName}
+                                  onPress={() =>
+                                    openProfile(meeting.partnerProfileId)
+                                  }>
+                                  <CustomText
+                                    text={meeting.partnerName}
+                                    customStyle={styles.meetingNameLink}
+                                  />
+                                </CustomButton>
+                              ) : (
                                 <CustomText
                                   text={meeting.partnerName}
-                                  customStyle={styles.meetingNameLink}
+                                  customStyle={styles.meetingName}
                                 />
-                              </CustomButton>
-                            ) : (
-                              <CustomText
-                                text={meeting.partnerName}
-                                customStyle={styles.meetingName}
-                              />
-                            )}
-                          </>
-                        ) : null}
+                              )}
+                            </>
+                          ) : null}
+                        </View>
+                        <View style={styles.detailRow}>
+                          <CustomText
+                            text="meetingLocation"
+                            customStyle={styles.detailLabel}
+                          />
+                          <CustomText
+                            text=": "
+                            customStyle={styles.detailLabel}
+                          />
+                          <CustomText
+                            text={meeting.meetingLocation || 'notSet'}
+                            customStyle={styles.detailValue}
+                          />
+                        </View>
                       </View>
-                      <View style={styles.detailRow}>
+                      <View style={styles.timeBadge}>
                         <CustomText
-                          text="meetingLocation"
-                          customStyle={styles.detailLabel}
+                          text="meetingTime"
+                          customStyle={styles.timeLabel}
                         />
-                        <CustomText
-                          text=": "
-                          customStyle={styles.detailLabel}
-                        />
-                        <CustomText
-                          text={meeting.meetingLocation || 'notSet'}
-                          customStyle={styles.detailValue}
-                        />
+                        <Text style={styles.timeText}>
+                          {meeting.meetingTime || t('notSet')}
+                        </Text>
+                        <View
+                          style={[
+                            styles.meetingStatusBadge,
+                            hasMet
+                              ? styles.meetingStatusMet
+                              : styles.meetingStatusPending,
+                          ]}>
+                          <CustomText
+                            text={hasMet ? 'meetingMet' : 'meetingNotMetYet'}
+                            customStyle={[
+                              styles.meetingStatusText,
+                              hasMet
+                                ? styles.meetingStatusMetText
+                                : styles.meetingStatusPendingText,
+                            ]}
+                          />
+                        </View>
                       </View>
                     </View>
-                    <View style={styles.timeBadge}>
-                      <CustomText
-                        text="meetingTime"
-                        customStyle={styles.timeLabel}
-                      />
-                      <Text style={styles.timeText}>
-                        {meeting.meetingTime || t('notSet')}
-                      </Text>
-                    </View>
-                  </View>
-                </WhiteCard>
-              ))}
+                  </WhiteCard>
+                );
+              })}
             </View>
           ))
         ) : (

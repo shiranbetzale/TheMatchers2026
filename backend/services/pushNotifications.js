@@ -24,6 +24,15 @@ async function getMatchmakerTokens() {
   );
 }
 
+async function getAdminTokens() {
+  const users = await User.find({
+    isActive: true,
+    role: 'admin',
+  }).select('_id');
+
+  return getUserTokens(users.map(user => user._id));
+}
+
 async function getAllUserTokens() {
   const deviceTokens = await DeviceToken.find({}).select('token');
 
@@ -172,8 +181,24 @@ async function notifyProfileCreated(profile) {
     body: `${profileName} נוסף/ה למאגר השידוכים`,
     data: {
       type: 'profile_created',
+      targetScreen: 'MatchCardsScreen',
       profileId: profile.id,
     },
+  });
+}
+
+async function notifyContactRequestCreated(contactRequest) {
+  const senderName = contactRequest.name || 'פונה חדש/ה';
+
+  return sendPushNotification({
+    title: 'פנייה חדשה',
+    body: `${senderName} שלח/ה פנייה חדשה`,
+    data: {
+      type: 'contact_request_created',
+      targetScreen: 'ContactRequestsScreen',
+      requestId: contactRequest.id || '',
+    },
+    tokens: await getAdminTokens(),
   });
 }
 
@@ -264,6 +289,7 @@ async function notifyMeetingReminder(profile, reminderType, tokens) {
 
 module.exports = {
   getUserTokens,
+  notifyContactRequestCreated,
   notifyProfileCreated,
   notifyProfileRelationshipStatus,
   notifyMeetingReminder,

@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {AxiosError} from 'axios';
 import {View} from 'react-native';
 
@@ -8,6 +8,7 @@ import CustomText from '../../components/CustomText/CustomText';
 import WhiteCard from '../../components/WhiteCard/WhiteCard';
 
 import api from '../../services/api';
+import {getSessionUser} from '../../services/session';
 import {useLanguage} from '../../utils/LanguageProvider';
 import {useMessage} from '../../utils/MessageProvider';
 
@@ -19,6 +20,23 @@ type ContactResponse = {
   saved?: boolean;
 };
 
+type ContactDetails = {
+  name: string;
+  email: string;
+  phone: string;
+};
+
+const EMPTY_CONTACT_DETAILS: ContactDetails = {
+  name: '',
+  email: '',
+  phone: '',
+};
+
+const normalizeIsraeliPhone = (value?: string) => {
+  const digits = String(value || '').replace(/\D/g, '');
+  return digits.startsWith('972') ? `0${digits.slice(3)}` : digits;
+};
+
 const ContactScreen = () => {
   const {t} = useLanguage();
   const {showMessage} = useMessage();
@@ -28,6 +46,38 @@ const ContactScreen = () => {
   const [phone, setPhone] = useState('');
   const [message, setMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [contactDefaults, setContactDefaults] = useState<ContactDetails>(
+    EMPTY_CONTACT_DETAILS,
+  );
+
+  useEffect(() => {
+    let isMounted = true;
+
+    getSessionUser().then(sessionUser => {
+      if (
+        !isMounted ||
+        !sessionUser ||
+        (sessionUser.role !== 'matchmaker' && sessionUser.role !== 'admin')
+      ) {
+        return;
+      }
+
+      const defaults = {
+        name: sessionUser.name || '',
+        email: sessionUser.email || '',
+        phone: normalizeIsraeliPhone(sessionUser.phone),
+      };
+
+      setContactDefaults(defaults);
+      setName(defaults.name);
+      setEmail(defaults.email);
+      setPhone(defaults.phone);
+    });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const isValidEmail = (value: string) =>
     /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
@@ -43,9 +93,9 @@ const ContactScreen = () => {
   };
 
   const resetForm = () => {
-    setName('');
-    setEmail('');
-    setPhone('');
+    setName(contactDefaults.name);
+    setEmail(contactDefaults.email);
+    setPhone(contactDefaults.phone);
     setMessage('');
   };
 

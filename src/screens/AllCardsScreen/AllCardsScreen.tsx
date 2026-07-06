@@ -14,10 +14,12 @@ import {CardsSortValue} from '../../components/CustomOrderBy/CustomOrderBy.type'
 import {MatchCardType} from '../../components/MatchCard/MatchCard.type';
 import HomeScreen from '../HomeScreen/HomeScreen';
 import {RootStackParamList} from '../../components/MainStackNavigation/MainStackNavigation.type';
-import {getSessionUser} from '../../services/session';
+import {getSessionRole, getSessionUser, UserRole} from '../../services/session';
 import api from '../../services/api';
 import {mapProfileToCard} from '../../utils/generalFunction';
 import {AllCardsContent, AllCardsToolbar} from './AllCardsSections';
+import {useMessage} from '../../utils/MessageProvider';
+import {useLanguage} from '../../utils/LanguageProvider';
 
 type NavigationProp = StackNavigationProp<RootStackParamList>;
 type AllCardsRouteProp = RouteProp<RootStackParamList, 'AllCardsScreen'>;
@@ -26,11 +28,14 @@ const NO_MATCHER_FILTER_VALUE = 'noMatcher';
 const AllCardsScreen = () => {
   const navigation = useNavigation<NavigationProp>();
   const route = useRoute<AllCardsRouteProp>();
+  const {showMessage} = useMessage();
+  const {t} = useLanguage();
   const onlyMine = route.params?.onlyMine === true;
 
   const [isShowFilter, setIsShowFilter] = useState(false);
   const [isShowOrderBy, setIsShowOrderBy] = useState(false);
   const [sessionUserId, setSessionUserId] = useState('');
+  const [sessionRole, setSessionRole] = useState<UserRole>('user');
   const [cards, setCards] = useState<MatchCardType[]>([]);
   const [hasLoadedCards, setHasLoadedCards] = useState(false);
   const [filterValues, setFilterValues] = useState<CardsFilterValues>({});
@@ -38,8 +43,12 @@ const AllCardsScreen = () => {
 
   useEffect(() => {
     const loadSession = async () => {
-      const sessionUser = await getSessionUser();
+      const [sessionUser, role] = await Promise.all([
+        getSessionUser(),
+        getSessionRole(),
+      ]);
       setSessionUserId(sessionUser?.id ?? '');
+      setSessionRole(role ?? 'user');
     };
 
     loadSession();
@@ -229,6 +238,34 @@ const AllCardsScreen = () => {
     closeMenus();
   };
 
+  const deleteCandidate = (card: MatchCardType) => {
+    const profileId = String(card.profileId || '').trim();
+
+    if (!profileId || sessionRole !== 'admin') {
+      return;
+    }
+
+    showMessage({
+      type: 'error',
+      title: t('deleteCandidateTitle'),
+      message: t('deleteCandidateConfirm').replace('{{name}}', card.name),
+      cancelText: t('cancel'),
+      confirmText: t('delete'),
+      onConfirm: async () => {
+        try {
+          await api.delete(`/api/profiles/${profileId}`);
+          setCards(current =>
+            current.filter(item => item.profileId !== profileId),
+          );
+          showMessage({type: 'success', message: t('candidateDeleted')});
+        } catch (error) {
+          console.error('Failed to delete profile', error);
+          showMessage({type: 'error', message: t('candidateDeleteError')});
+        }
+      },
+    });
+  };
+
   const isMenuOpen = isShowFilter || isShowOrderBy;
   const {maleCount, femaleCount} = useMemo(
     () => ({
@@ -281,6 +318,8 @@ const AllCardsScreen = () => {
         isMenuOpen={isMenuOpen}
         maleCount={maleCount}
         onlyMine={onlyMine}
+        currentUserRole={sessionRole}
+        onDelete={deleteCandidate}
         onCardPress={card => navigation.navigate('MatchCardsScreen', {card})}
       />
     </HomeScreen>

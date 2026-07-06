@@ -1,4 +1,4 @@
-import React, {useEffect, useMemo, useRef, useState} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import CustomButton from '../CustomButton/CustomButton';
 import CustomModal from '../CustomModal/CustomModal';
 import CloseIcon from '../CloseIcon/CloseIcon';
@@ -41,14 +41,22 @@ import CustomSelect from '../CustomSelect/CustomSelect';
 import CustomText from '../CustomText/CustomText';
 import AppIconImage from '../../../assets/app-icon/app-icon-1024.png';
 import api from '../../services/api';
-import {clearSession, getSessionRole} from '../../services/session';
+import {
+  clearSession,
+  getSessionRole,
+  UserRole,
+} from '../../services/session';
 import {uploadProfileImages} from '../../services/uploads';
+import LogoutSvg from '../../assets/images/logout.svg';
+import MoreInfoIcon from '../../assets/images/moreInfo.svg';
+import {BUTTON_ICON_SIZE} from '../CustomButton/CustomButton';
 import {
   applyCandidateRangeDefaults,
   buildMatchmakerOptions,
   buildProfilePayload,
   clearRelationshipValues,
   getAllWizardFields,
+  getGenderKey,
   getInitialWizardValues,
   getPartnerGenderFromValues,
   getProfileId,
@@ -64,7 +72,11 @@ import {
 type WizardNavigationProp = NativeStackNavigationProp<RootStackParamList>;
 type WizardRouteProp = RouteProp<RootStackParamList, 'Wizard'>;
 
-const WizardContent = () => {
+type WizardContentProps = {
+  isMultipleRegistration: boolean;
+};
+
+const WizardContent = ({isMultipleRegistration}: WizardContentProps) => {
   const navigation = useNavigation<WizardNavigationProp>();
   const route = useRoute<WizardRouteProp>();
   const {t, isRTL} = useLanguage();
@@ -75,7 +87,7 @@ const WizardContent = () => {
   const routeEditProfileId =
     routeParams?.profileId || getProfileId(routeParams?.card);
   const [loadedEditProfileId, setLoadedEditProfileId] = useState('');
-  const editProfileId = loadedEditProfileId || routeEditProfileId;
+  const editProfileId = routeEditProfileId || loadedEditProfileId;
   const [wizardStep, setWizardStep] = useState<number>(1);
   const [submitErrorKey, setSubmitErrorKey] = useState<string | null>(null);
   const [formValues, setFormValues] = useState<WizardFormValues>(() =>
@@ -101,7 +113,6 @@ const WizardContent = () => {
   const [relationshipDraft, setRelationshipDraft] = useState<WizardFormValues>(
     () => getRelationshipValues(formValues),
   );
-  const bypassExitConfirmationRef = useRef(false);
 
   const wizardSteps: WizardStep[] = [
     {id: 1, name: 'Step1', title: 'wizardAboutMe', comp: Step1Screen},
@@ -112,28 +123,34 @@ const WizardContent = () => {
   const currentStep =
     wizardSteps.find(step => step.id === wizardStep) ?? wizardSteps[0];
 
-  useEffect(
-    () =>
-      navigation.addListener('beforeRemove', event => {
-        if (!isEditMode || bypassExitConfirmationRef.current) {
-          return;
-        }
-
-        event.preventDefault();
-        showMessage({
-          type: 'info',
-          title: t('exitWithoutSaving'),
-          message: t('exitEditWithoutSavingConfirm'),
-          cancelText: t('continueEditing'),
-          confirmText: t('exitWithoutSaving'),
-          onConfirm: () => {
-            bypassExitConfirmationRef.current = true;
-            navigation.dispatch(event.data.action);
-          },
-        });
+  const resetForAnotherCandidate = () => {
+    setWizardStep(1);
+    setSubmitErrorKey(null);
+    setFieldErrors({});
+    setFormValues(
+      applyCandidateRangeDefaults({
+        ...getInitialWizardValues(getAllWizardFields()),
+        ...(routeParams?.matchmakerPhone
+          ? {matcherPhone: routeParams.matchmakerPhone}
+          : {}),
       }),
-    [isEditMode, navigation, showMessage, t],
-  );
+    );
+  };
+
+  const finishCreateFlow = async (sessionRole: string | null) => {
+    if (sessionRole === 'user') {
+      await clearSession();
+      navigation.dispatch(
+        CommonActions.reset({
+          index: 0,
+          routes: [{name: 'Login'}],
+        }),
+      );
+      return;
+    }
+
+    navigation.navigate('AllCardsScreen');
+  };
 
   useFocusEffect(
     React.useCallback(() => {
@@ -167,17 +184,22 @@ const WizardContent = () => {
       return;
     }
 
+    setLoadedEditProfileId('');
     setWizardStep(1);
     setSubmitErrorKey(null);
-    setFormValues(currentValues => ({
-      ...currentValues,
-      ...(shouldRestoreToAvailable
-        ? clearRelationshipValues(getWizardValuesFromCard(routeParams?.card))
-        : getWizardValuesFromCard(routeParams?.card)),
-    }));
+    setFieldErrors({});
+    setFormValues(
+      applyCandidateRangeDefaults({
+        ...getInitialWizardValues(getAllWizardFields()),
+        ...(shouldRestoreToAvailable
+          ? clearRelationshipValues(getWizardValuesFromCard(routeParams?.card))
+          : getWizardValuesFromCard(routeParams?.card)),
+      }),
+    );
   }, [
     isEditMode,
     routeParams?.card,
+    routeParams?.card?.phone,
     routeEditProfileId,
     shouldRestoreToAvailable,
   ]);
@@ -199,12 +221,14 @@ const WizardContent = () => {
         }
 
         setLoadedEditProfileId(getProfileId(profile));
-        setFormValues(currentValues => ({
-          ...currentValues,
-          ...(shouldRestoreToAvailable
-            ? clearRelationshipValues(getWizardValuesFromProfile(profile))
-            : getWizardValuesFromProfile(profile)),
-        }));
+        setFormValues(
+          applyCandidateRangeDefaults({
+            ...getInitialWizardValues(getAllWizardFields()),
+            ...(shouldRestoreToAvailable
+              ? clearRelationshipValues(getWizardValuesFromProfile(profile))
+              : getWizardValuesFromProfile(profile)),
+          }),
+        );
       } catch (error) {
         console.warn('Failed to load profile for wizard edit', error);
         if (isMounted) {
@@ -341,6 +365,24 @@ const WizardContent = () => {
   };
 
   const saveRelationshipDraft = () => {
+    const partnerName = normalizeName(relationshipDraft.partnerName);
+    const matchedProfile = profilesCache.find(
+      profile => normalizeName(profile.fullName || profile.name) === partnerName,
+    );
+    const isEligibleProfile = matchedProfile
+      ? eligiblePartnerProfiles.some(
+          profile => getProfileId(profile) === getProfileId(matchedProfile),
+        )
+      : true;
+
+    if (partnerName && !isEligibleProfile) {
+      showMessage({
+        type: 'error',
+        message: t('invalidRelationshipPartner'),
+      });
+      return;
+    }
+
     updateFormValues(relationshipDraft);
     setIsPartnerSearchFocused(false);
     setIsRelationshipModalOpen(false);
@@ -373,15 +415,21 @@ const WizardContent = () => {
     }));
   };
 
-  const partnerSuggestions = useMemo(() => {
+  const eligiblePartnerProfiles = useMemo(() => {
     const currentProfileId = String(editProfileId || '');
+    const currentPhone = normalizePhone(
+      formValues.phone || routeParams?.card?.phone,
+    );
+    const requiredPartnerGender = getPartnerGenderFromValues(formValues);
     const selectedMatchmakerId = String(
       relationshipDraft.collaborationMatchmaker || '',
     ).trim();
 
     return profilesCache
       .filter(profile => {
-        const profileId = String(profile._id || profile.id || '');
+        const profileId = getProfileId(profile);
+        const profilePhone = normalizePhone(profile.phone);
+        const profileGender = getGenderKey(profile.gender);
         const relationshipStatus = String(profile.relationshipStatus || '');
         const assignedMatchmaker = String(
           profile.assignedMatchmaker || '',
@@ -389,15 +437,28 @@ const WizardContent = () => {
 
         return (
           profileId !== currentProfileId &&
+          (!currentPhone || profilePhone !== currentPhone) &&
+          Boolean(requiredPartnerGender) &&
+          profileGender === requiredPartnerGender &&
           (!selectedMatchmakerId ||
             assignedMatchmaker === selectedMatchmakerId) &&
           relationshipStatus !== 'engaged' &&
           relationshipStatus !== 'married'
         );
-      })
+      });
+  }, [
+    editProfileId,
+    formValues,
+    profilesCache,
+    relationshipDraft.collaborationMatchmaker,
+    routeParams?.card?.phone,
+  ]);
+
+  const partnerSuggestions = useMemo(() => {
+    return eligiblePartnerProfiles
       .map(profile => String(profile.fullName || profile.name || '').trim())
       .filter(Boolean);
-  }, [editProfileId, profilesCache, relationshipDraft.collaborationMatchmaker]);
+  }, [eligiblePartnerProfiles]);
 
   const filteredPartnerSuggestions = useMemo(() => {
     const searchValue = normalizeName(relationshipDraft.partnerName);
@@ -412,7 +473,7 @@ const WizardContent = () => {
   }, [relationshipDraft.partnerName, partnerSuggestions]);
 
   const partnerProfileByName = useMemo(() => {
-    return profilesCache.reduce<Record<string, string>>(
+    return eligiblePartnerProfiles.reduce<Record<string, string>>(
       (profilesByName, profile) => {
         const name = normalizeName(profile.fullName || profile.name);
         const profileId = String(profile._id || profile.id || '');
@@ -425,7 +486,7 @@ const WizardContent = () => {
       },
       {},
     );
-  }, [profilesCache]);
+  }, [eligiblePartnerProfiles]);
 
   const checkPartnerOutsideApp = (
     relationshipStatus: string,
@@ -740,6 +801,38 @@ const WizardContent = () => {
     );
   };
 
+  const exitEditWithoutSaving = () => {
+    if (navigation.canGoBack()) {
+      navigation.goBack();
+      return;
+    }
+
+    navigation.navigate('AllCardsScreen');
+  };
+
+  const showExitConfirmation = () => {
+    showMessage({
+      type: 'info',
+      title: t('exitWithoutSaving'),
+      message: t('exitEditWithoutSavingConfirm'),
+      cancelText: t('continueEditing'),
+      confirmText: t('exitWithoutSaving'),
+      onConfirm: exitEditWithoutSaving,
+    });
+  };
+
+  const exitAction = isEditMode ? (
+    <CustomButton
+      variant="secondary"
+      text="exitEdit"
+      accessibilityLabel={t('exitEdit')}
+      customStyle={styles.formExitButton}
+      customTextStyle={styles.formExitButtonText}
+      icon={<LogoutSvg width={BUTTON_ICON_SIZE} height={BUTTON_ICON_SIZE} />}
+      onPress={showExitConfirmation}
+    />
+  ) : undefined;
+
   const renderComp = () => {
     const SpecificStep = currentStep?.comp;
     return SpecificStep ? (
@@ -748,6 +841,7 @@ const WizardContent = () => {
         fieldErrors={fieldErrors}
         onChange={updateFormValue}
         onChangeMany={updateFormValues}
+        headerAction={exitAction}
       />
     ) : null;
   };
@@ -857,6 +951,21 @@ const WizardContent = () => {
       setSubmitErrorKey(null);
       const sessionRole = await getSessionRole();
 
+      if (!isEditMode && isMultipleRegistration) {
+        showMessage({
+          type: 'success',
+          title: t('candidateRegistrationSuccessTitle'),
+          message: t('candidateRegistrationSuccessMessage'),
+          autoDismissMs: false,
+          confirmText: t('registerAnotherCandidate'),
+          cancelText: t('finishRegistration'),
+          onConfirm: resetForAnotherCandidate,
+          onCancel: () => finishCreateFlow(sessionRole),
+          onClose: () => finishCreateFlow(sessionRole),
+        });
+        return;
+      }
+
       if (!isEditMode && sessionRole === 'user') {
         showMessage({
           type: 'success',
@@ -879,7 +988,6 @@ const WizardContent = () => {
         type: 'success',
         message: t('saveChangesSuccess'),
       });
-      bypassExitConfirmationRef.current = true;
       navigation.navigate('AllCardsScreen');
     } catch (error) {
       const axiosError = error as AxiosError<{
@@ -988,11 +1096,17 @@ const WizardContent = () => {
 
 const Wizard = () => {
   const navigation = useNavigation<WizardNavigationProp>();
+  const route = useRoute<WizardRouteProp>();
   const {t, isRTL} = useLanguage();
   const [isCheckingAccess, setIsCheckingAccess] = useState(true);
   const [requiresCommitment, setRequiresCommitment] = useState(false);
+  const [sessionRole, setSessionRole] = useState<UserRole | null>(null);
   const [hasAcceptedCommitment, setHasAcceptedCommitment] = useState(false);
+  const [registrationMode, setRegistrationMode] = useState<
+    'single' | 'multiple' | null
+  >(null);
   const [isLeaving, setIsLeaving] = useState(false);
+  const isEditMode = route.params?.mode === 'edit';
 
   useEffect(() => {
     let isMounted = true;
@@ -1000,6 +1114,7 @@ const Wizard = () => {
     getSessionRole()
       .then(role => {
         if (isMounted) {
+          setSessionRole(role);
           setRequiresCommitment(role === 'user');
         }
       })
@@ -1013,6 +1128,11 @@ const Wizard = () => {
       isMounted = false;
     };
   }, []);
+
+  useEffect(
+    () => navigation.addListener('blur', () => setRegistrationMode(null)),
+    [navigation],
+  );
 
   const declineCommitment = async () => {
     if (isLeaving) {
@@ -1122,7 +1242,67 @@ const Wizard = () => {
     );
   }
 
-  return <WizardContent />;
+  if (sessionRole === 'user' && !isEditMode && !registrationMode) {
+    return (
+      <View style={styles.commitmentGateScreen}>
+        <CustomModal
+          transparent
+          visible
+          animationType="fade"
+          statusBarTranslucent
+          onRequestClose={() => undefined}>
+          <View style={styles.commitmentOverlay}>
+            <View style={styles.registrationModeModal}>
+              <CustomButton
+                variant="icon"
+                accessibilityLabel={t('close')}
+                customStyle={styles.registrationModeClose}
+                onPress={() => setRegistrationMode('single')}>
+                <CloseIcon />
+              </CustomButton>
+              <View style={styles.registrationModeIconWrap}>
+                <MoreInfoIcon
+                  width={BUTTON_ICON_SIZE}
+                  height={BUTTON_ICON_SIZE}
+                  fill={Colors.info}
+                />
+              </View>
+              <CustomText
+                text="registrationModeTitle"
+                customStyle={styles.registrationModeTitle}
+              />
+              <CustomText
+                text="registrationModeDescription"
+                customStyle={styles.registrationModeDescription}
+              />
+              <View
+                style={[
+                  styles.registrationModeActions,
+                  isRTL ? styles.rowReverse : styles.row,
+                ]}>
+                <CustomButton
+                  variant="primary"
+                  text="multipleRegistration"
+                  customStyle={styles.registrationModeButton}
+                  onPress={() => setRegistrationMode('multiple')}
+                />
+                <CustomButton
+                  variant="secondary"
+                  text="singleRegistration"
+                  customStyle={styles.registrationModeButton}
+                  onPress={() => setRegistrationMode('single')}
+                />
+              </View>
+            </View>
+          </View>
+        </CustomModal>
+      </View>
+    );
+  }
+
+  return (
+    <WizardContent isMultipleRegistration={registrationMode === 'multiple'} />
+  );
 };
 
 export default Wizard;

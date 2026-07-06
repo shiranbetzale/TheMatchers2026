@@ -1,6 +1,9 @@
 const express = require('express');
 const {getFirestore} = require('../config/firebase');
 const {requireAuth} = require('../middleware/auth');
+const {
+  notifyContactRequestCreated,
+} = require('../services/pushNotifications');
 
 const router = express.Router();
 
@@ -179,6 +182,13 @@ router.post('/', async (req, res) => {
       source: 'thematchers-app',
       createdAt: new Date(),
       updatedAt: new Date(),
+    });
+
+    notifyContactRequestCreated({
+      id: docRef.id,
+      name: cleanName,
+    }).catch(error => {
+      console.warn('Failed to send contact-request push notification', error);
     });
 
     return res.json({

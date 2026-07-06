@@ -558,4 +558,47 @@ router.patch(
   },
 );
 
+router.delete(
+  '/:id',
+  requireAuth(['admin']),
+  async (req, res, next) => {
+    try {
+      const profile = await Profile.findById(req.params.id);
+
+      if (!profile) {
+        const error = new Error('Profile not found');
+        error.status = 404;
+        throw error;
+      }
+
+      const linkedProfiles = await Profile.find({
+        partnerProfileId: req.params.id,
+      });
+
+      await Promise.all(
+        linkedProfiles.map(async linkedProfile => {
+          linkedProfile.partnerName = '';
+          linkedProfile.partnerProfileId = '';
+          linkedProfile.partnerOutsideApp = false;
+          linkedProfile.relationshipStatus = '';
+          linkedProfile.status = 'active';
+          linkedProfile.archivedReason = '';
+          linkedProfile.collaborationMatchmaker = '';
+          linkedProfile.meetingStatus = 'available';
+          linkedProfile.meetingDate = '';
+          linkedProfile.meetingTime = '';
+          linkedProfile.meetingLocation = '';
+          await linkedProfile.save();
+        }),
+      );
+
+      await Profile.findByIdAndDelete(req.params.id);
+
+      res.json({message: 'Profile deleted', id: req.params.id});
+    } catch (error) {
+      next(error);
+    }
+  },
+);
+
 module.exports = router;

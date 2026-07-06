@@ -1,4 +1,4 @@
-import {ComponentType} from 'react';
+import {ComponentType, ReactNode} from 'react';
 import {StyleProp, TextStyle} from 'react-native';
 
 export type WizardFormValues = Record<string, string>;
@@ -8,6 +8,7 @@ export type WizardStepComponentProps = {
   fieldErrors: WizardFormValues;
   onChange: (id: string, value: string) => void;
   onChangeMany: (values: WizardFormValues) => void;
+  headerAction?: ReactNode;
 };
 
 export type WizardStep = {

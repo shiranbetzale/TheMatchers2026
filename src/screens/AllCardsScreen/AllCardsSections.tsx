@@ -13,6 +13,8 @@ import WhiteCard from '../../components/WhiteCard/WhiteCard';
 import MatchCard from '../../components/MatchCard/MatchCard';
 import {MatchCardType} from '../../components/MatchCard/MatchCard.type';
 import {FontsStyle} from '../../utils/FontsStyle';
+import TrashSvg from '../../assets/images/trash.svg';
+import {UserRole} from '../../services/session';
 
 type ToolbarProps = {
   children?: ReactNode;
@@ -100,21 +102,25 @@ export const CardsSummary = ({
 
 type ContentProps = {
   cards: MatchCardType[];
+  currentUserRole: UserRole;
   femaleCount: number;
   hasLoaded: boolean;
   isMenuOpen: boolean;
   maleCount: number;
   onCardPress: (card: MatchCardType) => void;
+  onDelete: (card: MatchCardType) => void;
   onlyMine: boolean;
 };
 
 export const AllCardsContent = ({
   cards,
+  currentUserRole,
   femaleCount,
   hasLoaded,
   isMenuOpen,
   maleCount,
   onCardPress,
+  onDelete,
   onlyMine,
 }: ContentProps) => {
   const {isRTL} = useLanguage();
@@ -150,18 +156,34 @@ export const AllCardsContent = ({
             />
           ) : (
             cards.map((card, index) => (
-              <CustomButton
-                unstyled
+              <View
                 key={card.profileId || card.phone || String(index)}
-                accessibilityLabel={card.name}
-                onPress={() => onCardPress(card)}
-                customStyle={styles.matchCard}>
-                <MatchCard
-                  {...card}
-                  isSlide={false}
-                  isShowMeetingInfo={false}
-                />
-              </CustomButton>
+                style={styles.matchCardWrapper}>
+                <CustomButton
+                  unstyled
+                  accessibilityLabel={card.name}
+                  onPress={() => onCardPress(card)}
+                  customStyle={styles.matchCard}>
+                  <MatchCard
+                    {...card}
+                    currentUserRole={currentUserRole}
+                    isSlide={false}
+                    isShowMeetingInfo={false}
+                  />
+                </CustomButton>
+                {currentUserRole === 'admin' && card.profileId ? (
+                  <CustomButton
+                    unstyled
+                    accessibilityLabel="deleteCandidate"
+                    style={styles.deleteCandidateButton}
+                    onPress={() => onDelete(card)}>
+                    <TrashSvg
+                      width={BUTTON_ICON_SIZE}
+                      height={BUTTON_ICON_SIZE}
+                    />
+                  </CustomButton>
+                ) : null}
+              </View>
             ))
           )}
         </>

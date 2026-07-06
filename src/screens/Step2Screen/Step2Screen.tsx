@@ -13,9 +13,11 @@ import {
 } from '../../utils/formCompletion';
 
 const Step2Screen = (props: WizardStepComponentProps) => {
-  const {values, fieldErrors, onChange, onChangeMany} = props;
+  const {values, fieldErrors, onChange, onChangeMany, headerAction} = props;
   const genderOptionId = String(values.genderOptionId || '').trim();
-  const gender = String(values.gender || '').trim().toLowerCase();
+  const gender = String(values.gender || '')
+    .trim()
+    .toLowerCase();
   const partnerGender =
     genderOptionId === '1' || gender === 'male' || gender === 'זכר'
       ? 'female'
@@ -124,6 +126,7 @@ const Step2Screen = (props: WizardStepComponentProps) => {
       lockedSectionTitles={lockedSectionTitles}
       autoExpandUnlockedSection
       showRequiredFieldsNote
+      headerAction={headerAction}
     />
   );
 };

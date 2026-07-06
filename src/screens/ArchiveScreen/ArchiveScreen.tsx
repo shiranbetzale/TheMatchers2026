@@ -1,4 +1,4 @@
-import React, {useMemo, useState} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import {StackNavigationProp} from '@react-navigation/stack';
@@ -20,12 +20,15 @@ import {CardsSortValue} from '../../components/CustomOrderBy/CustomOrderBy.type'
 import FilterSvg from '../../assets/images/filter.svg';
 import OrderBySvg from '../../assets/images/orderBy.svg';
 import RestoreSvg from '../../assets/images/restore.svg';
+import TrashSvg from '../../assets/images/trash.svg';
 
 import {styles} from './ArchiveScreen.style';
 import api from '../../services/api';
 import {useLanguage} from '../../utils/LanguageProvider';
 import {mapProfileToCard} from '../../utils/generalFunction';
 import {RootStackParamList} from '../../components/MainStackNavigation/MainStackNavigation.type';
+import {getSessionRole, UserRole} from '../../services/session';
+import {useMessage} from '../../utils/MessageProvider';
 
 const NO_MATCHER_FILTER_VALUE = 'noMatcher';
 
@@ -77,6 +80,7 @@ const getRelationshipStatusTextKey = (
 const ArchiveScreen = () => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
   const {isRTL, t} = useLanguage();
+  const {showMessage} = useMessage();
 
   const [archivedCards, setArchivedCards] = useState<MatchCardType[]>([]);
   const [hasLoadedArchive, setHasLoadedArchive] = useState(false);
@@ -84,6 +88,11 @@ const ArchiveScreen = () => {
   const [isShowOrderBy, setIsShowOrderBy] = useState(false);
   const [filterValues, setFilterValues] = useState<CardsFilterValues>({});
   const [sortValue, setSortValue] = useState<CardsSortValue>('');
+  const [sessionRole, setSessionRole] = useState<UserRole>('user');
+
+  useEffect(() => {
+    getSessionRole().then(role => setSessionRole(role ?? 'user'));
+  }, []);
 
   const fetchArchivedProfiles = React.useCallback(async () => {
     setHasLoadedArchive(false);
@@ -126,6 +135,34 @@ const ArchiveScreen = () => {
       profileId,
       card,
       restoreToAvailable: true,
+    });
+  };
+
+  const deleteCandidate = (card: MatchCardType) => {
+    const profileId = String(card.profileId || '').trim();
+
+    if (!profileId || sessionRole !== 'admin') {
+      return;
+    }
+
+    showMessage({
+      type: 'error',
+      title: t('deleteCandidateTitle'),
+      message: t('deleteCandidateConfirm').replace('{{name}}', card.name),
+      cancelText: t('cancel'),
+      confirmText: t('delete'),
+      onConfirm: async () => {
+        try {
+          await api.delete(`/api/profiles/${profileId}`);
+          setArchivedCards(current =>
+            current.filter(item => item.profileId !== profileId),
+          );
+          showMessage({type: 'success', message: t('candidateDeleted')});
+        } catch (error) {
+          console.error('Failed to delete archived profile', error);
+          showMessage({type: 'error', message: t('candidateDeleteError')});
+        }
+      },
     });
   };
 
@@ -424,25 +461,39 @@ const ArchiveScreen = () => {
                     isShowInfoButtons={false}
                   />
 
-                  <CustomButton
-                    variant="secondary"
-                    text="restoreToActiveList"
-                    accessibilityLabel={t('restoreToActiveList')}
-                    customStyle={[
-                      styles.restoreButton,
-                      isRTL
-                        ? styles.restoreButtonRtl
-                        : styles.restoreButtonLtr,
-                    ]}
-                    customTextStyle={styles.restoreButtonText}
-                    icon={
-                      <RestoreSvg
-                        width={BUTTON_ICON_SIZE}
-                        height={BUTTON_ICON_SIZE}
-                      />
-                    }
-                    onPress={() => restoreProfile(card)}
-                  />
+                  <View style={styles.archiveActions}>
+                    <CustomButton
+                      variant="secondary"
+                      text="restoreToActiveList"
+                      accessibilityLabel={t('restoreToActiveList')}
+                      customStyle={[
+                        styles.restoreButton,
+                        isRTL
+                          ? styles.restoreButtonRtl
+                          : styles.restoreButtonLtr,
+                      ]}
+                      customTextStyle={styles.restoreButtonText}
+                      icon={
+                        <RestoreSvg
+                          width={BUTTON_ICON_SIZE}
+                          height={BUTTON_ICON_SIZE}
+                        />
+                      }
+                      onPress={() => restoreProfile(card)}
+                    />
+                    {sessionRole === 'admin' && card.profileId ? (
+                      <CustomButton
+                        unstyled
+                        accessibilityLabel={t('deleteCandidate')}
+                        style={styles.deleteCandidateButton}
+                        onPress={() => deleteCandidate(card)}>
+                        <TrashSvg
+                          width={BUTTON_ICON_SIZE}
+                          height={BUTTON_ICON_SIZE}
+                        />
+                      </CustomButton>
+                    ) : null}
+                  </View>
                 </WhiteCard>
               ))
             ) : (

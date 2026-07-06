@@ -33,6 +33,7 @@ type MessageOptions = {
   confirmText?: string;
   cancelText?: string;
   onConfirm?: () => void | Promise<void>;
+  onCancel?: () => void | Promise<void>;
   onClose?: () => void | Promise<void>;
 };
 
@@ -131,6 +132,13 @@ export const MessageProvider = ({children}: {children: React.ReactNode}) => {
     await onClose?.();
   };
 
+  const handleCancel = async () => {
+    const onCancel = messageOptions?.onCancel;
+
+    hideMessage();
+    await onCancel?.();
+  };
+
   return (
     <MessageContext.Provider value={contextValue}>
       {children}
@@ -204,7 +212,7 @@ export const MessageProvider = ({children}: {children: React.ReactNode}) => {
                   ]}>
                   <CustomButton
                     variant="secondary"
-                    onPress={hideMessage}
+                    onPress={handleCancel}
                     text={messageOptions.cancelText || 'cancel'}
                     customStyle={[styles.actionButton, styles.cancelButton]}
                     customTextStyle={styles.cancelText}

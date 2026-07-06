@@ -1,4 +1,4 @@
-import { StyleSheet } from 'react-native';
+import {StyleSheet} from 'react-native';
 import Colors from '../../utils/Colors';
 import {FontSize, FontsStyle} from '../../utils/FontsStyle';
 import GeneralStyle from '../../utils/GeneralStyle';
@@ -20,8 +20,15 @@ export const styles = StyleSheet.create({
     ...FontsStyle.text,
     color: Colors.inkMuted,
     fontSize: FontSize.small,
-    marginBottom: GeneralStyle.spacing.sm,
     paddingHorizontal: GeneralStyle.spacing.xs,
+  },
+  listHeader: {
+    minHeight: GeneralStyle.size.control,
+    flexDirection: 'row-reverse',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: GeneralStyle.spacing.sm,
+    marginBottom: GeneralStyle.spacing.sm,
   },
   whiteCardContainer: {
     ...CardBorderStyle,

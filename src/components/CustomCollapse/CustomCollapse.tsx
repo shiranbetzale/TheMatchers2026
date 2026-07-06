@@ -1,5 +1,5 @@
 import React, {useEffect, useRef, useState} from 'react';
-import {SectionList} from 'react-native';
+import {SectionList, View} from 'react-native';
 import generateField from '../../utils/GenerateField';
 import CustomText from '../CustomText/CustomText';
 import WhiteCard from '../WhiteCard/WhiteCard';
@@ -14,6 +14,7 @@ const CustomCollapse = (props: CustomCollapseType) => {
     lockedSectionTitles = [],
     autoExpandUnlockedSection = false,
     showRequiredFieldsNote = false,
+    headerAction,
   } = props;
   const [expandedSections, setExpandedSections] = useState<Set<string>>(
     new Set(),
@@ -79,11 +80,18 @@ const CustomCollapse = (props: CustomCollapseType) => {
       stickySectionHeadersEnabled={false}
       showsVerticalScrollIndicator={false}
       ListHeaderComponent={
-        showRequiredFieldsNote ? (
-          <CustomText
-            text="requiredFieldsNote"
-            customStyle={styles.requiredFieldsNote}
-          />
+        showRequiredFieldsNote || headerAction ? (
+          <View style={styles.listHeader}>
+            {showRequiredFieldsNote ? (
+              <CustomText
+                text="requiredFieldsNote"
+                customStyle={styles.requiredFieldsNote}
+              />
+            ) : (
+              <View />
+            )}
+            {headerAction}
+          </View>
         ) : null
       }
       renderItem={({section: {title}, item}) => {

@@ -1,6 +1,11 @@
 import React from 'react';
-import {Text, View} from 'react-native';
-import CustomButton from '../../components/CustomButton/CustomButton';
+import {Linking, Text, View} from 'react-native';
+import EmailSvg from '../../assets/images/email.svg';
+import PhoneSvg from '../../assets/images/phone.svg';
+import WhatsappSvg from '../../assets/images/whatsapp.svg';
+import CustomButton, {
+  BUTTON_ICON_SIZE,
+} from '../../components/CustomButton/CustomButton';
 import CustomText from '../../components/CustomText/CustomText';
 import WhiteCard from '../../components/WhiteCard/WhiteCard';
 import {useLanguage} from '../../utils/LanguageProvider';
@@ -49,6 +54,16 @@ const formatDateTime = (value?: string) => {
   });
 };
 
+const getPhoneDigits = (value?: string) =>
+  String(value || '').replace(/\D/g, '');
+
+const getWhatsAppPhone = (value?: string) => {
+  const phone = getPhoneDigits(value);
+  if (phone.startsWith('972')) return phone;
+  if (phone.startsWith('0')) return `972${phone.slice(1)}`;
+  return phone;
+};
+
 const ContactRequestCard = ({
   isUpdating,
   onUpdate,
@@ -57,6 +72,12 @@ const ContactRequestCard = ({
   const {t, isRTL} = useLanguage();
   const isHandled = request.status === 'handled';
   const createdAtText = formatDateTime(request.createdAt);
+  const phone = getPhoneDigits(request.phone);
+  const whatsappPhone = getWhatsAppPhone(request.phone);
+
+  const openContactUrl = (url: string) => {
+    Linking.openURL(url).catch(() => undefined);
+  };
 
   return (
     <WhiteCard customStyle={styles.card}>
@@ -111,6 +132,44 @@ const ContactRequestCard = ({
           customStyle={styles.emailError}
         />
       ) : null}
+
+      <View
+        style={[
+          styles.contactActions,
+          isRTL ? styles.rowReverse : styles.row,
+        ]}>
+        {phone ? (
+          <CustomButton
+            unstyled
+            accessibilityLabel={t('call')}
+            customStyle={styles.contactAction}
+            onPress={() => openContactUrl(`tel:${phone}`)}>
+            <PhoneSvg width={BUTTON_ICON_SIZE} height={BUTTON_ICON_SIZE} />
+          </CustomButton>
+        ) : null}
+
+        {whatsappPhone ? (
+          <CustomButton
+            unstyled
+            accessibilityLabel={t('whatsapp')}
+            customStyle={styles.contactAction}
+            onPress={() =>
+              openContactUrl(`whatsapp://send?phone=${whatsappPhone}`)
+            }>
+            <WhatsappSvg width={BUTTON_ICON_SIZE} height={BUTTON_ICON_SIZE} />
+          </CustomButton>
+        ) : null}
+
+        {request.email ? (
+          <CustomButton
+            unstyled
+            accessibilityLabel={t('email')}
+            customStyle={styles.contactAction}
+            onPress={() => openContactUrl(`mailto:${request.email.trim()}`)}>
+            <EmailSvg width={BUTTON_ICON_SIZE} height={BUTTON_ICON_SIZE} />
+          </CustomButton>
+        ) : null}
+      </View>
 
       <View style={[styles.actions, isRTL ? styles.rowReverse : styles.row]}>
         <CustomButton

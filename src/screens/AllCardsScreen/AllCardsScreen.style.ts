@@ -63,6 +63,23 @@ export const styles = StyleSheet.create({
     shadowOffset: {width: 0, height: 0},
     elevation: 0,
   },
+  matchCardWrapper: {
+    position: 'relative',
+  },
+  deleteCandidateButton: {
+    position: 'absolute',
+    left: GeneralStyle.spacing.sm,
+    top: GeneralStyle.spacing.sm,
+    width: GeneralStyle.size.iconLarge,
+    height: GeneralStyle.size.iconLarge,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: Colors.danger,
+    borderRadius: GeneralStyle.radius.sm,
+    backgroundColor: Colors.dangerSoft,
+    zIndex: 2,
+  },
   pinChildrenContainer: {
     backgroundColor: Colors.ivory,
     borderBottomWidth: 1,

@@ -39,6 +39,7 @@ const CurrentCard = (props: CurrentCardProps) => {
     status,
     gender,
     numOfChildren,
+    meetingStatus,
     onMeetingPress,
     isShowMeetingButton,
     isShowInfoButtons = false,
@@ -82,6 +83,14 @@ const CurrentCard = (props: CurrentCardProps) => {
       text: 'cardCityShort',
       info: city || '',
     },
+    ...(isShowMeetingButton
+      ? [
+          {
+            text: 'cardMeetingStatus',
+            info: meetingStatus === 'busy' ? 'busy' : 'available',
+          },
+        ]
+      : []),
   ].filter(detail => detail.text !== 'cardStatus' || detail.info);
 
   const isMale = gender === 'male' || gender === t('male');

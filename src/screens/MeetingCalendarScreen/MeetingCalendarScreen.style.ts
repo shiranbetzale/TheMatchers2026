@@ -163,6 +163,32 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
     flexWrap: 'wrap',
   },
+  meetingStatusBadge: {
+    alignSelf: 'center',
+    marginTop: GeneralStyle.spacing.xs,
+    paddingHorizontal: GeneralStyle.spacing.sm,
+    paddingVertical: 4,
+    borderWidth: 1,
+    borderRadius: GeneralStyle.radius.sm,
+  },
+  meetingStatusMet: {
+    borderColor: Colors.success,
+    backgroundColor: Colors.successSoft,
+  },
+  meetingStatusPending: {
+    borderColor: Colors.premiumLine,
+    backgroundColor: Colors.goldWash,
+  },
+  meetingStatusText: {
+    ...FontsStyle.textDecoration,
+    fontSize: FontSize.caption,
+  },
+  meetingStatusMetText: {
+    color: Colors.success,
+  },
+  meetingStatusPendingText: {
+    color: Colors.goldDark,
+  },
   modalOverlay: {
     flex: 1,
     justifyContent: 'center',
