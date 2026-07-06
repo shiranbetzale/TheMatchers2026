@@ -49,6 +49,36 @@ const getCardImages = (card: MatchCardType) => {
 const isShareableImageUri = (image: string) =>
   /^https?:\/\//i.test(image) || /^data:image\//i.test(image);
 
+const getGenderKey = (gender?: string) => {
+  const normalizedGender = String(gender || '')
+    .trim()
+    .toLowerCase();
+
+  if (normalizedGender === 'male' || normalizedGender === 'זכר') {
+    return 'male';
+  }
+
+  if (normalizedGender === 'female' || normalizedGender === 'נקבה') {
+    return 'female';
+  }
+
+  return undefined;
+};
+
+const getMeetingStatusText = (meetingStatus?: string, gender?: string) => {
+  const genderKey = getGenderKey(gender);
+
+  if (meetingStatus === 'busy') {
+    return genderKey === 'male' ? 'תפוס' : 'תפוסה';
+  }
+
+  if (meetingStatus === 'available') {
+    return genderKey === 'male' ? 'פנוי' : 'פנויה';
+  }
+
+  return 'notSet';
+};
+
 const MatchCard = (props: MatchCardType) => {
   const {isRTL, t} = useLanguage();
 
@@ -128,12 +158,7 @@ const MatchCard = (props: MatchCardType) => {
       },
       {
         text: 'cardMeetingStatus',
-        info:
-          meetingStatus === 'busy'
-            ? 'busy'
-            : meetingStatus === 'available'
-              ? 'available'
-              : 'notSet',
+        info: getMeetingStatusText(meetingStatus, gender),
         isShow: isShowMeetingInfo,
       },
     ],
@@ -148,6 +173,7 @@ const MatchCard = (props: MatchCardType) => {
       met,
       offered,
       meetingStatus,
+      gender,
       isShowMeetingInfo,
     ],
   );
@@ -457,10 +483,7 @@ const MatchCard = (props: MatchCardType) => {
           <View
             style={[styles.infoButtons, isRTL ? styles.rtlRow : styles.ltrRow]}>
             <View style={styles.actionItem}>
-              <CustomButton
-                unstyled
-                onPress={handleMatcherCall}
-                customStyle={styles.icon}>
+              <CustomButton unstyled onPress={handleMatcherCall} customStyle={styles.icon}>
                 <PhoneSvg width={BUTTON_ICON_SIZE} height={BUTTON_ICON_SIZE} />
               </CustomButton>
               <CustomText
@@ -508,10 +531,7 @@ const MatchCard = (props: MatchCardType) => {
             </View>
 
             <View style={styles.actionItem}>
-              <CustomButton
-                unstyled
-                onPress={handleShare}
-                customStyle={styles.icon}>
+              <CustomButton unstyled onPress={handleShare} customStyle={styles.icon}>
                 <ShareSvg width={BUTTON_ICON_SIZE} height={BUTTON_ICON_SIZE} />
               </CustomButton>
               <CustomText text="share" customStyle={styles.actionLabel} />
