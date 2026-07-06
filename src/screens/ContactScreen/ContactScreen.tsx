@@ -46,6 +46,7 @@ const ContactScreen = () => {
   const [phone, setPhone] = useState('');
   const [message, setMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSubmittingDeletion, setIsSubmittingDeletion] = useState(false);
   const [contactDefaults, setContactDefaults] = useState<ContactDetails>(
     EMPTY_CONTACT_DETAILS,
   );
@@ -99,11 +100,7 @@ const ContactScreen = () => {
     setMessage('');
   };
 
-  const handleSubmit = async () => {
-    if (isSubmitting) {
-      return;
-    }
-
+  const validateContactDetails = () => {
     const trimmedName = name.trim();
     const trimmedEmail = email.trim();
     const trimmedPhone = phone.trim();
@@ -111,58 +108,104 @@ const ContactScreen = () => {
 
     if (!trimmedName || !trimmedEmail || !trimmedMessage) {
       showMessage({type: 'error', message: t('errorRequiredFields')});
-      return;
+      return null;
     }
 
     if (!isValidEmail(trimmedEmail)) {
       showMessage({type: 'error', message: t('invalidEmail')});
-      return;
+      return null;
     }
 
     if (!isValidPhone(trimmedPhone)) {
       showMessage({type: 'error', message: t('invalidPhone')});
+      return null;
+    }
+
+    return {
+      name: trimmedName,
+      email: trimmedEmail.toLowerCase(),
+      phone: trimmedPhone,
+      message: trimmedMessage,
+    };
+  };
+
+  const getServerErrorMessage = (error: unknown) => {
+    const axiosError = error as AxiosError<{
+      message?: string;
+      error?: string;
+      field?: string;
+    }>;
+
+    const payload = axiosError.response?.data;
+    const serverMessage = payload?.message;
+    const fallbackServerReason =
+      payload?.error && payload?.field
+        ? `${payload.error}: ${payload.field}`
+        : payload?.error;
+
+    return (
+      serverMessage ||
+      fallbackServerReason ||
+      axiosError.message ||
+      t('contactSendError')
+    );
+  };
+
+  const handleSubmit = async () => {
+    if (isSubmitting || isSubmittingDeletion) {
+      return;
+    }
+
+    const payload = validateContactDetails();
+
+    if (!payload) {
       return;
     }
 
     try {
       setIsSubmitting(true);
 
-      await api.post<ContactResponse>('/api/contact', {
-        name: trimmedName,
-        email: trimmedEmail.toLowerCase(),
-        phone: trimmedPhone,
-        message: trimmedMessage,
-      });
+      await api.post<ContactResponse>('/api/contact', payload);
 
       resetForm();
 
       showMessage({type: 'success', message: t('contactSent')});
     } catch (error) {
-      const axiosError = error as AxiosError<{
-        message?: string;
-        error?: string;
-        field?: string;
-      }>;
-
-      const payload = axiosError.response?.data;
-
-      const serverMessage = payload?.message;
-
-      const fallbackServerReason =
-        payload?.error && payload?.field
-          ? `${payload.error}: ${payload.field}`
-          : payload?.error;
-
       showMessage({
         type: 'error',
-        message:
-          serverMessage ||
-          fallbackServerReason ||
-          axiosError.message ||
-          t('contactSendError'),
+        message: getServerErrorMessage(error),
       });
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleAccountDeletionRequest = async () => {
+    if (isSubmitting || isSubmittingDeletion) {
+      return;
+    }
+
+    const payload = validateContactDetails();
+
+    if (!payload) {
+      return;
+    }
+
+    try {
+      setIsSubmittingDeletion(true);
+
+      await api.post<ContactResponse>('/api/contact/account-deletion', payload);
+
+      resetForm();
+
+      showMessage({type: 'success', message: t('accountDeletionRequestSent')});
+    } catch (error) {
+      showMessage({
+        type: 'error',
+        message: getServerErrorMessage(error),
+      });
+    } finally {
+      setIsSubmittingDeletion(false);
     }
   };
 
@@ -222,8 +265,20 @@ const ContactScreen = () => {
 
           <CustomButton
             text={isSubmitting ? 'sending' : 'send'}
-            isDisabled={isSubmitting}
+            isDisabled={isSubmitting || isSubmittingDeletion}
             onPress={handleSubmit}
+          />
+
+          <CustomText
+            text="accountDeletionHelp"
+            customStyle={styles.deletionHelpText}
+          />
+
+          <CustomButton
+            text={isSubmittingDeletion ? 'sending' : 'requestAccountDeletion'}
+            isDisabled={isSubmitting || isSubmittingDeletion}
+            customStyle={styles.deletionButton}
+            onPress={handleAccountDeletionRequest}
           />
         </WhiteCard>
       </View>
