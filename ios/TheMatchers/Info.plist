@@ -52,12 +52,10 @@
 	</dict>
 	<key>NSCameraUsageDescription</key>
 	<string>נדרש כדי לצלם תמונות לכרטיס.</string>
-	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>נדרש כדי להציג התאמות לפי אזור מגורים.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>נדרש כדי לבחור תמונות לכרטיס.</string>
 	<key>RCTNewArchEnabled</key>
-	<true/>
+	<false/>
 	<key>UIAppFonts</key>
 	<array>
 		<string>Birzia-Black.otf</string>

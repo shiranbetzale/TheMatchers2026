@@ -25,7 +25,7 @@
     "api:sanity": "node backend/scripts/apiSanityCheck.js",
     "seed:admin": "node backend/scripts/seedAdmin.js",
     "push:demo": "node backend/scripts/sendDemoPush.js",
-    "postinstall": "node scripts/patch-react-native-date-picker.js"
+    "postinstall": "node scripts/patch-react-native-date-picker.js && node scripts/patch-react-navigation-elements.js"
   },
   "dependencies": {
     "@notifee/react-native": "^9.1.8",
