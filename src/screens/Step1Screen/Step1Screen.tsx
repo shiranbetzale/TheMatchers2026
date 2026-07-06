@@ -1,4 +1,4 @@
-import React, {useMemo} from 'react';
+import React, {useEffect, useMemo, useRef} from 'react';
 import CustomCollapse from '../../components/CustomCollapse/CustomCollapse';
 import {CollapseSingleType} from '../../components/CustomCollapse/CustomCollapse.type';
 import {WizardStepComponentProps} from '../../components/Wizard/Wizard.type';
@@ -15,9 +15,72 @@ import {
   formatHebrewDate,
   groupBy,
 } from '../../utils/generalFunction';
+import {getSessionUser} from '../../services/session';
+import {
+  loadCandidateWizardDraft,
+  saveCandidateWizardDraft,
+} from '../../services/wizardDraft';
+
+const hasCandidateInput = (values: Record<string, string>) =>
+  Object.entries(values).some(([key, value]) => {
+    if (key === 'phone' || key.endsWith('OptionId')) {
+      return false;
+    }
+
+    return String(value || '').trim().length > 0;
+  });
 
 const Step1Screen = (props: WizardStepComponentProps) => {
   const {values, fieldErrors, onChange, onChangeMany} = props;
+  const hasRestoredDraftRef = useRef(false);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const restoreCandidateDraft = async () => {
+      if (hasRestoredDraftRef.current || hasCandidateInput(values)) {
+        return;
+      }
+
+      hasRestoredDraftRef.current = true;
+
+      try {
+        const sessionUser = await getSessionUser();
+        const sessionPhone = String(sessionUser?.phone || '').trim();
+        const draft = await loadCandidateWizardDraft(sessionPhone || values.phone);
+
+        if (!isMounted) {
+          return;
+        }
+
+        if (draft && Object.keys(draft).length > 0) {
+          onChangeMany({
+            ...draft,
+            ...(draft.phone || sessionPhone ? {phone: draft.phone || sessionPhone} : {}),
+          });
+          return;
+        }
+
+        if (!values.phone && sessionPhone) {
+          onChange('phone', sessionPhone);
+        }
+      } catch (error) {
+        console.warn('Failed to restore candidate wizard draft', error);
+      }
+    };
+
+    restoreCandidateDraft();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [onChange, onChangeMany, values]);
+
+  useEffect(() => {
+    saveCandidateWizardDraft(values, values.phone).catch(error => {
+      console.warn('Failed to save candidate wizard draft', error);
+    });
+  }, [values]);
 
   const detailsFormArrayBeforeFiltered: CollapseSingleType[] = useMemo(
     () => groupBy(detailsFormArray, 'collapseTitle'),
