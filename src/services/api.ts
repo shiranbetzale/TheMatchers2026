@@ -1,12 +1,12 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 
+import {API_BASE_URL, APP_ENV} from '../config/environment';
 import {hideGlobalLoader, showGlobalLoader} from '../utils/LoadingManager';
 import {showGlobalError} from '../utils/MessageManager';
 
 export const API_TOKEN_KEY = 'authToken';
 
-const DEV_SERVER_URL = 'https://thematchers-backend.onrender.com';
 const REQUEST_TIMEOUT_MS = 20000;
 const BACKEND_WARMUP_TIMEOUT_MS = 60000;
 
@@ -35,8 +35,12 @@ const showNetworkError = () => {
   showGlobalError('noInternetConnection');
 };
 
+if (__DEV__) {
+  console.log('API environment:', APP_ENV, API_BASE_URL);
+}
+
 const api = axios.create({
-  baseURL: DEV_SERVER_URL,
+  baseURL: API_BASE_URL,
   timeout: REQUEST_TIMEOUT_MS,
 });
 
