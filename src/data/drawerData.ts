@@ -37,7 +37,7 @@ export const drawerData = [
   {
     name: 'StatisticsScreen',
     component: StatisticsScreen,
-    title: 'statistics',
+    title: 'סטטיסטיקות',
     allowedRoles: ['admin'],
   },
   {
