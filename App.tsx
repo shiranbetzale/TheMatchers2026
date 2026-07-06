@@ -18,6 +18,7 @@ import DrawerNavigation from './src/components/DrawerNavigation/DrawerNavigation
 import {LanguageProvider, useLanguage} from './src/utils/LanguageProvider';
 import {
   getSessionRole,
+  getSessionUser,
   isSessionValid,
   subscribeSessionChanges,
 } from './src/services/session';
@@ -34,6 +35,12 @@ import {MessageProvider} from './src/utils/MessageProvider';
 import firebase from '@react-native-firebase/app';
 import {RootStackParamList} from './src/components/MainStackNavigation/MainStackNavigation.type';
 import api, {enableGlobalApiLoader} from './src/services/api';
+import {
+  initializeMonitoring,
+  logScreenView,
+  recordAppError,
+  setMonitoringUser,
+} from './src/services/monitoring';
 
 console.log('Firebase Apps:', firebase.apps.length);
 console.log('Firebase App Name:', firebase.app().name);
@@ -46,9 +53,20 @@ const AppContent = () => {
   const [initialRoute, setInitialRoute] = useState<Route | null>(null);
   const [sessionVersion, setSessionVersion] = useState(0);
   const fadeAnim = useRef(new Animated.Value(0)).current;
+  const routeNameRef = useRef<string | undefined>();
   const pendingNotificationRouteRef =
     useRef<keyof RootStackParamList | null>(null);
   const {isRTL} = useLanguage();
+
+  const setupMonitoringUser = useCallback(async () => {
+    const [role, user] = await Promise.all([getSessionRole(), getSessionUser()]);
+
+    await setMonitoringUser({
+      id: user?.id,
+      phone: user?.phone,
+      role: role || undefined,
+    });
+  }, []);
 
   const navigateToNotificationTarget = useCallback(
     (routeName: keyof RootStackParamList) => {
@@ -65,6 +83,9 @@ const AppContent = () => {
   const flushPendingNotificationRoute = useCallback(() => {
     const pendingRoute = pendingNotificationRouteRef.current;
 
+    routeNameRef.current = navigationRef.getCurrentRoute()?.name;
+    logScreenView(routeNameRef.current);
+
     if (pendingRoute && navigationRef.isReady()) {
       pendingNotificationRouteRef.current = null;
       navigationRef.navigate(pendingRoute as never);
@@ -78,6 +99,7 @@ const AppContent = () => {
 
     if (hasActiveSession) {
       registerForPushNotifications();
+      setupMonitoringUser();
     }
 
     if (seen !== 'true') {
@@ -89,6 +111,10 @@ const AppContent = () => {
     }
 
     return sessionRole === 'user' ? 'Wizard' : 'MainScreen';
+  }, [setupMonitoringUser]);
+
+  useEffect(() => {
+    initializeMonitoring();
   }, []);
 
   useEffect(() => {
@@ -97,6 +123,7 @@ const AppContent = () => {
         setInitialRoute(await resolveInitialRoute());
       } catch (e) {
         console.warn('Error loading onboarding state:', e);
+        recordAppError(e, 'Error loading onboarding state');
         setInitialRoute('Login');
       } finally {
         await BootSplash.hide({fade: true});
@@ -111,6 +138,7 @@ const AppContent = () => {
       .get('/health', {skipAuthToken: true, skipLoader: true})
       .catch(error => {
         console.warn('Backend warm-up failed', error?.message || error);
+        recordAppError(error, 'Backend warm-up failed');
       });
   }, []);
 
@@ -118,6 +146,7 @@ const AppContent = () => {
     return handleForegroundPushNotifications(message => {
       displayForegroundNotification(message).catch(error => {
         console.warn('Failed to display foreground notification', error);
+        recordAppError(error, 'Failed to display foreground notification');
       });
     });
   }, []);
@@ -136,6 +165,7 @@ const AppContent = () => {
   useEffect(
     () =>
       subscribeSessionChanges(() => {
+        setupMonitoringUser();
         resolveInitialRoute()
           .then(nextRoute => {
             setInitialRoute(nextRoute);
@@ -143,11 +173,12 @@ const AppContent = () => {
           })
           .catch(error => {
             console.warn('Failed to refresh navigation session state', error);
+            recordAppError(error, 'Failed to refresh navigation session state');
             setInitialRoute('Login');
             setSessionVersion(version => version + 1);
           });
       }),
-    [resolveInitialRoute],
+    [resolveInitialRoute, setupMonitoringUser],
   );
 
   useEffect(() => {
@@ -177,6 +208,15 @@ const AppContent = () => {
         <NavigationContainer
           ref={navigationRef}
           onReady={flushPendingNotificationRoute}
+          onStateChange={() => {
+            const previousRouteName = routeNameRef.current;
+            const currentRouteName = navigationRef.getCurrentRoute()?.name;
+
+            if (currentRouteName && previousRouteName !== currentRouteName) {
+              routeNameRef.current = currentRouteName;
+              logScreenView(currentRouteName);
+            }
+          }}
           key={`${isRTL ? 'rtl' : 'ltr'}-${initialRoute}-${sessionVersion}`}>
           <DrawerNavigation
             key={`${isRTL ? 'rtl' : 'ltr'}-${sessionVersion}`}
