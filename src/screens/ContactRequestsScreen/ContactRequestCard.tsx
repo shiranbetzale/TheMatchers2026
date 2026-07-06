@@ -12,6 +12,7 @@ import {useLanguage} from '../../utils/LanguageProvider';
 import {styles} from './ContactRequestsScreen.style';
 
 export type ContactRequestStatus = 'new' | 'read' | 'handled';
+export type ContactRequestType = 'general' | 'account_deletion';
 
 export type ContactRequest = {
   id: string;
@@ -19,6 +20,7 @@ export type ContactRequest = {
   email: string;
   phone?: string;
   message: string;
+  requestType?: ContactRequestType;
   status: ContactRequestStatus;
   emailSent?: boolean;
   emailError?: string;
@@ -38,6 +40,11 @@ const getStatusKey = (status: ContactRequestStatus) => {
   if (status === 'read') return 'contactRequestRead';
   return 'contactRequestNew';
 };
+
+const getRequestTypeKey = (requestType?: ContactRequestType) =>
+  requestType === 'account_deletion'
+    ? 'accountDeletionRequestType'
+    : 'generalContactRequestType';
 
 const formatDateTime = (value?: string) => {
   if (!value) return '';
@@ -105,16 +112,29 @@ const ContactRequestCard = ({
             ))}
         </View>
 
-        <View
-          style={[
-            styles.statusBadge,
-            request.status === 'new' && styles.statusBadgeNew,
-            isHandled && styles.statusBadgeHandled,
-          ]}>
-          <CustomText
-            text={getStatusKey(request.status)}
-            customStyle={styles.statusText}
-          />
+        <View style={styles.badgesColumn}>
+          <View
+            style={[
+              styles.statusBadge,
+              request.requestType === 'account_deletion' && styles.statusBadgeNew,
+            ]}>
+            <CustomText
+              text={getRequestTypeKey(request.requestType)}
+              customStyle={styles.statusText}
+            />
+          </View>
+
+          <View
+            style={[
+              styles.statusBadge,
+              request.status === 'new' && styles.statusBadgeNew,
+              isHandled && styles.statusBadgeHandled,
+            ]}>
+            <CustomText
+              text={getStatusKey(request.status)}
+              customStyle={styles.statusText}
+            />
+          </View>
         </View>
       </View>
 
