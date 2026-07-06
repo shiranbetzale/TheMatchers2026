@@ -29,4 +29,12 @@ export const styles = StyleSheet.create({
   field: {
     width: '100%',
   },
+  deletionHelpText: {
+    ...FontsStyle.caption,
+    color: Colors.slate,
+    textAlign: 'center',
+  },
+  deletionButton: {
+    marginTop: GeneralStyle.spacing.xs,
+  },
 });
