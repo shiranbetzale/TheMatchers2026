@@ -21,7 +21,6 @@ type LoginModalsProps = {
   onCloseCode: () => void;
   onChangeCode: (value: string) => void;
   onResendCode: () => void;
-  onVoiceCode: () => void;
   onVerifyCode: () => void;
 };
 
@@ -42,7 +41,6 @@ const LoginModals = ({
   onCloseCode,
   onChangeCode,
   onResendCode,
-  onVoiceCode,
   onVerifyCode,
 }: LoginModalsProps) => {
   const {t, language, changeLanguage, isRTL} = useLanguage();
@@ -173,14 +171,6 @@ const LoginModals = ({
                   isDisabled={isSubmitting || resendCooldown > 0}
                   customStyle={styles.resendButton}
                   customTextStyle={styles.resendButtonText}
-                />
-                <CustomButton
-                  variant="secondary"
-                  text="candidateVoiceCall"
-                  onPress={onVoiceCode}
-                  isDisabled={isSubmitting}
-                  customStyle={styles.modalVoiceButton}
-                  customTextStyle={styles.modalVoiceButtonText}
                 />
               </View>
             )}
