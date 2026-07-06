@@ -82,6 +82,10 @@ export const styles = StyleSheet.create({
     fontSize: FontSize.caption,
     lineHeight: 19,
   },
+  badgesColumn: {
+    flexShrink: 0,
+    gap: GeneralStyle.spacing.xs,
+  },
   statusBadge: {
     flexShrink: 0,
     paddingHorizontal: GeneralStyle.spacing.sm,
