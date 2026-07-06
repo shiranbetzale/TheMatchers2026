@@ -6,6 +6,7 @@ import ContactRequestsScreen from '../screens/ContactRequestsScreen/ContactReque
 import EditFormScreen from '../screens/EditFormScreen/EditFormScreen';
 import HomeScreen from '../screens/HomeScreen/HomeScreen';
 import Login from '../screens/Login/Login';
+import LogsScreen from '../screens/LogsScreen/LogsScreen';
 import MainScreen from '../screens/MainScreen/MainScreen';
 import MatchCardsScreen from '../screens/MatchCardsScreen/MatchCardsScreen';
 import MeetingCalendarScreen from '../screens/MeetingCalendarScreen/MeetingCalendarScreen';
@@ -30,6 +31,12 @@ export const drawerData = [
     name: 'ContactRequestsScreen',
     component: ContactRequestsScreen,
     title: 'contactRequests',
+    allowedRoles: ['admin'],
+  },
+  {
+    name: 'LogsScreen',
+    component: LogsScreen,
+    title: 'logs',
     allowedRoles: ['admin'],
   },
   {
