@@ -33,6 +33,7 @@ function normalizeContactRequest(doc) {
     email: data.email || '',
     phone: data.phone || '',
     message: data.message || '',
+    requestType: data.requestType || 'general',
     status: data.status || 'new',
     emailSent: Boolean(data.emailSent),
     emailError: data.emailError || '',
@@ -42,6 +43,72 @@ function normalizeContactRequest(doc) {
     handledAt: toIso(data.handledAt),
   };
 }
+
+const saveContactRequest = async ({
+  name,
+  email,
+  phone = '',
+  message,
+  requestType = 'general',
+}) => {
+  const cleanName = String(name || '').trim();
+  const cleanEmail = String(email || '').trim();
+  const cleanPhone = String(phone || '').trim();
+  const cleanMessage = String(message || '').trim();
+
+  const missingField = [
+    ['name', cleanName],
+    ['email', cleanEmail],
+    ['message', cleanMessage],
+  ].find(([, value]) => !value)?.[0];
+
+  if (missingField) {
+    const error = new Error(`Missing required field: ${missingField}`);
+    error.status = 400;
+    error.payload = {
+      error: 'missing_field',
+      field: missingField,
+      message: error.message,
+    };
+    throw error;
+  }
+
+  if (!emailRegex.test(cleanEmail)) {
+    const error = new Error('Invalid email format');
+    error.status = 400;
+    error.payload = {
+      error: 'invalid_email',
+      field: 'email',
+      message: error.message,
+    };
+    throw error;
+  }
+
+  const docRef = await getFirestore().collection('contactRequests').add({
+    name: cleanName,
+    email: cleanEmail,
+    phone: cleanPhone,
+    message: cleanMessage,
+    requestType,
+    status: 'new',
+    emailSent: false,
+    emailSkipped: true,
+    emailError: '',
+    deliveryMode: 'in_app_requests',
+    source: 'thematchers-app',
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  });
+
+  notifyContactRequestCreated({
+    id: docRef.id,
+    name: cleanName,
+  }).catch(error => {
+    console.warn('Failed to send contact-request push notification', error);
+  });
+
+  return docRef;
+};
 
 router.get('/status', (_req, res) => {
   res.json({
@@ -136,60 +203,42 @@ router.patch('/requests/:id', requireAuth(['admin']), async (req, res) => {
   }
 });
 
+router.post('/account-deletion', async (req, res) => {
+  try {
+    const docRef = await saveContactRequest({
+      ...req.body,
+      requestType: 'account_deletion',
+      message: `בקשת מחיקת חשבון\n\n${String(req.body?.message || '').trim()}`.trim(),
+    });
+
+    return res.json({
+      ok: true,
+      id: docRef.id,
+      saved: true,
+      requestType: 'account_deletion',
+      message: 'Account deletion request saved successfully',
+    });
+  } catch (err) {
+    if (err?.payload) {
+      return res.status(err.status || 400).json(err.payload);
+    }
+
+    console.error('[contact] account deletion request failed', {
+      message: err?.message,
+      code: err?.code,
+    });
+
+    return res.status(500).json({
+      error: 'account_deletion_request_failed',
+      message: err?.message || 'Failed to save account deletion request',
+      code: err?.code || undefined,
+    });
+  }
+});
+
 router.post('/', async (req, res) => {
   try {
-    const {name, email, phone = '', message} = req.body || {};
-
-    const cleanName = String(name || '').trim();
-    const cleanEmail = String(email || '').trim();
-    const cleanPhone = String(phone || '').trim();
-    const cleanMessage = String(message || '').trim();
-
-    const missingField = [
-      ['name', cleanName],
-      ['email', cleanEmail],
-      ['message', cleanMessage],
-    ].find(([, value]) => !value)?.[0];
-
-    if (missingField) {
-      return res.status(400).json({
-        error: 'missing_field',
-        field: missingField,
-        message: `Missing required field: ${missingField}`,
-      });
-    }
-
-    if (!emailRegex.test(cleanEmail)) {
-      return res.status(400).json({
-        error: 'invalid_email',
-        field: 'email',
-        message: 'Invalid email format',
-      });
-    }
-
-    const db = getFirestore();
-
-    const docRef = await db.collection('contactRequests').add({
-      name: cleanName,
-      email: cleanEmail,
-      phone: cleanPhone,
-      message: cleanMessage,
-      status: 'new',
-      emailSent: false,
-      emailSkipped: true,
-      emailError: '',
-      deliveryMode: 'in_app_requests',
-      source: 'thematchers-app',
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    });
-
-    notifyContactRequestCreated({
-      id: docRef.id,
-      name: cleanName,
-    }).catch(error => {
-      console.warn('Failed to send contact-request push notification', error);
-    });
+    const docRef = await saveContactRequest(req.body || {});
 
     return res.json({
       ok: true,
@@ -198,6 +247,10 @@ router.post('/', async (req, res) => {
       message: 'Contact request saved successfully',
     });
   } catch (err) {
+    if (err?.payload) {
+      return res.status(err.status || 400).json(err.payload);
+    }
+
     console.error('[contact] save failed', {
       message: err?.message,
       code: err?.code,
