@@ -151,9 +151,12 @@ const CustomAutocomplete = (props: CustomAutocompleteType) => {
               </View>
             ) : filteredOptions.length > 0 ? (
               <ScrollView
+                style={styles.suggestionsScroll}
+                contentContainerStyle={styles.suggestionsScrollContent}
                 keyboardShouldPersistTaps="always"
                 nestedScrollEnabled
-                showsVerticalScrollIndicator={false}>
+                scrollEnabled
+                showsVerticalScrollIndicator>
                 {filteredOptions.map(option => (
                   <CustomButton unstyled
                     key={`${option.name}_${option.id}_${option.label}`}
