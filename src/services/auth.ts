@@ -6,6 +6,8 @@ import {saveSession} from './session';
 
 const AUTH_REQUEST_TIMEOUT_MS = 60000;
 
+let lastCandidateSmsPhone = '';
+
 type LoginResponse = {
   token: string;
   user: {
@@ -80,6 +82,7 @@ const assertFirebasePhoneAuthConfigured = () => {
 export const sendCandidateCode = async (
   phone: string,
   matchmakerPhone: string,
+  forceResend = false,
 ): Promise<FirebaseAuthTypes.ConfirmationResult> => {
   await api.post(
     '/auth/candidate/send-code',
@@ -96,11 +99,19 @@ export const sendCandidateCode = async (
   assertFirebasePhoneAuthConfigured();
 
   const firebasePhone = toFirebasePhoneNumber(phone);
+  const shouldForceResend = forceResend || lastCandidateSmsPhone === firebasePhone;
 
-  console.log('Sending Firebase SMS to:', firebasePhone);
+  console.log('Sending Firebase SMS to:', firebasePhone, {
+    forceResend: shouldForceResend,
+  });
 
   try {
-    return await auth().signInWithPhoneNumber(firebasePhone);
+    const confirmation = await auth().signInWithPhoneNumber(
+      firebasePhone,
+      shouldForceResend,
+    );
+    lastCandidateSmsPhone = firebasePhone;
+    return confirmation;
   } catch (error: any) {
     console.log('Firebase SMS error:', {
       code: error?.code,
