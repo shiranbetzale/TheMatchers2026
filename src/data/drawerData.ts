@@ -12,6 +12,7 @@ import MatchCardsScreen from '../screens/MatchCardsScreen/MatchCardsScreen';
 import MeetingCalendarScreen from '../screens/MeetingCalendarScreen/MeetingCalendarScreen';
 import OnBoardingScreen from '../screens/OnBoardingScreen/OnBoardingScreen';
 import RegisterUserScreen from '../screens/RegisterUserScreen/RegisterUserScreen';
+import StatisticsScreen from '../screens/StatisticsScreen/StatisticsScreen';
 import UsersListScreen from '../screens/UsersListScreen/UsersListScreen';
 
 export const drawerData = [
@@ -31,6 +32,12 @@ export const drawerData = [
     name: 'ContactRequestsScreen',
     component: ContactRequestsScreen,
     title: 'contactRequests',
+    allowedRoles: ['admin'],
+  },
+  {
+    name: 'StatisticsScreen',
+    component: StatisticsScreen,
+    title: 'statistics',
     allowedRoles: ['admin'],
   },
   {
