@@ -16,8 +16,10 @@ const invitationsRouter = require('./routes/invitations');
 const profilesRouter = require('./routes/profiles');
 const matchesRouter = require('./routes/matches');
 const contactRouter = require('./routes/contact');
+const logsRouter = require('./routes/logs');
 const notificationsRouter = require('./routes/notifications');
 const uploadsRouter = require('./routes/uploads');
+const {addLog} = require('./services/logStore');
 const {startMeetingReminderScheduler} = require('./services/meetingReminders');
 
 const app = express();
@@ -28,6 +30,30 @@ app.use(express.json());
 if (morgan) {
   app.use(morgan('dev'));
 }
+
+app.use((req, res, next) => {
+  const startedAt = Date.now();
+
+  res.on('finish', () => {
+    if (req.path === '/health' || req.path.startsWith('/api/logs')) {
+      return;
+    }
+
+    if (req.method !== 'GET' || res.statusCode >= 400) {
+      addLog({
+        action: `${req.method} ${req.originalUrl}`,
+        message: `Status ${res.statusCode}`,
+        user: req.user,
+        metadata: {
+          statusCode: res.statusCode,
+          durationMs: Date.now() - startedAt,
+        },
+      });
+    }
+  });
+
+  next();
+});
 
 app.get('/health', (_req, res) => {
   res.json({
@@ -42,6 +68,7 @@ app.use('/api/profiles', profilesRouter);
 app.use('/api/matches', matchesRouter);
 app.use('/api/users', usersRouter);
 app.use('/api/contact', contactRouter);
+app.use('/api/logs', logsRouter);
 app.use('/api/notifications', notificationsRouter);
 app.use('/api/uploads', uploadsRouter);
 
