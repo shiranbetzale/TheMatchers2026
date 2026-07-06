@@ -16,7 +16,7 @@ import {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import BootSplash from 'react-native-bootsplash';
 import DrawerNavigation from './src/components/DrawerNavigation/DrawerNavigation';
-import {LanguageProvider} from './src/utils/LanguageProvider';
+import {LanguageProvider, useLanguage} from './src/utils/LanguageProvider';
 import {
   getSessionRole,
   getSessionUser,
@@ -57,6 +57,7 @@ type PendingNotificationRoute = {
 };
 
 const AppContent = () => {
+  const {isRTL} = useLanguage();
   const [initialRoute, setInitialRoute] = useState<Route | null>(null);
   const [sessionVersion, setSessionVersion] = useState(0);
   const fadeAnim = useRef(new Animated.Value(0)).current;
