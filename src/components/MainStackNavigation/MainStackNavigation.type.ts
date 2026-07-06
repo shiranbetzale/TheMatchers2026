@@ -13,6 +13,7 @@ export type RootStackParamList = {
   Register: undefined;
   RegisterUserScreen: undefined;
   UsersList: undefined;
+  StatisticsScreen: undefined;
   Wizard:
     | {
         resetToken?: number;
