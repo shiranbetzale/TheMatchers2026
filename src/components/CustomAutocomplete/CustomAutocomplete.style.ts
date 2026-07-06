@@ -81,6 +81,12 @@ export const styles = StyleSheet.create({
     zIndex: 1000,
     elevation: 24,
   },
+  suggestionsScroll: {
+    maxHeight: GeneralStyle.size.options,
+  },
+  suggestionsScrollContent: {
+    flexGrow: 0,
+  },
   inlineSuggestionsPanel: {
     position: 'relative',
     top: undefined,
