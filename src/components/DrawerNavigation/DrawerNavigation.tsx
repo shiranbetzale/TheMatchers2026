@@ -54,6 +54,8 @@ const getDrawerIcon = (routeName: string) => {
       return <ContactIcon {...iconProps} />;
     case 'ContactRequestsScreen':
       return <EmailIcon {...iconProps} />;
+    case 'LogsScreen':
+      return <MenuIcon {...iconProps} />;
     case 'EditFormScreen':
       return <EditIcon {...iconProps} />;
     case 'UsersList':
