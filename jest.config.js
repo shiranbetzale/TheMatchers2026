@@ -1,3 +1,4 @@
 module.exports = {
-  preset: 'react-native',
+  testMatch: ['<rootDir>/src/**/*.test.js'],
+  transform: {},
 };
