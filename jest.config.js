@@ -1,4 +1,4 @@
 module.exports = {
-  testMatch: ['<rootDir>/src/**/*.test.ts'],
+  testMatch: ['<rootDir>/src/**/*.test.js'],
   transform: {},
 };
