@@ -2,6 +2,26 @@ import qs from 'qs';
 import {Image, Linking} from 'react-native';
 import {MatchCardType} from '../components/MatchCard/MatchCard.type';
 
+export type BackendProfile = Record<string, unknown> & {
+  _id?: string;
+  id?: string;
+  fullName?: string;
+  name?: string;
+  age?: string | number;
+  height?: string | number;
+  hight?: string | number;
+  gender?: string | number;
+  status?: string;
+  maritalStatus?: string;
+  familyStatus?: string;
+  relationshipStatus?: string;
+  archivedReason?: string;
+  countOfChildren?: string | number;
+  images?: unknown;
+  meetingStatus?: string;
+  meetingTime?: string | number;
+};
+
 const DEFAULT_MALE_PROFILE_IMAGE = Image.resolveAssetSource(
   require('../assets/images/anonymous-man.png'),
 ).uri;
@@ -9,15 +29,40 @@ const DEFAULT_FEMALE_PROFILE_IMAGE = Image.resolveAssetSource(
   require('../assets/images/anonymous-woman.png'),
 ).uri;
 
-export const getDefaultProfileImage = (gender?: string) => {
-  const normalizedGender = String(gender || '')
+const normalizeLookupKey = (value: unknown) =>
+  String(value || '')
     .trim()
-    .toLowerCase();
+    .toLowerCase()
+    .replace(/\s+/g, '');
 
-  return normalizedGender === 'male' || normalizedGender === 'זכר'
+const parsePositiveNumber = (value: unknown, fallback = 0) => {
+  const numericValue = Number(value);
+  return Number.isFinite(numericValue) && numericValue > 0
+    ? numericValue
+    : fallback;
+};
+
+const normalizeGenderKey = (gender: unknown): 'male' | 'female' | undefined => {
+  const normalizedGender = normalizeLookupKey(gender);
+
+  if (['male', 'm', '1', 'זכר', 'בן', 'בחור'].includes(normalizedGender)) {
+    return 'male';
+  }
+
+  if (['female', 'f', '2', 'נקבה', 'בת', 'בחורה'].includes(normalizedGender)) {
+    return 'female';
+  }
+
+  return undefined;
+};
+
+export const normalizeGender = (gender: unknown): 'male' | 'female' | undefined =>
+  normalizeGenderKey(gender);
+
+export const getDefaultProfileImage = (gender?: string) =>
+  normalizeGenderKey(gender) === 'male'
     ? DEFAULT_MALE_PROFILE_IMAGE
     : DEFAULT_FEMALE_PROFILE_IMAGE;
-};
 
 const HEBREW_NUMERAL_LETTERS = [
   {value: 400, letter: 'ת'},
@@ -257,23 +302,25 @@ export const getDateBefore = (years: number) => {
 };
 
 export const groupBy = (array: any[], key: string) => {
-  return array.reduce((result: any[], item: any) => {
+  const groups = new Map<string, {title: any; data: any[]}>();
+
+  array.forEach(item => {
     const collapseTitle = item[key];
+    const groupKey = String(collapseTitle);
     const {...rest} = item;
-    const existingGroup = result.find(
-      (group: any) => group.title === collapseTitle,
-    );
+    const existingGroup = groups.get(groupKey);
 
     if (existingGroup) {
       existingGroup.data.push(rest);
     } else {
-      result.push({
+      groups.set(groupKey, {
         title: collapseTitle,
         data: [rest],
       });
     }
-    return result;
-  }, []);
+  });
+
+  return Array.from(groups.values());
 };
 
 export const sendEmail = async (to = '', subject = '', body = '') => {
@@ -302,39 +349,32 @@ export const sendEmail = async (to = '', subject = '', body = '') => {
   }
 };
 
-const getRelationshipStatus = (profile: any) =>
-  profile.relationshipStatus ||
-  (profile.archivedReason === 'married'
-    ? 'married'
-    : profile.archivedReason === 'engaged'
-      ? 'engaged'
-      : 'single');
+const getRelationshipStatus = (profile: BackendProfile) => {
+  const relationshipStatus = String(profile.relationshipStatus || '').trim();
+  const archivedReason = normalizeLookupKey(profile.archivedReason);
 
-const normalizeLookupKey = (value: unknown) =>
-  String(value || '')
-    .trim()
-    .toLowerCase()
-    .replace(/\s+/g, '');
+  if (relationshipStatus) {
+    return relationshipStatus;
+  }
+
+  if (archivedReason === 'married') {
+    return 'married';
+  }
+
+  if (archivedReason === 'engaged') {
+    return 'engaged';
+  }
+
+  return 'single';
+};
 
 const PROFILE_STATUS_ALIASES: Record<string, string[]> = {
   single: ['single'],
-  singleStatus: [
-    'singleStatus',
-    'singleStatusMale',
-    'singleStatusFemale',
-  ],
+  singleStatus: ['singleStatus', 'singleStatusMale', 'singleStatusFemale'],
   divorced: ['divorced'],
-  divorcedStatus: [
-    'divorcedStatus',
-    'divorcedStatusMale',
-    'divorcedStatusFemale',
-  ],
+  divorcedStatus: ['divorcedStatus', 'divorcedStatusMale', 'divorcedStatusFemale'],
   widower: ['widower'],
-  widowedStatus: [
-    'widowedStatus',
-    'widowedStatusMale',
-    'widowedStatusFemale',
-  ],
+  widowedStatus: ['widowedStatus', 'widowedStatusMale', 'widowedStatusFemale'],
   widowedWithChildrenStatus: [
     'widowerWithChildren',
     'widowedWithChildrenStatus',
@@ -359,7 +399,7 @@ const PROFILE_STATUS_ALIAS_MAP = Object.entries(PROFILE_STATUS_ALIASES).reduce<
   return result;
 }, {});
 
-const normalizeProfileStatus = (status: unknown) => {
+export const normalizeProfileStatus = (status: unknown) => {
   const normalized = String(status || '').trim();
   const statusKey = normalizeLookupKey(normalized);
 
@@ -368,20 +408,6 @@ const normalizeProfileStatus = (status: unknown) => {
   }
 
   return PROFILE_STATUS_ALIAS_MAP[statusKey] ?? normalized;
-};
-
-const normalizeGenderKey = (gender: unknown): 'male' | 'female' | undefined => {
-  const normalizedGender = String(gender || '').trim().toLowerCase();
-
-  if (normalizedGender === 'male' || normalizedGender === '1') {
-    return 'male';
-  }
-
-  if (normalizedGender === 'female' || normalizedGender === '2') {
-    return 'female';
-  }
-
-  return undefined;
 };
 
 const getGenderedStatusKey = (status: string, gender: unknown) => {
@@ -429,7 +455,7 @@ const getGenderedStatusKey = (status: string, gender: unknown) => {
   return statusMap[status]?.[genderKey] ?? status;
 };
 
-const getProfileCardStatus = (profile: any) => {
+const getProfileCardStatus = (profile: BackendProfile) => {
   const status = normalizeProfileStatus(
     profile.maritalStatus || profile.familyStatus || profile.status,
   );
@@ -473,7 +499,7 @@ export const normalizeImages = (images: unknown): string[] => {
     return [];
   }
 
-  return images
+  const normalizedImages = images
     .map(image => {
       if (typeof image === 'string') {
         return image.trim();
@@ -503,6 +529,8 @@ export const normalizeImages = (images: unknown): string[] => {
       return '';
     })
     .filter(Boolean);
+
+  return Array.from(new Set(normalizedImages));
 };
 
 export const formatTimePart = (value: number) => String(value).padStart(2, '0');
@@ -540,17 +568,18 @@ export const normalizeMeetingTime = (value?: string | number) => {
   return `${formatTimePart(hours)}:${formatTimePart(minutes)}`;
 };
 
-export const mapProfileToCard = (profile: any): MatchCardType => {
+export const mapProfileToCard = (profile: BackendProfile): MatchCardType => {
   const relationshipStatus = getRelationshipStatus(profile);
   const normalizedImages = normalizeImages(profile.images);
-  const gender = String(profile.gender || 'female');
+  const gender = normalizeGender(profile.gender) ?? 'female';
+  const height = profile.height ?? profile.hight;
 
   return {
     profileId: String(profile._id || profile.id || ''),
     createdAt: profile.createdAt ? String(profile.createdAt) : undefined,
     name: profile.fullName || profile.name || '—',
-    age: Number(profile.age) || 0,
-    height: String(profile.hight || profile.height || ''),
+    age: parsePositiveNumber(profile.age),
+    height: height ? String(height) : '',
     status: getProfileCardStatus(profile),
     maritalStatus: normalizeProfileStatus(
       profile.maritalStatus || profile.familyStatus || profile.status,
@@ -558,7 +587,7 @@ export const mapProfileToCard = (profile: any): MatchCardType => {
     images: normalizedImages.length
       ? normalizedImages
       : [getDefaultProfileImage(gender)],
-    numOfChildren: Number(profile.countOfChildren) || 0,
+    numOfChildren: parsePositiveNumber(profile.countOfChildren),
     gender,
     phone: String(profile.phone || ''),
     matcherPhone: String(profile.matcherPhone || ''),
