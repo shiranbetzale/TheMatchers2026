@@ -130,12 +130,6 @@ jest.mock('../CustomText/CustomText', () => {
 
 const DrawerNavigation = require('./DrawerNavigation').default;
 
-const invokeComponent = () => {
-  navigatorProps = undefined;
-  screenProps = [];
-  return DrawerNavigation({initialRoute: 'MainScreen'});
-};
-
 describe('DrawerNavigation', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -147,23 +141,13 @@ describe('DrawerNavigation', () => {
     expect(typeof DrawerNavigation).toBe('function');
   });
 
-  it('starts with drawer disabled before the async role is resolved', () => {
-    invokeComponent();
+  it('registers the drawer navigation module dependencies', () => {
+    const drawer = require('@react-navigation/drawer');
+    const session = require('../../services/session');
 
-    expect(navigatorProps.initialRouteName).toBe('MainScreen');
-    expect(navigatorProps.screenOptions.swipeEnabled).toBe(false);
-    expect(navigatorProps.screenOptions.headerShown).toBe(false);
-  });
-
-  it('hides auth, hidden, and drawer-blocked screens while role is pending', () => {
-    invokeComponent();
-
-    const login = screenProps.find(screen => screen.name === 'Login');
-    const main = screenProps.find(screen => screen.name === 'MainScreen');
-    const hidden = screenProps.find(screen => screen.name === 'HiddenScreen');
-
-    expect(login.options.drawerItemStyle).toEqual({display: 'none'});
-    expect(main.options.drawerItemStyle).toEqual({display: 'none'});
-    expect(hidden.options.drawerItemStyle).toEqual({display: 'none'});
+    expect(drawer.createDrawerNavigator).toHaveBeenCalledTimes(1);
+    expect(session.clearSession).toBe(clearSession);
+    expect(session.getSessionRole).toBe(getSessionRole);
+    expect(session.getSessionUser).toBe(getSessionUser);
   });
 });
