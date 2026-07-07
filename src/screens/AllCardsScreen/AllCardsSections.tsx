@@ -100,6 +100,21 @@ export const CardsSummary = ({
   </View>
 );
 
+const CardsLoadingState = () => (
+  <View style={styles.loadingContainer} accessibilityLabel="cardsLoading">
+    {[0, 1, 2].map(item => (
+      <View key={item} style={styles.loadingCard}>
+        <View style={styles.loadingAvatar} />
+        <View style={styles.loadingTextBlock}>
+          <View style={styles.loadingLineLarge} />
+          <View style={styles.loadingLineSmall} />
+        </View>
+      </View>
+    ))}
+    <CustomText text="loading" customStyle={styles.loadingText} />
+  </View>
+);
+
 type ContentProps = {
   cards: MatchCardType[];
   currentUserRole: UserRole;
@@ -149,11 +164,15 @@ export const AllCardsContent = ({
             maleCount={maleCount}
             femaleCount={femaleCount}
           />
-          {!hasLoaded ? null : cards.length === 0 ? (
-            <CustomText
-              text={onlyMine ? 'noAssignedCards' : 'noCardsYet'}
-              customStyle={FontsStyle.text}
-            />
+          {!hasLoaded ? (
+            <CardsLoadingState />
+          ) : cards.length === 0 ? (
+            <View style={styles.emptyStateCard}>
+              <CustomText
+                text={onlyMine ? 'noAssignedCards' : 'noCardsYet'}
+                customStyle={FontsStyle.text}
+              />
+            </View>
           ) : (
             cards.map((card, index) => (
               <View
