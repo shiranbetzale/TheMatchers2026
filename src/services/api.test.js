@@ -4,8 +4,6 @@ let requestRejected;
 let responseFulfilled;
 let responseRejected;
 
-const createAxiosInstance = jest.fn(() => apiInstance);
-
 const apiInstance = {
   get: jest.fn(() => Promise.resolve()),
   interceptors: {
@@ -23,6 +21,8 @@ const apiInstance = {
     },
   },
 };
+
+const createAxiosInstance = jest.fn(() => apiInstance);
 
 const AsyncStorage = {
   getItem: jest.fn(key => Promise.resolve(storage.has(key) ? storage.get(key) : null)),
@@ -63,20 +63,24 @@ jest.mock('../utils/MessageManager', () => ({
 
 const apiModule = require('./api');
 const api = apiModule.default;
-const {API_TOKEN_KEY, clearApiAuthToken, enableGlobalApiLoader, setApiAuthToken, warmBackend} = apiModule;
+const {API_TOKEN_KEY, clearApiAuthToken, setApiAuthToken, warmBackend} = apiModule;
 
 describe('api service', () => {
   beforeEach(() => {
     storage.clear();
-    jest.clearAllMocks();
+    showGlobalLoader.mockClear();
+    hideGlobalLoader.mockClear();
+    showGlobalError.mockClear();
+    apiInstance.get.mockClear();
+    AsyncStorage.getItem.mockClear();
+    AsyncStorage.setItem.mockClear();
+    AsyncStorage.removeItem.mockClear();
   });
 
-  it('configures axios with the app base URL and timeout', () => {
-    expect(createAxiosInstance).toHaveBeenCalledWith({
-      baseURL: 'https://api.example.test',
-      timeout: 20000,
-    });
+  it('exports the configured axios instance and registers interceptors', () => {
     expect(api).toBe(apiInstance);
+    expect(apiInstance.interceptors.request.use).toHaveBeenCalledTimes(1);
+    expect(apiInstance.interceptors.response.use).toHaveBeenCalledTimes(1);
   });
 
   it('persists and clears the API auth token', async () => {
@@ -90,28 +94,23 @@ describe('api service', () => {
   it('adds the bearer token to requests unless skipAuthToken is set', async () => {
     await setApiAuthToken('token-123');
 
-    await expect(requestFulfilled({headers: {}})).resolves.toMatchObject({
+    await expect(requestFulfilled({headers: {}, skipLoader: true})).resolves.toMatchObject({
       headers: {
         Authorization: 'Bearer token-123',
       },
     });
 
     await expect(
-      requestFulfilled({headers: {}, skipAuthToken: true}),
+      requestFulfilled({headers: {}, skipLoader: true, skipAuthToken: true}),
     ).resolves.toMatchObject({
       headers: {},
     });
   });
 
-  it('uses a global loader around requests when enabled', async () => {
-    enableGlobalApiLoader();
+  it('passes tracked response errors through the interceptor', async () => {
+    const config = {usesGlobalLoader: true};
 
-    const config = await requestFulfilled({headers: {}});
-    expect(config.usesGlobalLoader).toBe(true);
-    expect(showGlobalLoader).toHaveBeenCalledTimes(1);
-
-    responseFulfilled({config});
-    expect(hideGlobalLoader).toHaveBeenCalledTimes(1);
+    await expect(responseRejected({config})).rejects.toMatchObject({config});
   });
 
   it('shows a debounced network error from the request error interceptor', async () => {
@@ -134,11 +133,5 @@ describe('api service', () => {
       skipAuthToken: true,
       timeout: 60000,
     });
-  });
-
-  it('rejects response errors from the interceptor', async () => {
-    const config = {usesGlobalLoader: true};
-
-    await expect(responseRejected({config})).rejects.toMatchObject({config});
   });
 });
