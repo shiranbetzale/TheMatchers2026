@@ -15,8 +15,10 @@ const {
   groupBy,
   sendEmail,
   getCardStatusText,
+  normalizeGender,
   normalizeImages,
   normalizeMeetingTime,
+  normalizeProfileStatus,
   mapProfileToCard,
 } = require('./generalFunction');
 
@@ -29,6 +31,16 @@ describe('generalFunction utilities', () => {
     expect(getDefaultProfileImage('male')).toBe('asset:test-file-stub');
     expect(getDefaultProfileImage('זכר')).toBe('asset:test-file-stub');
     expect(getDefaultProfileImage('female')).toBe('asset:test-file-stub');
+  });
+
+  it('normalizes gender aliases consistently', () => {
+    expect(normalizeGender('זכר')).toBe('male');
+    expect(normalizeGender('בן')).toBe('male');
+    expect(normalizeGender('1')).toBe('male');
+    expect(normalizeGender('נקבה')).toBe('female');
+    expect(normalizeGender('בת')).toBe('female');
+    expect(normalizeGender('2')).toBe('female');
+    expect(normalizeGender('unknown')).toBeUndefined();
   });
 
   it('groups records by a requested key while preserving item data', () => {
@@ -58,13 +70,17 @@ describe('generalFunction utilities', () => {
 
   it('normalizes image inputs from strings, arrays, objects and base64 payloads', () => {
     expect(normalizeImages(' single-image.jpg ')).toEqual(['single-image.jpg']);
-    expect(normalizeImages('["a.jpg", " b.jpg "]')).toEqual(['a.jpg', 'b.jpg']);
+    expect(normalizeImages('["a.jpg", " b.jpg ", "a.jpg"]')).toEqual([
+      'a.jpg',
+      'b.jpg',
+    ]);
     expect(
       normalizeImages([
         {uri: ' uri.jpg '},
         {url: 'url.jpg'},
         {path: 'path.jpg'},
         {base64: 'abc123', type: 'image/png'},
+        'uri.jpg',
         '',
         null,
       ]),
@@ -87,6 +103,15 @@ describe('generalFunction utilities', () => {
     expect(normalizeMeetingTime('abc')).toBeUndefined();
   });
 
+  it('normalizes profile status aliases and ignores non-card statuses', () => {
+    expect(normalizeProfileStatus('divorcedWithChildren')).toBe(
+      'divorcedWithChildrenStatus',
+    );
+    expect(normalizeProfileStatus('singleStatusFemale')).toBe('singleStatus');
+    expect(normalizeProfileStatus('archived')).toBe('');
+    expect(normalizeProfileStatus('active')).toBe('');
+  });
+
   it('builds gendered status labels and appends children count only when relevant', () => {
     const translate = key => key;
 
@@ -94,6 +119,9 @@ describe('generalFunction utilities', () => {
       'divorcedStatusFemale2',
     );
     expect(getCardStatusText('single', 0, translate, 'male')).toBe(
+      'singleStatusMale',
+    );
+    expect(getCardStatusText('single', 0, translate, 'זכר')).toBe(
       'singleStatusMale',
     );
     expect(getCardStatusText('archived', 3, translate, 'male')).toBe('');
@@ -105,12 +133,13 @@ describe('generalFunction utilities', () => {
       fullName: 'Lea Cohen',
       age: '27',
       hight: 165,
-      gender: 'female',
+      height: 170,
+      gender: 'נקבה',
       status: 'divorcedWithChildren',
       countOfChildren: '2',
       phone: '0501234567',
       matcherPhone: '0522222222',
-      images: JSON.stringify([{url: 'profile.jpg'}]),
+      images: JSON.stringify([{url: 'profile.jpg'}, {url: 'profile.jpg'}]),
       meetingStatus: 'busy',
       meetingTime: '8:5',
       partnerOutsideApp: true,
@@ -120,7 +149,7 @@ describe('generalFunction utilities', () => {
       profileId: 'profile-1',
       name: 'Lea Cohen',
       age: 27,
-      height: '165',
+      height: '170',
       status: 'divorcedWithChildrenStatus',
       maritalStatus: 'divorcedWithChildrenStatus',
       images: ['profile.jpg'],
