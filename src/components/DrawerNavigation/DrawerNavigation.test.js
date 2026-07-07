@@ -18,9 +18,17 @@ jest.mock('react-native', () => ({
   },
 }));
 
-jest.mock('react-native-device-info', () => ({
+const deviceInfoMock = {
+  getSystemName: jest.fn(() => 'iOS'),
+  getSystemVersion: jest.fn(() => '17'),
   hasNotch: jest.fn(() => false),
   isTablet: jest.fn(() => false),
+};
+
+jest.mock('react-native-device-info', () => ({
+  __esModule: true,
+  default: deviceInfoMock,
+  ...deviceInfoMock,
 }));
 
 jest.mock('@react-navigation/drawer', () => {
@@ -71,12 +79,7 @@ jest.mock('../../utils/LanguageProvider', () => ({
 
 jest.mock('../../data/drawerData', () => ({
   drawerData: [
-    {
-      name: 'Login',
-      title: 'login',
-      component: DummyScreen,
-      isHeaderShown: false,
-    },
+    {name: 'Login', title: 'login', component: DummyScreen, isHeaderShown: false},
     {
       name: 'MainScreen',
       title: 'main',
@@ -186,16 +189,10 @@ describe('DrawerNavigation', () => {
     getSessionRole.mockResolvedValue('admin');
     getSessionUser.mockResolvedValue({name: 'Shiran'});
 
-    const descriptors = {
-      main: {options: {title: 'main'}},
-    };
     const props = {
-      descriptors,
+      descriptors: {main: {options: {title: 'main'}}},
       navigation: {navigate, dispatch},
-      state: {
-        index: 0,
-        routes: [{key: 'main', name: 'MainScreen'}],
-      },
+      state: {index: 0, routes: [{key: 'main', name: 'MainScreen'}]},
     };
 
     let tree;
