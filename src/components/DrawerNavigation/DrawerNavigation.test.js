@@ -18,6 +18,11 @@ jest.mock('react-native', () => ({
   },
 }));
 
+jest.mock('react-native-device-info', () => ({
+  hasNotch: jest.fn(() => false),
+  isTablet: jest.fn(() => false),
+}));
+
 jest.mock('@react-navigation/drawer', () => {
   const React = require('react');
 
