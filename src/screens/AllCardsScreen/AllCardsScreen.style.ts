@@ -50,11 +50,13 @@ export const styles = StyleSheet.create({
     fontSize: FontSize.caption,
     textAlign: 'center',
   },
+  cardsList: {
+    gap: GeneralStyle.spacing.sm,
+  },
   matchCard: {
     padding: 0,
     paddingHorizontal: 0,
     paddingVertical: 0,
-    marginBottom: GeneralStyle.spacing.sm,
     borderWidth: 0,
     borderRadius: 0,
     backgroundColor: Colors.transparent,
@@ -70,15 +72,23 @@ export const styles = StyleSheet.create({
     position: 'absolute',
     left: GeneralStyle.spacing.sm,
     top: GeneralStyle.spacing.sm,
-    width: GeneralStyle.size.iconLarge,
+    minWidth: GeneralStyle.size.iconLarge,
     height: GeneralStyle.size.iconLarge,
+    flexDirection: 'row-reverse',
     alignItems: 'center',
     justifyContent: 'center',
+    gap: GeneralStyle.spacing.xs,
+    paddingHorizontal: GeneralStyle.spacing.sm,
     borderWidth: 1,
     borderColor: Colors.danger,
     borderRadius: GeneralStyle.radius.sm,
     backgroundColor: Colors.dangerSoft,
     zIndex: 2,
+  },
+  deleteCandidateText: {
+    ...FontsStyle.text,
+    color: Colors.danger,
+    fontSize: FontSize.caption,
   },
   emptyStateCard: {
     alignItems: 'center',
@@ -168,6 +178,18 @@ export const styles = StyleSheet.create({
   },
   actionButtonLtr: {
     flexDirection: 'row',
+  },
+  actionIconWrapper: {
+    position: 'relative',
+  },
+  actionBadge: {
+    position: 'absolute',
+    top: -4,
+    left: -4,
+    width: 9,
+    height: 9,
+    borderRadius: 5,
+    backgroundColor: Colors.danger,
   },
   actionText: {
     ...FontsStyle.text,
