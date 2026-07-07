@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import {
   RouteProp,
   useFocusEffect,
@@ -24,6 +24,15 @@ import {useCardsFilterSort} from './useCardsFilterSort';
 
 type NavigationProp = StackNavigationProp<RootStackParamList>;
 type AllCardsRouteProp = RouteProp<RootStackParamList, 'AllCardsScreen'>;
+
+const hasActiveFilter = (filterValues: CardsFilterValues) =>
+  Boolean(
+    filterValues.isMyCards ||
+      filterValues.name ||
+      filterValues.city ||
+      filterValues.gender ||
+      filterValues.matcherName,
+  );
 
 const AllCardsScreen = () => {
   const navigation = useNavigation<NavigationProp>();
@@ -100,6 +109,12 @@ const AllCardsScreen = () => {
     sessionUserId,
     sortValue,
   });
+
+  const isFilterActive = useMemo(
+    () => onlyMine || hasActiveFilter(filterValues),
+    [filterValues, onlyMine],
+  );
+  const isSortActive = Boolean(sortValue);
 
   const closeMenus = () => {
     setIsShowFilter(false);
@@ -178,7 +193,9 @@ const AllCardsScreen = () => {
     <HomeScreen
       pinChildren={
         <AllCardsToolbar
+          isFilterActive={isFilterActive}
           isFilterOpen={isShowFilter}
+          isSortActive={isSortActive}
           isSortOpen={isShowOrderBy}
           onAdd={addNewCandidate}
           onFilter={toggleFilter}
@@ -209,7 +226,9 @@ const AllCardsScreen = () => {
       <AllCardsContent
         cards={filteredAndSortedCards}
         femaleCount={femaleCount}
+        hasAnyCards={cards.length > 0}
         hasLoaded={hasLoadedCards}
+        isFiltered={isFilterActive}
         isMenuOpen={isMenuOpen}
         maleCount={maleCount}
         onlyMine={onlyMine}
