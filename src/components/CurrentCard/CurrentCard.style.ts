@@ -29,8 +29,6 @@ export const styles = StyleSheet.create({
         width: "100%",
         height: "100%",
     },
-    boy: {},
-    girl: {},
     txt: {
         ...FontsStyle.menuTitle,
         fontSize: FontSize.title,

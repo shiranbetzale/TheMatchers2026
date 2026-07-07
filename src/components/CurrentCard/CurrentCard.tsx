@@ -173,7 +173,7 @@ const CurrentCard = (props: CurrentCardProps) => {
   };
 
   return (
-    <View style={[styles.container, isMale ? styles.boy : styles.girl]}>
+    <View style={[styles.container]}>
       <CustomText text={name} customStyle={styles.txt} />
       <CustomButton
         unstyled
