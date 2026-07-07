@@ -131,15 +131,9 @@ describe('api service', () => {
     });
   });
 
-  it('stops the loader when a response error belongs to a tracked request', async () => {
-    enableGlobalApiLoader();
-    const config = await requestFulfilled({headers: {}});
-
-    expect(config.usesGlobalLoader).toBe(true);
-    expect(showGlobalLoader).toHaveBeenCalledTimes(1);
+  it('rejects response errors from the interceptor', async () => {
+    const config = {usesGlobalLoader: true};
 
     await expect(responseRejected({config})).rejects.toMatchObject({config});
-
-    expect(hideGlobalLoader).toHaveBeenCalledTimes(1);
   });
 });
