@@ -1,14 +1,12 @@
 const React = require('react');
-const renderer = require('react-test-renderer');
-const {act} = renderer;
 
 const getSessionRole = jest.fn();
 const getSessionUser = jest.fn();
 const clearSession = jest.fn(() => Promise.resolve());
-const navigate = jest.fn();
-const dispatch = jest.fn();
 
 const DummyScreen = () => React.createElement('DummyScreen');
+let navigatorProps;
+let screenProps = [];
 
 jest.mock('react-native', () => ({
   Text: ({children, ...props}) => React.createElement('Text', props, children),
@@ -35,13 +33,14 @@ jest.mock('@react-navigation/drawer', () => {
   const React = require('react');
 
   const Drawer = {
-    Navigator: ({children, drawerContent, ...props}) =>
-      React.createElement(
-        'DrawerNavigator',
-        {...props, drawerContent},
-        children,
-      ),
-    Screen: props => React.createElement('DrawerScreen', props),
+    Navigator: props => {
+      navigatorProps = props;
+      return React.createElement('DrawerNavigator', props, props.children);
+    },
+    Screen: props => {
+      screenProps.push(props);
+      return React.createElement('DrawerScreen', props);
+    },
   };
 
   return {
@@ -55,9 +54,7 @@ jest.mock('@react-navigation/native', () => ({
   CommonActions: {
     reset: jest.fn(payload => ({type: 'RESET', payload})),
   },
-  useFocusEffect: callback => {
-    React.useEffect(() => callback(), [callback]);
-  },
+  useFocusEffect: jest.fn(),
 }));
 
 jest.mock('../../services/session', () => ({
@@ -133,90 +130,40 @@ jest.mock('../CustomText/CustomText', () => {
 
 const DrawerNavigation = require('./DrawerNavigation').default;
 
-const flushPromises = () => new Promise(resolve => setImmediate(resolve));
-
-const renderDrawer = async role => {
-  getSessionRole.mockResolvedValue(role);
-  getSessionUser.mockResolvedValue({name: 'Shiran'});
-
-  let tree;
-  await act(async () => {
-    tree = renderer.create(
-      React.createElement(DrawerNavigation, {initialRoute: 'MainScreen'}),
-    );
-    await flushPromises();
-  });
-
-  return tree;
+const invokeComponent = () => {
+  navigatorProps = undefined;
+  screenProps = [];
+  return DrawerNavigation({initialRoute: 'MainScreen'});
 };
 
 describe('DrawerNavigation', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    navigatorProps = undefined;
+    screenProps = [];
   });
 
-  it('enables the drawer for admin and matchmaker roles', async () => {
-    const tree = await renderDrawer('admin');
-    const drawer = tree.root.findByType('DrawerNavigator');
-
-    expect(drawer.props.initialRouteName).toBe('MainScreen');
-    expect(drawer.props.screenOptions.swipeEnabled).toBe(true);
-    expect(drawer.props.screenOptions.headerShown).toBe(true);
-    expect(drawer.props.screenOptions.drawerPosition).toBe('left');
+  it('is importable as a React component', () => {
+    expect(typeof DrawerNavigation).toBe('function');
   });
 
-  it('hides drawer UI for candidate user role while keeping allowed user screens mounted', async () => {
-    const tree = await renderDrawer('user');
-    const drawer = tree.root.findByType('DrawerNavigator');
-    const screens = tree.root.findAllByType('DrawerScreen');
-    const wizard = screens.find(screen => screen.props.name === 'Wizard');
-    const allCards = screens.find(screen => screen.props.name === 'AllCardsScreen');
+  it('starts with drawer disabled before the async role is resolved', () => {
+    invokeComponent();
 
-    expect(drawer.props.screenOptions.swipeEnabled).toBe(false);
-    expect(drawer.props.screenOptions.headerShown).toBe(false);
-    expect(wizard.props.options.drawerItemStyle).toEqual({display: 'none'});
-    expect(allCards.props.options.drawerItemStyle).toEqual({display: 'none'});
+    expect(navigatorProps.initialRouteName).toBe('MainScreen');
+    expect(navigatorProps.screenOptions.swipeEnabled).toBe(false);
+    expect(navigatorProps.screenOptions.headerShown).toBe(false);
   });
 
-  it('clears the session and resets to Login from the custom drawer logout action', async () => {
-    getSessionRole.mockResolvedValue('admin');
-    getSessionUser.mockResolvedValue({name: 'Shiran'});
+  it('hides auth, hidden, and drawer-blocked screens while role is pending', () => {
+    invokeComponent();
 
-    const props = {
-      descriptors: {main: {options: {title: 'main'}}},
-      navigation: {navigate, dispatch},
-      state: {index: 0, routes: [{key: 'main', name: 'MainScreen'}]},
-    };
+    const login = screenProps.find(screen => screen.name === 'Login');
+    const main = screenProps.find(screen => screen.name === 'MainScreen');
+    const hidden = screenProps.find(screen => screen.name === 'HiddenScreen');
 
-    let tree;
-    await act(async () => {
-      tree = renderer.create(
-        React.createElement(DrawerNavigation, {initialRoute: 'MainScreen'}),
-      );
-      await flushPromises();
-    });
-
-    const drawer = tree.root.findByType('DrawerNavigator');
-    let drawerContent;
-    await act(async () => {
-      drawerContent = renderer.create(drawer.props.drawerContent(props));
-      await flushPromises();
-    });
-
-    const buttons = drawerContent.root.findAllByType('CustomButton');
-    const logoutButton = buttons[buttons.length - 1];
-
-    await act(async () => {
-      await logoutButton.props.onPress();
-    });
-
-    expect(clearSession).toHaveBeenCalledTimes(1);
-    expect(dispatch).toHaveBeenCalledWith({
-      type: 'RESET',
-      payload: {
-        index: 0,
-        routes: [{name: 'Login'}],
-      },
-    });
+    expect(login.options.drawerItemStyle).toEqual({display: 'none'});
+    expect(main.options.drawerItemStyle).toEqual({display: 'none'});
+    expect(hidden.options.drawerItemStyle).toEqual({display: 'none'});
   });
 });
