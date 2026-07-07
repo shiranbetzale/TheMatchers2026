@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useCallback, useState} from 'react';
 import CustomButton, {BUTTON_ICON_SIZE} from '../CustomButton/CustomButton';
 import {
   createDrawerNavigator,
@@ -228,33 +228,32 @@ const DrawerNavigation = (props: DrawerNavigationType) => {
   const [userRole, setUserRole] = useState<UserRole | null>(null);
   const [roleResolved, setRoleResolved] = useState(false);
 
-  const loadRole = useCallback(() => {
-    let mounted = true;
+  useFocusEffect(
+    useCallback(() => {
+      let mounted = true;
 
-    getSessionRole()
-      .then(role => {
-        if (mounted) {
-          setUserRole(role);
-        }
-      })
-      .catch(() => {
-        if (mounted) {
-          setUserRole(null);
-        }
-      })
-      .finally(() => {
-        if (mounted) {
-          setRoleResolved(true);
-        }
-      });
+      getSessionRole()
+        .then(role => {
+          if (mounted) {
+            setUserRole(role);
+          }
+        })
+        .catch(() => {
+          if (mounted) {
+            setUserRole(null);
+          }
+        })
+        .finally(() => {
+          if (mounted) {
+            setRoleResolved(true);
+          }
+        });
 
-    return () => {
-      mounted = false;
-    };
-  }, []);
-
-  useEffect(loadRole, [loadRole]);
-  useFocusEffect(loadRole);
+      return () => {
+        mounted = false;
+      };
+    }, []),
+  );
 
   const canUseDrawer =
     roleResolved && (userRole === 'admin' || userRole === 'matchmaker');
