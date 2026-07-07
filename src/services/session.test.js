@@ -43,7 +43,7 @@ describe('session service', () => {
     Date.now = realDateNow;
   });
 
-  it('saves a session with a 24 hour expiration and user details', async () => {
+  it('saves a session with a 30 day expiration and user details', async () => {
     await saveSession('matchmaker', {
       id: 'user-1',
       phone: '0501234567',
@@ -56,7 +56,9 @@ describe('session service', () => {
     expect(storage.get('sessionName')).toBe('Shiran');
     expect(storage.get('sessionEmail')).toBe('shiran@example.com');
     expect(storage.get('sessionUserId')).toBe('user-1');
-    expect(Number(storage.get('sessionExpiresAt'))).toBe(NOW + 24 * 60 * 60 * 1000);
+    expect(Number(storage.get('sessionExpiresAt'))).toBe(
+      NOW + 30 * 24 * 60 * 60 * 1000,
+    );
     await expect(isSessionValid()).resolves.toBe(true);
   });
 
