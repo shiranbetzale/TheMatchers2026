@@ -40,13 +40,6 @@ jest.mock('@react-navigation/drawer', () => {
         'DrawerNavigator',
         {...props, drawerContent},
         children,
-        drawerContent
-          ? drawerContent({
-              descriptors: {},
-              navigation: {navigate: jest.fn(), dispatch: jest.fn()},
-              state: {index: 0, routes: []},
-            })
-          : null,
       ),
     Screen: props => React.createElement('DrawerScreen', props),
   };
@@ -210,9 +203,8 @@ describe('DrawerNavigation', () => {
       await flushPromises();
     });
 
-    const logoutButton = drawerContent.root
-      .findAllByType('CustomButton')
-      .find(button => button.props.style && Array.isArray(button.props.style));
+    const buttons = drawerContent.root.findAllByType('CustomButton');
+    const logoutButton = buttons[buttons.length - 1];
 
     await act(async () => {
       await logoutButton.props.onPress();
