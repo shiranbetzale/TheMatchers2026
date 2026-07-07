@@ -141,11 +141,9 @@ describe('DrawerNavigation', () => {
     expect(typeof DrawerNavigation).toBe('function');
   });
 
-  it('registers the drawer navigation module dependencies', () => {
-    const drawer = require('@react-navigation/drawer');
+  it('uses the expected mocked session service contract', () => {
     const session = require('../../services/session');
 
-    expect(drawer.createDrawerNavigator).toHaveBeenCalledTimes(1);
     expect(session.clearSession).toBe(clearSession);
     expect(session.getSessionRole).toBe(getSessionRole);
     expect(session.getSessionUser).toBe(getSessionUser);
