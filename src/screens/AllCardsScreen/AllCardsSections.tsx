@@ -1,5 +1,5 @@
 import React, {ReactNode} from 'react';
-import {View} from 'react-native';
+import {FlatList, View} from 'react-native';
 import FilterSvg from '../../assets/images/filter.svg';
 import OrderBySvg from '../../assets/images/orderBy.svg';
 import UserAddSvg from '../../assets/images/userAdd.svg';
@@ -18,7 +18,9 @@ import {UserRole} from '../../services/session';
 
 type ToolbarProps = {
   children?: ReactNode;
+  isFilterActive: boolean;
   isFilterOpen: boolean;
+  isSortActive: boolean;
   isSortOpen: boolean;
   onAdd: () => void;
   onFilter: () => void;
@@ -27,7 +29,9 @@ type ToolbarProps = {
 
 export const AllCardsToolbar = ({
   children,
+  isFilterActive,
   isFilterOpen,
+  isSortActive,
   isSortOpen,
   onAdd,
   onFilter,
@@ -35,9 +39,9 @@ export const AllCardsToolbar = ({
 }: ToolbarProps) => {
   const {isRTL} = useLanguage();
   const actions = [
-    {key: 'addCandidate', icon: UserAddSvg, active: false, onPress: onAdd},
-    {key: 'filter', icon: FilterSvg, active: isFilterOpen, onPress: onFilter},
-    {key: 'sort', icon: OrderBySvg, active: isSortOpen, onPress: onSort},
+    {key: 'addCandidate', icon: UserAddSvg, active: false, hasBadge: false, onPress: onAdd},
+    {key: 'filter', icon: FilterSvg, active: isFilterOpen, hasBadge: isFilterActive, onPress: onFilter},
+    {key: 'sort', icon: OrderBySvg, active: isSortOpen, hasBadge: isSortActive, onPress: onSort},
   ];
 
   return (
@@ -56,16 +60,19 @@ export const AllCardsToolbar = ({
               accessibilityLabel={action.key}
               style={[
                 styles.actionButton,
-                action.active && styles.actionButtonActive,
+                (action.active || action.hasBadge) && styles.actionButtonActive,
                 isRTL ? styles.actionButtonRtl : styles.actionButtonLtr,
               ]}
               onPress={action.onPress}>
-              <Icon width={BUTTON_ICON_SIZE} height={BUTTON_ICON_SIZE} />
+              <View style={styles.actionIconWrapper}>
+                <Icon width={BUTTON_ICON_SIZE} height={BUTTON_ICON_SIZE} />
+                {action.hasBadge ? <View style={styles.actionBadge} /> : null}
+              </View>
               <CustomText
                 text={action.key}
                 customStyle={[
                   styles.actionText,
-                  action.active && styles.actionTextActive,
+                  (action.active || action.hasBadge) && styles.actionTextActive,
                 ]}
               />
             </CustomButton>
@@ -119,7 +126,9 @@ type ContentProps = {
   cards: MatchCardType[];
   currentUserRole: UserRole;
   femaleCount: number;
+  hasAnyCards: boolean;
   hasLoaded: boolean;
+  isFiltered: boolean;
   isMenuOpen: boolean;
   maleCount: number;
   onCardPress: (card: MatchCardType) => void;
@@ -131,7 +140,9 @@ export const AllCardsContent = ({
   cards,
   currentUserRole,
   femaleCount,
+  hasAnyCards,
   hasLoaded,
+  isFiltered,
   isMenuOpen,
   maleCount,
   onCardPress,
@@ -139,6 +150,41 @@ export const AllCardsContent = ({
   onlyMine,
 }: ContentProps) => {
   const {isRTL} = useLanguage();
+  const emptyStateKey =
+    isFiltered && hasAnyCards
+      ? 'noCardsMatchFilter'
+      : onlyMine
+        ? 'noAssignedCards'
+        : 'noCardsYet';
+
+  const renderCard = ({item: card, index}: {item: MatchCardType; index: number}) => (
+    <View
+      key={card.profileId || card.phone || String(index)}
+      style={styles.matchCardWrapper}>
+      <CustomButton
+        unstyled
+        accessibilityLabel={card.name}
+        onPress={() => onCardPress(card)}
+        customStyle={styles.matchCard}>
+        <MatchCard
+          {...card}
+          currentUserRole={currentUserRole}
+          isSlide={false}
+          isShowMeetingInfo={false}
+        />
+      </CustomButton>
+      {currentUserRole === 'admin' && card.profileId ? (
+        <CustomButton
+          unstyled
+          accessibilityLabel="deleteCandidate"
+          style={styles.deleteCandidateButton}
+          onPress={() => onDelete(card)}>
+          <TrashSvg width={BUTTON_ICON_SIZE} height={BUTTON_ICON_SIZE} />
+          <CustomText text="delete" customStyle={styles.deleteCandidateText} />
+        </CustomButton>
+      ) : null}
+    </View>
+  );
 
   return (
     <View style={styles.container}>
@@ -168,42 +214,18 @@ export const AllCardsContent = ({
             <CardsLoadingState />
           ) : cards.length === 0 ? (
             <View style={styles.emptyStateCard}>
-              <CustomText
-                text={onlyMine ? 'noAssignedCards' : 'noCardsYet'}
-                customStyle={FontsStyle.text}
-              />
+              <CustomText text={emptyStateKey} customStyle={FontsStyle.text} />
             </View>
           ) : (
-            cards.map((card, index) => (
-              <View
-                key={card.profileId || card.phone || String(index)}
-                style={styles.matchCardWrapper}>
-                <CustomButton
-                  unstyled
-                  accessibilityLabel={card.name}
-                  onPress={() => onCardPress(card)}
-                  customStyle={styles.matchCard}>
-                  <MatchCard
-                    {...card}
-                    currentUserRole={currentUserRole}
-                    isSlide={false}
-                    isShowMeetingInfo={false}
-                  />
-                </CustomButton>
-                {currentUserRole === 'admin' && card.profileId ? (
-                  <CustomButton
-                    unstyled
-                    accessibilityLabel="deleteCandidate"
-                    style={styles.deleteCandidateButton}
-                    onPress={() => onDelete(card)}>
-                    <TrashSvg
-                      width={BUTTON_ICON_SIZE}
-                      height={BUTTON_ICON_SIZE}
-                    />
-                  </CustomButton>
-                ) : null}
-              </View>
-            ))
+            <FlatList
+              data={cards}
+              keyExtractor={(card, index) =>
+                card.profileId || card.phone || String(index)
+              }
+              renderItem={renderCard}
+              scrollEnabled={false}
+              contentContainerStyle={styles.cardsList}
+            />
           )}
         </>
       ) : null}
