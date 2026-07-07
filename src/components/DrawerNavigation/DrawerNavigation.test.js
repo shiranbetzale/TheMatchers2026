@@ -10,6 +10,14 @@ const dispatch = jest.fn();
 
 const DummyScreen = () => React.createElement('DummyScreen');
 
+jest.mock('react-native', () => ({
+  Text: ({children, ...props}) => React.createElement('Text', props, children),
+  View: ({children, ...props}) => React.createElement('View', props, children),
+  StyleSheet: {
+    create: styles => styles,
+  },
+}));
+
 jest.mock('@react-navigation/drawer', () => {
   const React = require('react');
 
