@@ -7,7 +7,8 @@ const SESSION_PHONE_KEY = 'sessionPhone';
 const SESSION_NAME_KEY = 'sessionName';
 const SESSION_EMAIL_KEY = 'sessionEmail';
 const SESSION_USER_ID_KEY = 'sessionUserId';
-const SESSION_DURATION_MS = 24 * 60 * 60 * 1000;
+const SESSION_DURATION_DAYS = 30;
+const SESSION_DURATION_MS = SESSION_DURATION_DAYS * 24 * 60 * 60 * 1000;
 const sessionListeners = new Set<() => void>();
 const SESSION_KEYS = [
   SESSION_EXPIRES_AT_KEY,
