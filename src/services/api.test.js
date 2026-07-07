@@ -3,6 +3,9 @@ let requestFulfilled;
 let requestRejected;
 let responseFulfilled;
 let responseRejected;
+
+const createAxiosInstance = jest.fn(() => apiInstance);
+
 const apiInstance = {
   get: jest.fn(() => Promise.resolve()),
   interceptors: {
@@ -38,7 +41,11 @@ const hideGlobalLoader = jest.fn();
 const showGlobalError = jest.fn();
 
 jest.mock('axios', () => ({
-  create: jest.fn(() => apiInstance),
+  __esModule: true,
+  default: {
+    create: createAxiosInstance,
+  },
+  create: createAxiosInstance,
 }));
 
 jest.mock('@react-native-async-storage/async-storage', () => AsyncStorage);
@@ -65,9 +72,7 @@ describe('api service', () => {
   });
 
   it('configures axios with the app base URL and timeout', () => {
-    const axios = require('axios');
-
-    expect(axios.create).toHaveBeenCalledWith({
+    expect(createAxiosInstance).toHaveBeenCalledWith({
       baseURL: 'https://api.example.test',
       timeout: 20000,
     });
