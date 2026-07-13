@@ -15,10 +15,10 @@ async function openLogin({deleteAppData = true} = {}) {
       .toBeVisible()
       .withTimeout(3000);
   } catch (_error) {
-    await waitFor(element(by.text(/^(דלג|Skip)$/i)))
+    await waitFor(element(by.id('button-skip')))
       .toBeVisible()
       .withTimeout(10000);
-    await element(by.text(/^(דלג|Skip)$/i)).tap();
+    await element(by.id('button-skip')).tap();
     await waitFor(element(by.id('input-phoneNumber')))
       .toBeVisible()
       .withTimeout(10000);
