@@ -9,6 +9,8 @@ const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);
 export const BUTTON_ICON_SIZE = 20;
 const DEFAULT_HIT_SLOP = {top: 12, right: 12, bottom: 12, left: 12};
 
+const normalizeTestIDPart = (value: string) => value.replace(/\s+/g, '-');
+
 const CustomButton = (props: CustomButtonType) => {
   const {
     accessibilityLabel,
@@ -33,8 +35,15 @@ const CustomButton = (props: CustomButtonType) => {
   const pressScale = useRef(new Animated.Value(1)).current;
 
   const resolvedVariant = variant ?? (icon ? 'icon' : 'primary');
+  const childTextKey =
+    React.isValidElement(children) &&
+    typeof (children.props as {text?: unknown})?.text === 'string'
+      ? String((children.props as {text: string}).text)
+      : '';
+  const testIDKey = text || childTextKey;
   const resolvedTestID =
-    testID || (text ? `button-${String(text).replace(/\s+/g, '-')}` : undefined);
+    testID ||
+    (testIDKey ? `button-${normalizeTestIDPart(String(testIDKey))}` : undefined);
   const variantStyle = {
     primary: SharedStyles.buttonPrimary,
     secondary: SharedStyles.buttonSecondary,
