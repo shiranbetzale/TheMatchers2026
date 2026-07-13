@@ -24,6 +24,7 @@ const CustomButton = (props: CustomButtonType) => {
     size = 'medium',
     style,
     text,
+    testID,
     unstyled = false,
     variant,
     ...touchableProps
@@ -32,6 +33,8 @@ const CustomButton = (props: CustomButtonType) => {
   const pressScale = useRef(new Animated.Value(1)).current;
 
   const resolvedVariant = variant ?? (icon ? 'icon' : 'primary');
+  const resolvedTestID =
+    testID || (text ? `button-${String(text).replace(/\s+/g, '-')}` : undefined);
   const variantStyle = {
     primary: SharedStyles.buttonPrimary,
     secondary: SharedStyles.buttonSecondary,
@@ -64,6 +67,7 @@ const CustomButton = (props: CustomButtonType) => {
 
   return (
     <AnimatedTouchable
+      testID={resolvedTestID}
       style={[
         !unstyled &&
           resolvedVariant !== 'icon' &&
