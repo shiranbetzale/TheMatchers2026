@@ -15,6 +15,7 @@ const formatDigitsWithCommas = (value: unknown) => {
 
 const CustomInput = (props: CustomInputType) => {
   const {
+    testID,
     accessibilityHint,
     accessibilityLabel,
     maxLength,
@@ -32,7 +33,7 @@ const CustomInput = (props: CustomInputType) => {
     errorText,
     text,
     defaultValue,
-    value, // הערך מגיע מהורה
+    value,
     onChangeText = () => {},
   } = props;
   const {isRTL, t} = useLanguage();
@@ -53,9 +54,11 @@ const CustomInput = (props: CustomInputType) => {
     ? formatDigitsWithCommas(defaultValue)
     : defaultValue?.toString();
   const labelText = text || placeholder;
+  const resolvedTestID = testID || `input-${String(placeholder)}`;
 
   const inputElement = (
     <TextInput
+      testID={resolvedTestID}
       accessible
       accessibilityHint={accessibilityHint ? t(accessibilityHint) : undefined}
       accessibilityLabel={t(accessibilityLabel || String(labelText))}
@@ -70,9 +73,11 @@ const CustomInput = (props: CustomInputType) => {
         errorText && styles.errorInput,
         isRTL ? styles.rtlInput : styles.ltrInput,
       ]}
-      onChangeText={text => {
+      onChangeText={inputText => {
         const next =
-          onlyDigits || formatWithCommas ? text.replace(/\D+/g, '') : text;
+          onlyDigits || formatWithCommas
+            ? inputText.replace(/\D+/g, '')
+            : inputText;
         onChangeText(next);
       }}
       autoCapitalize={autoCapitalize}
@@ -141,6 +146,7 @@ const CustomInput = (props: CustomInputType) => {
           {showToggle && (
             <CustomButton
               unstyled
+              testID={`${resolvedTestID}-toggle-secure`}
               accessibilityLabel={isSecure ? 'showPassword' : 'hidePassword'}
               onPress={() => setIsSecure(prev => !prev)}
               style={[styles.toggleSecure, isRTL && styles.toggleSecureRtl]}>
