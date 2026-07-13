@@ -1,6 +1,7 @@
 import {KeyboardTypeOptions, TextInputProps} from 'react-native';
 
 export type CustomInputType = {
+  testID?: string;
   maxLength?: number;
   isSmallSize?: boolean;
   placeholder: string;
