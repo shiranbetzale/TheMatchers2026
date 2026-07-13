@@ -6,7 +6,22 @@ import {saveSession} from './session';
 
 const AUTH_REQUEST_TIMEOUT_MS = 60000;
 
+export const E2E_MATCHMAKER_PHONE = '0500000001';
+export const E2E_MATCHMAKER_PASSWORD = 'e2e-matchmaker';
+export const E2E_CANDIDATE_PHONE = '0500000002';
+export const E2E_CANDIDATE_CODE = '123456';
+
 let lastCandidateSmsPhone = '';
+
+const isE2EMatchmaker = (phone: string, password: string) =>
+  __DEV__ &&
+  phone === E2E_MATCHMAKER_PHONE &&
+  password === E2E_MATCHMAKER_PASSWORD;
+
+const isE2ECandidate = (phone: string, matchmakerPhone: string) =>
+  __DEV__ &&
+  phone === E2E_CANDIDATE_PHONE &&
+  matchmakerPhone === E2E_MATCHMAKER_PHONE;
 
 type LoginResponse = {
   token: string;
@@ -21,6 +36,26 @@ type LoginResponse = {
 };
 
 export async function loginWithPassword(phone: string, password: string) {
+  if (isE2EMatchmaker(phone, password)) {
+    const user: LoginResponse['user'] = {
+      id: 'e2e-matchmaker',
+      fullName: 'E2E Matchmaker',
+      phone,
+      email: 'e2e-matchmaker@example.invalid',
+      role: 'matchmaker',
+    };
+
+    await setApiAuthToken('e2e-debug-token');
+    await saveSession(user.role, {
+      id: user.id,
+      phone: user.phone,
+      name: user.fullName,
+      email: user.email,
+    });
+
+    return user;
+  }
+
   const response = await api.post<LoginResponse>(
     '/auth/login',
     {
@@ -55,6 +90,20 @@ export type CandidateVerifyResponse = {
   nextScreen: 'Wizard';
 };
 
+const createE2ECandidateResponse = (
+  phone: string,
+  matchmakerPhone: string,
+): CandidateVerifyResponse => ({
+  user: {
+    id: 'e2e-candidate',
+    phone,
+    role: 'user',
+    matchmakerPhone,
+  },
+  token: 'e2e-candidate-debug-token',
+  nextScreen: 'Wizard',
+});
+
 const toFirebasePhoneNumber = (phone: string) => {
   const digits = String(phone || '').replace(/\D/g, '');
 
@@ -84,6 +133,26 @@ export const sendCandidateCode = async (
   matchmakerPhone: string,
   forceResend = false,
 ): Promise<FirebaseAuthTypes.ConfirmationResult> => {
+  if (isE2ECandidate(phone, matchmakerPhone)) {
+    return {
+      confirm: async (code: string) => {
+        if (code !== E2E_CANDIDATE_CODE) {
+          const error = new Error('Invalid E2E verification code');
+          (error as Error & {code?: string}).code =
+            'auth/invalid-verification-code';
+          throw error;
+        }
+
+        return {
+          user: {
+            getIdToken: async () => 'e2e-firebase-id-token',
+          },
+        } as FirebaseAuthTypes.UserCredential;
+      },
+      verificationId: 'e2e-verification-id',
+    } as FirebaseAuthTypes.ConfirmationResult;
+  }
+
   await api.post(
     '/auth/candidate/send-code',
     {
@@ -142,6 +211,12 @@ export const verifyCandidateCode = async ({
     throw error;
   }
 
+  if (isE2ECandidate(phone, matchmakerPhone)) {
+    const response = createE2ECandidateResponse(phone, matchmakerPhone);
+    await setApiAuthToken(response.token);
+    return response;
+  }
+
   const firebaseIdToken = await credential.user.getIdToken(true);
   const response = await api.post(
     '/auth/candidate/verify-firebase',
@@ -170,6 +245,20 @@ export const verifyCandidateFallbackCode = async ({
   matchmakerPhone: string;
   code: string;
 }): Promise<CandidateVerifyResponse> => {
+  if (isE2ECandidate(phone, matchmakerPhone)) {
+    if (code !== E2E_CANDIDATE_CODE) {
+      const error = new Error('invalid candidate code') as Error & {
+        response?: {status: number};
+      };
+      error.response = {status: 401};
+      throw error;
+    }
+
+    const result = createE2ECandidateResponse(phone, matchmakerPhone);
+    await setApiAuthToken(result.token);
+    return result;
+  }
+
   const response = await api.post(
     '/auth/candidate/verify-code',
     {
@@ -192,6 +281,10 @@ export const sendCandidateVoiceCode = async (
   phone: string,
   matchmakerPhone: string,
 ) => {
+  if (isE2ECandidate(phone, matchmakerPhone)) {
+    return;
+  }
+
   await api.post(
     '/auth/candidate/send-voice-code',
     {phone, matchmakerPhone},
@@ -211,6 +304,20 @@ export const verifyCandidateVoiceCode = async ({
   matchmakerPhone: string;
   code: string;
 }): Promise<CandidateVerifyResponse> => {
+  if (isE2ECandidate(phone, matchmakerPhone)) {
+    if (code !== E2E_CANDIDATE_CODE) {
+      const error = new Error('invalid candidate code') as Error & {
+        response?: {status: number};
+      };
+      error.response = {status: 401};
+      throw error;
+    }
+
+    const result = createE2ECandidateResponse(phone, matchmakerPhone);
+    await setApiAuthToken(result.token);
+    return result;
+  }
+
   const response = await api.post(
     '/auth/candidate/verify-voice-code',
     {phone, matchmakerPhone, code},
